@@ -1,0 +1,17 @@
+# Bidirectional bridge: GitHub ⇄ bio.tools
+
+[Biohackathon 2025 project](https://github.com/elixir-europe/biohackathon-projects-2025/blob/main/5.md) 
+
+## Abstract
+
+This project will bidirectionally bridge GitHub and bio.tools by developing metadata tooling that benefits both platforms. This will enable producing high-quality, rich bio.tools entries from the content already in GitHub repositories, with use cases from different communities. The tool will use bio.tools records to suggest improvements to GitHub repositories, including adding missing information and standardized descriptions, for increased compliance with Software Management Plans (SMPs). 
+
+GitHub→bio.tools: the tool will use the GitHub API to extract relevant metadata (tool name, programming languages, license, publications, etc.) from repository files and a novel template. This template will be designed in a lightweight, human-readable format (e.g., a structured section in the README) to easily annotate key fields that are difficult to infer reliably and ensure they are also machine-readable. We will leverage text mining and LLMs to enrich metadata, such as tool descriptions. I/O formats may be inferred from usage information or source code. The approaches will be combined to produce a bio.tools-compatible metadata file. 
+
+bio.tools→GitHub: the tool will use bio.tools metadata to suggest enhancements to GitHub repositories, add badges and excerpts from the functional annotation in bio.tools, and, where possible, automatically submit pull requests with proposed updates.  
+
+This project addresses key barriers to maintaining software metadata and supports FAIR practices by embedding curation directly into existing workflows. By automating metadata extraction, suggestion, and integration, the tool reduces the manual overhead required to FAIRify research software, lowering barriers for researchers to contribute well-annotated, reusable tools.
+
+---
+## License
+This project is licensed under Apache 2.0. See the [LICENSE](LICENSE.txt) file for details.
