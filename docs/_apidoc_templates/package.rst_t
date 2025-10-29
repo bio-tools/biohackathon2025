@@ -1,0 +1,94 @@
+{# ==========================================================
+   Custom apidoc package template for bridge
+   - Displays public interface (from __init__.py)
+   - Then lists subpackages and submodules as tables
+   ========================================================== #}
+
+{%- macro automodule(modname, options) -%}
+.. automodule:: {{ modname }}
+{%- for option in options %}
+   :{{ option }}:
+{%- endfor %}
+{%- endmacro %}
+
+
+{# ---------- PACKAGE HEADING ---------- #}
+{%- if is_namespace %}
+{{- [pkgname, "namespace"] | join(" ") | e | heading }}
+.. py:module:: {{ pkgname }}
+{% else %}
+{{- [pkgname, "package"] | join(" ") | e | heading }}
+{% endif %}
+
+
+{# ---------- PUBLIC INTERFACE ---------- #}
+Public Interface
+----------------
+This section documents user-facing interface of the ``{{ pkgname }}`` package (as defined in its ``__init__.py`` file).
+
+.. automodapi:: {{ pkgname }}
+   :no-inheritance-diagram:
+   :no-main-docstr:
+   :include-all-objects:
+   :no-heading:
+   :noindex:
+
+
+.. automodule:: {{ pkgname }}
+   :members:
+   :show-inheritance:
+
+
+
+{# ---------- SUBPACKAGES ---------- #}
+{%- if subpackages %}
+Subpackages
+-----------
+
+.. autosummary::
+   :toctree: .
+   :nosignatures:
+
+   {% for subpackage in subpackages | sort %}
+   {{ subpackage | replace(pkgname ~ '.', '') }}
+   {% endfor %}
+{% endif %}
+
+
+{# ---------- SUBMODULES ---------- #}
+{%- if submodules %}
+Submodules
+----------
+
+.. autosummary::
+   :toctree: .
+   :nosignatures:
+
+   {% for submodule in submodules | sort %}
+   {{ submodule | replace(pkgname ~ '.', '') }}
+   {% endfor %}
+{% endif %}
+
+
+{# ---------- SUBPACKES & SUBMODULES DEPENDENCIES ---------- #}
+{%- if subpackages or submodules %}
+Dependencies diagram
+--------------------
+
+Each architecture diagram below visualizes the internal dependency structure of the ``{{ pkgname }}`` package.
+It shows how modules and subpackages within the package depend on each other, based on direct Python imports.
+
+- Packages are shown as purple rectangles
+- Modules are shown as pink rectangles
+- Arrows (A → B) indicate that A directly imports B
+
+Each subpackage’s diagram focuses only on its own internal structure,
+it does not include imports to or from higher-level packages
+(those appear in the parent package’s diagram).
+
+.. image:: ../_architecture_generated/{{ pkgname }}.dependencies.svg
+   :alt: bridge package dependencies
+   :width: 80%
+   :align: center
+
+{% endif %}

@@ -1,0 +1,121 @@
+name: Build & Deploy Docs
+
+on:
+  push:
+    branches: [ main, dev ]
+  pull_request:
+    branches: [ dev ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# keep branch runs separate so dev doesn't cancel main (and vice versa)
+concurrency:
+  group: "pages-${{ github.ref }}"
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+          installer-parallel: true
+
+      - name: Install deps (main + docs)
+        run: |
+          poetry install --no-interaction --no-ansi --with docs
+
+      - name: Install d2 (pinned)
+        run: |
+          set -eux
+          D2_VERSION=v0.7.1
+          curl -L "https://github.com/terrastruct/d2/releases/download/${D2_VERSION}/d2-${D2_VERSION}-linux-amd64.tar.gz" -o d2.tgz
+          tar -xzf d2.tgz
+          sudo install -m 0755 "d2-${D2_VERSION}/bin/d2" /usr/local/bin/d2
+          d2 --version
+
+      # recommended by GitHub Pages action; safe for all events.
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Generate architecture diagrams
+        env:
+          PYTHONPATH: src
+        run: |
+          poetry run gen-diagrams
+
+      - name: Build Sphinx HTML
+        run: |
+          poetry run gen-docs
+
+      # keep this for push & PR so both prod & preview can deploy from the artifact
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs/build
+
+  # production deploy: only on push to main
+  deploy_prod:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages (production)
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+  # preview deploys: PRs to dev and pushes to dev
+  deploy_preview:
+    if: >
+      github.event_name == 'pull_request' ||
+      (github.event_name == 'push' && github.ref == 'refs/heads/dev')
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy Pages preview
+        id: deployment
+        uses: actions/deploy-pages@v4
+        with:
+          preview: true
+
+      # optional quality-of-life: post the preview URL as a PR comment
+      - name: Comment preview link on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const url = '${{ steps.deployment.outputs.page_url }}';
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: `Docs preview ready: ${url}`
+            });
+
+      # also drop the link into the run summary for pushes to dev
+      - name: Add preview link to job summary
+        if: github.event_name == 'push'
+        run: |
+          echo "Docs preview: ${{ steps.deployment.outputs.page_url }}" >> $GITHUB_STEP_SUMMARY

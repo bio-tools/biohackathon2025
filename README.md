@@ -1,16 +1,73 @@
 # Bidirectional bridge: GitHub ⇄ bio.tools
 
+**Goal**: 
+make software metadata painless. 
+This tool extracts high-quality metadata from GitHub repos 
+to build bio.tools entries
+and uses bio.tools records to propose improvements back to GitHub 
+(badges, descriptions, files). 
+During the BioHackathon it targets GitHub and bio.tools only, 
+but the architecture is intentionally pluggable for more backends later.
+
+**Why**:
+- Reduces manual work in software metadata curation.
+- Improves repository visibility and discoverability.
+- Closes the loop: metadata is useful in both directions.
+
+Full abstract: 
 [Biohackathon 2025 project](https://github.com/elixir-europe/biohackathon-projects-2025/blob/main/5.md) 
+---
 
-## Abstract
+## Features
 
-This project will bidirectionally bridge GitHub and bio.tools by developing metadata tooling that benefits both platforms. This will enable producing high-quality, rich bio.tools entries from the content already in GitHub repositories, with use cases from different communities. The tool will use bio.tools records to suggest improvements to GitHub repositories, including adding missing information and standardized descriptions, for increased compliance with Software Management Plans (SMPs). 
+| Direction          | What we do                                                             | Output                    |
+|--------------------|------------------------------------------------------------------------|---------------------------|
+| GitHub → bio.tools | Extract metadata from GitHub repositories                              | JSON bio.tools metatadata |
+| bio.tools → GitHub | Propose improvements to GitHub repositories based on bio.tools records | PR                        |
 
-GitHub→bio.tools: the tool will use the GitHub API to extract relevant metadata (tool name, programming languages, license, publications, etc.) from repository files and a novel template. This template will be designed in a lightweight, human-readable format (e.g., a structured section in the README) to easily annotate key fields that are difficult to infer reliably and ensure they are also machine-readable. We will leverage text mining and LLMs to enrich metadata, such as tool descriptions. I/O formats may be inferred from usage information or source code. The approaches will be combined to produce a bio.tools-compatible metadata file. 
 
-bio.tools→GitHub: the tool will use bio.tools metadata to suggest enhancements to GitHub repositories, add badges and excerpts from the functional annotation in bio.tools, and, where possible, automatically submit pull requests with proposed updates.  
+## Quick start
 
-This project addresses key barriers to maintaining software metadata and supports FAIR practices by embedding curation directly into existing workflows. By automating metadata extraction, suggestion, and integration, the tool reduces the manual overhead required to FAIRify research software, lowering barriers for researchers to contribute well-annotated, reusable tools.
+```bash
+# clone
+git clone https://github.com/bio-tools/biohackathon2025.git
+cd biohackathon2025
+
+# install (all groups)
+poetry install
+
+# enable quality hooks
+poetry run pre-commit install --hook-type pre-commit --hook-type pre-push
+```
+
+Run the API (with auto-reload). Access Swagger at [localhost:8000/docs](http://localhost:8000/docs).
+
+```bash
+poetry run bridge api
+```
+
+Use the CLI:
+
+```bash
+poetry run bridge cli --help
+```
+
+## Documentation
+
+The documentation is available at [https://bio-tools.github.io/biohackathon2025/](https://bio-tools.github.io/biohackathon2025/).
+
+Preview on [localhost](http://localhost:8000):
+```bash
+poetry run gen-diagrams
+poetry run gen-docs
+python -m http.server --directory docs/build
+```
+
+## Contributing
+
+Contributions are welcome! 
+Please read the [CONTRIBUTING](CONTRIBUTING.md) or branching, PR rules, and code style.
+Read the [Developer guide](https://bio-tools.github.io/biohackathon2025/dev_guide.html) for setup and commands.
 
 ---
 ## License
