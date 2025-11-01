@@ -10,6 +10,8 @@ Run via:
 import ast
 import os
 import pathlib
+import shutil
+import subprocess
 import textwrap
 from pathlib import Path
 
@@ -220,12 +222,27 @@ def write_diagram(package: str, d2_source: str):
     d2_path.write_text(d2_source, encoding="utf-8")
     print(f"Wrote {d2_path}")
 
-    if os.system("which d2 > /dev/null 2>&1") == 0:
-        svg_path = DOCS_DIR / f"{package}.dependencies.svg"
-        os.system(f'd2 "{d2_path}" "{svg_path}"')
+    d2_exe = shutil.which("d2")
+    svg_path = DOCS_DIR / f"{package}.dependencies.svg"
+
+    if not d2_exe:
+        print("D2 CLI not found.")
+        print(" • macOS: brew install d2")
+        print(" • Windows: scoop install d2")
+        print(" • Linux: see https://d2lang.com/tour/install/")
+        return
+
+    try:
+        subprocess.run(
+            [d2_exe, str(d2_path), str(svg_path)],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
         print(f"Rendered {svg_path}")
-    else:
-        print("D2 CLI not found. Install with: brew install d2")
+    except subprocess.CalledProcessError as e:
+        print(f"Failed to render {package} diagram.")
+        print(e.stderr.strip() or e.stdout.strip() or "Unknown error.")
 
 
 def main():
@@ -253,6 +270,8 @@ def main():
 
         d2_source = generate_d2_for_package(pkg, nodes, edges, docstrings)
         write_diagram(pkg, d2_source)
+
+        print("")
 
 
 if __name__ == "__main__":
