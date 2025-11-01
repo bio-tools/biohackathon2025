@@ -22,3 +22,5 @@ __pycache__/
 
 # Grimp cache
 .grimp_cache/
+.pytest_cache/
+.ruff_cache/

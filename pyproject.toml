@@ -28,6 +28,9 @@ datamodel-code-generator = "^0.35.0"
 ruff = "^0.14.2"
 black = "^25.9.0"
 pre-commit = "^4.3.0"
+pytest = "^8.4.2"
+pytest-asyncio = "^1.2.0"
+pytest-httpx = "^0.35.0"
 
 [tool.poetry.group.docs.dependencies]
 sphinx = "^8.2.3"
@@ -75,6 +78,12 @@ combine-as-imports = true
 
 [tool.ruff.lint.pydocstyle]
 convention = "numpy"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = [
+  "tests",
+]
 
 [tool.poetry]
 packages = [{ include = "bridge", from = "src" }]
