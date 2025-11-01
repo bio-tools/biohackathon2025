@@ -22,7 +22,7 @@ def run_api(
     """Run the FastAPI web service."""
     # uvicorn.run(api_app, host=host, port=port, reload=reload)
     print(f"Access Swagger UI at http://{host}:{port}/docs")
-    uvicorn.run("bridge.api.main:app", host=host, port=port, reload=reload)
+    uvicorn.run("bridge.adapters.api.main:app", host=host, port=port, reload=reload)
 
 
 if __name__ == "__main__":
