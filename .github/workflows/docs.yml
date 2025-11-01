@@ -11,6 +11,8 @@ permissions:
   contents: read
   pages: write
   id-token: write
+  issues: write
+  pull-requests: write
 
 # keep branch runs separate so dev doesn't cancel main (and vice versa)
 concurrency:
