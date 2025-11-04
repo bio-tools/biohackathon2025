@@ -27,11 +27,14 @@ class BioToolsToGitHubPayload(BaseModel):
         The owner of the GitHub repository to create the PR in.
     repo : str
         The name of the GitHub repository to create the PR in.
+    allow_issues : bool | None
+        Whether to create issues in the repository based on bio.tools issues. Default is None.
     """
 
     biotools_id: str
     owner: str
     repo: str
+    allow_issues: bool | None = None
 
 
 @router.post(
@@ -62,6 +65,7 @@ async def biotools_to_github_pr(payload: BioToolsToGitHubPayload):
             identifier=payload.biotools_id,
             owner=payload.owner,
             repo=payload.repo,
+            allow_issues=payload.allow_issues,
         )
         return JSONResponse(status_code=status.HTTP_201_CREATED, content=pr)
     except Exception as e:

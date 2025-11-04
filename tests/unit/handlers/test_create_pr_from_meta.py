@@ -13,24 +13,23 @@ handler_mod = importlib.import_module("bridge.handlers.create_pr_from_meta")
 @pytest.mark.asyncio
 async def test_create_pr_from_meta_happy(monkeypatch):
     """
-    Test that create_pr_from_meta works end-to-end with mocked components.
-
-    Raises
-    ------
-    AssertionError
-        If the final output does not match the expected values.
+    Test that create_pr_from_meta works end-to-end with mocked components,
+    including optional issue creation.
     """
 
     async def fake_metadata_composer(**kwargs):
         return {"name": "tool-from-biotools"}
 
     async def fake_repo_composer(**kwargs):
-        # what handler expects from repo_model: .default_branch
+        # handler expects .default_branch
         return SimpleNamespace(default_branch="main")
 
     async def fake_pipeline(args):
-        # pipeline returns dict of file changes
-        return {"README.md": "# updated from pipeline\n"}
+        # return both file_changes and issues (now required)
+        return (
+            {"README.md": "# updated from pipeline\n"},
+            {"Broken metadata": "Something needs fixing."},
+        )
 
     def fake_get_schema_composer(schema):
         return fake_metadata_composer
@@ -46,9 +45,9 @@ async def test_create_pr_from_meta_happy(monkeypatch):
         def __init__(self):
             self.applied = False
             self.pr_created = False
+            self.issues_created = []
 
         async def fork(self, owner: str, repo: str):
-            # handler expects .full_name and .owner
             return SimpleNamespace(full_name="fakeuser/fakerepo", owner="fakeuser", repo="fakerepo")
 
         def clone_context(self, repo_full_name: str):
@@ -71,10 +70,14 @@ async def test_create_pr_from_meta_happy(monkeypatch):
             self.pr_created = True
             return {"html_url": "https://github.com/x/y/pull/1"}
 
+        async def create_issue(self, owner, repo, title, body, labels=None, assignees=None):
+            self.issues_created.append({"title": title, "body": body})
+            return {"html_url": "https://github.com/x/y/issues/1"}
+
     def fake_get_repo_components(repo_type):
-        # (composer, provider-factory)
         return fake_repo_composer, FakeRepoProvider
 
+    # monkeypatch all dependencies
     monkeypatch.setattr(handler_mod, "get_schema_composer", fake_get_schema_composer)
     monkeypatch.setattr(handler_mod, "get_repo_components", fake_get_repo_components)
     monkeypatch.setattr(handler_mod, "get_pipeline", fake_get_pipeline)
@@ -85,6 +88,7 @@ async def test_create_pr_from_meta_happy(monkeypatch):
         owner="bio-tools",
         repo="biohackathon2025",
         identifier="my-tool",
+        allow_issues=True,
     )
 
     assert result["html_url"] == "https://github.com/x/y/pull/1"
