@@ -49,10 +49,12 @@ line-length = 120
 target-version = ["py312"]
 force-exclude = '''
 (
-    (^|/)src/bridge/core/biotools\.py
-  | (^|/)src/bridge/core/github\.py
+    (^|/)src/bridge/core/biotools\\.py
+  | (^|/)src/bridge/core/github_repo\\.py
+  | (^|/)src/bridge/core/github_latest_release\\.py
   | (^|/)docs/
 )
+"""
 '''
 
 [tool.ruff]
@@ -61,7 +63,8 @@ line-length = 120
 extend-exclude = [
   "docs",
   "src/bridge/core/biotools.py",
-  "src/bridge/core/github.py",
+  "src/bridge/core/github_repo.py",
+  "src/bridge/core/github_latest_release.py",
 ]
 
 [tool.ruff.lint]

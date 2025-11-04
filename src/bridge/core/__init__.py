@@ -4,7 +4,7 @@ Re-exports validated Pydantic models for repositories and metadata.
 """
 
 from .biotools import ToolModel as BiotoolsToolModel
-from .github import FullRepository as GitHubRepoModel
+from .github import GitHubRepoModel
 
 __all__ = [
     "BiotoolsToolModel",

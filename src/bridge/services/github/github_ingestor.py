@@ -60,6 +60,28 @@ class GitHubIngestor(Ingestor):
         logger.info(f"Ingested data for {self.owner}/{self.repo} successfully")
         return data
 
+    async def fetch_latest_release(self) -> dict[str, Any] | None:
+        """
+        Fetch the latest release (raw JSON) or return None if the repo has no releases.
+
+        Returns
+        -------
+        dict | None
+            Latest release JSON, or None when GitHub returns 404 (no releases).
+        """
+        base = settings.github_api_base
+        url = f"{base}/repos/{self.owner}/{self.repo}/releases/latest"
+        # Include the version header GitHub recommends; Accept is already set in get_github_headers().
+        headers = {"X-GitHub-Api-Version": "2022-11-28"}
+        try:
+            logger.debug(f"Fetching latest release: {url}")
+            return await self._get(url, headers=headers)
+        except httpx.HTTPStatusError as e:
+            if e.response.status_code == 404:
+                logger.info(f"No releases for {self.owner}/{self.repo}")
+                return None
+            raise
+
     async def get_user(self, username: str) -> dict[str, Any]:
         """
         Fetch a GitHub user by username.
