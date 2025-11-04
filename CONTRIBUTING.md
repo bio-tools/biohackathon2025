@@ -68,9 +68,10 @@ We keep two permanent branches and short-lived topic branches.
 
 ## Generated code
 
-| File                      | Purpose                             | How to regenerate                |
-|---------------------------|-------------------------------------|----------------------------------|
-| `bridge/core/biotools.py` | Pydantic models from bio.tools JSON | `poetry run gen-biotools-models` |
+| File                                                                   | Purpose                                        | How to regenerate                |
+|------------------------------------------------------------------------|------------------------------------------------|----------------------------------|
+| `bridge/core/biotools.py`                                              | Pydantic models from bio.tools JSON            | `poetry run gen-biotools-models` |
+| `bridge/core/github_repo.py` and `bridge/core/github_latest_release.py`| Pydantic models from github response JSONs ([repo](https://docs.github.com/en/rest/repos/repos?apiVersion=2022-11-28#get-a-repository) & [latest release](https://docs.github.com/en/rest/releases/releases?apiVersion=2022-11-28#get-the-latest-release)) | `poetry run gen-github-models` |
 
 - Never edit generated files directly.
 - If schema or generator changes: regenerate and commit.
