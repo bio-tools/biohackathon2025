@@ -42,6 +42,10 @@ async def create_pr_from_meta(schema: str, repo_type: str, **kwargs):
         f"from {schema} metadata ID {kwargs.get('identifier')}"
     )
 
+    owner = kwargs["owner"]
+    repo = kwargs["repo"]
+    identifier = kwargs["identifier"]
+
     metadata_composer = get_schema_composer(schema)
     repo_composer, repo_provider = get_repo_components(repo_type)
     pipeline, args_model = get_pipeline(schema, repo_type, PipelineGoal.CREATE_PR)
@@ -62,17 +66,30 @@ async def create_pr_from_meta(schema: str, repo_type: str, **kwargs):
         }
         merged_kwargs = {**pipeline_kwargs, **kwargs}
         pipeline_args = args_model(**merged_kwargs)
-        file_changes = await pipeline(pipeline_args)
+        file_changes, issues = await pipeline(pipeline_args)
 
         branch = "update"
         repo_provider.apply_changes_and_push(cloned_repo, branch, file_changes)
         pr = await repo_provider.create_pull_request(
-            owner=kwargs["owner"],
-            repo=kwargs["repo"],
+            owner=owner,
+            repo=repo,
             title=f"Update from {schema}",
-            body=f"Auto-generated PR from {schema} ID {kwargs.get('identifier')}.",
+            body=f"Auto-generated PR from {schema} ID {identifier}.",
             head_branch=f"{fork.owner}:{branch}",
             base_branch=repo_model.default_branch,
         )
-        logger.info(f"Created PR for {kwargs['owner']}/{kwargs['repo']}: {pr.get('html_url')}")
+        logger.info(f"Created PR for {owner}/{repo}: {pr.get('html_url')}")
+
+        allow_issues = kwargs.get("allow_issues", None)
+
+        if allow_issues and issues:
+            for title, body in issues.items():
+                created_issue = await repo_provider.create_issue(
+                    owner=owner,
+                    repo=repo,
+                    title=title,
+                    body=body,
+                )
+                logger.info(f"Created issue for {owner}/{repo}: {created_issue.get('html_url')}")
+
         return pr
