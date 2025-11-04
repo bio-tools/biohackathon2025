@@ -4,7 +4,7 @@ GitHub repository Pydantic models.
 
 from pydantic import BaseModel
 
-from .github_latest_release import GitHubLatestReleaseModel
+from .github_latest_release import Release
 from .github_repo import FullRepository
 
 
@@ -21,4 +21,4 @@ class GitHubRepoModel(BaseModel):
     """
 
     repo: FullRepository
-    latest_release: GitHubLatestReleaseModel | None
+    latest_release: Release | None

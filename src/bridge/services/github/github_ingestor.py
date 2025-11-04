@@ -53,6 +53,21 @@ class GitHubIngestor(Ingestor):
         dict
             Raw JSON for the repository from GET /repos/{owner}/{repo}.
         """
+        repo_data = await self.fetch_repo()
+        latest_release_data = await self.fetch_latest_release()
+
+        result: dict[str, Any] = {"repo": repo_data, "latest_release": latest_release_data}
+        return result
+
+    async def fetch_repo(self) -> dict[str, Any]:
+        """
+        Fetch the full repository object (raw JSON).
+
+        Returns
+        -------
+        dict
+            Raw JSON for the repository from GET /repos/{owner}/{repo}.
+        """
         base = settings.github_api_base
         url = f"{base}/repos/{self.owner}/{self.repo}"
         logger.debug(f"Fetching repository: {url}")

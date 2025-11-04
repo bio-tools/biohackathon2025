@@ -5,9 +5,9 @@ Transformer converting raw GitHub repo JSON into the generated FullRepository mo
 import logging
 
 from bridge.builders.protocols import Transformer
-
-# Adjust path to your generated models module:
 from bridge.core import GitHubRepoModel
+from bridge.core.github_latest_release import Release
+from bridge.core.github_repo import FullRepository
 from bridge.services.github import GitHubIngestor
 
 logger = logging.getLogger(__name__)
@@ -32,6 +32,11 @@ class GitHubRepoTransformer(Transformer):
         """
         logger.info(f"Transforming data for repository {self.ingestor.owner}/{self.ingestor.repo}")
         raw_data = await self.ingestor.fetch()
-        logger.debug(f"Raw data keys: {list(raw_data.keys())}")
-        result = GitHubRepoModel(**raw_data)
+
+        repo_raw_data = raw_data.get("repo", {})
+        latest_release_raw_data = raw_data.get("latest_release")
+        result = GitHubRepoModel(
+            repo=FullRepository(**repo_raw_data),
+            latest_release=Release(**latest_release_raw_data) if latest_release_raw_data else None,
+        )
         return result
