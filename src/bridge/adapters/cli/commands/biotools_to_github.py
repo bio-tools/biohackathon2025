@@ -19,6 +19,7 @@ def pr(
     biotools_id: str = typer.Argument(..., help="The ID of the source bio.tools entry."),
     owner: str = typer.Argument(..., help="The owner of the GitHub repository to create the PR in."),
     repo: str = typer.Argument(..., help="The name of the GitHub repository to create the PR in."),
+    allow_issues: bool | None = typer.Option(None, help="Whether to create issues in the repository."),
 ):
     """
     Create a GitHub PR from bio.tools metadata.
@@ -31,6 +32,8 @@ def pr(
         The owner of the GitHub repository to create the PR in.
     repo : str
         The name of the GitHub repository to create the PR in.
+    allow_issues : bool | None
+        Whether to create issues in the repository based on bio.tools issues. Default is None.
     """
     logger.info(f"Creating PR for {owner}/{repo} from bio.tools:{biotools_id}")
 
@@ -41,6 +44,7 @@ def pr(
             identifier=biotools_id,
             owner=owner,
             repo=repo,
+            allow_issues=allow_issues,
         )
         typer.echo(result)
 
