@@ -36,3 +36,15 @@ class RepoProvider(Protocol):
     ) -> dict:
         """Create a pull request."""
         ...
+
+    async def create_issue(
+        self,
+        owner: str,
+        repo: str,
+        title: str,
+        body: str = "",
+        labels: list[str] | None = None,
+        assignees: list[str] | None = None,
+    ) -> dict:
+        """Create a new issue on a repository."""
+        ...

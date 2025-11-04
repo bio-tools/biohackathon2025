@@ -217,3 +217,72 @@ class GitHubRepoProvider(RepoProvider):
         except Exception as e:
             logger.exception(f"Unexpected error creating PR for {owner}/{repo}: {e}")
             raise
+
+    async def create_issue(
+        self,
+        owner: str,
+        repo: str,
+        title: str,
+        body: str = "",
+        labels: list[str] | None = None,
+        assignees: list[str] | None = None,
+    ) -> dict:
+        """
+        Create a new issue on a GitHub repository.
+
+        Parameters
+        ----------
+        owner : str
+            GitHub user or organization that owns the repository.
+        repo : str
+            Repository name.
+        title : str
+            Title of the issue.
+        body : str, optional
+            Description of the issue.
+        labels : list of str, optional
+            List of label names to assign to the issue.
+        assignees : list of str, optional
+            List of GitHub usernames to assign to the issue.
+
+        Returns
+        -------
+        dict
+            JSON response from the GitHub API representing the created issue.
+
+        Raises
+        ------
+        HTTPError
+            If the API request fails.
+        """
+        base = settings.github_api_base
+        url = f"{base}/repos/{owner}/{repo}/issues"
+        headers = get_github_headers()
+
+        data = {"title": title}
+        if body:
+            data["body"] = body
+        if labels:
+            data["labels"] = labels
+        if assignees:
+            data["assignees"] = assignees
+
+        logger.info(f"Creating issue on {owner}/{repo}: '{title}'")
+
+        try:
+            async with httpx.AsyncClient(timeout=10) as client:
+                response = await client.post(url, json=data, headers=headers)
+
+                if response.status_code == 422:
+                    logger.warning(f"Issue creation returned 422 for {owner}/{repo}: {response.text}")
+
+                response.raise_for_status()
+                issue_data = response.json()
+                logger.info(f"Issue created successfully: {issue_data.get('html_url', 'unknown URL')}")
+                return issue_data
+        except httpx.HTTPStatusError as e:
+            logger.error(f"GitHub API issue creation failed for {owner}/{repo}: {e}")
+            raise
+        except Exception as e:
+            logger.exception(f"Unexpected error while creating issue on {owner}/{repo}: {e}")
+            raise
