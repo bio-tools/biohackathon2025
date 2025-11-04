@@ -29,7 +29,7 @@ class BiotoolsToGitHubForPRPipelineArgs(PipelineArgs):
     metadata_model: BiotoolsToolModel
 
 
-async def run(args: BiotoolsToGitHubForPRPipelineArgs) -> dict:
+async def run(args: BiotoolsToGitHubForPRPipelineArgs) -> tuple[dict, dict]:
     """
     Run the pipeline to generate repository file changes based on bio.tools metadata.
 
@@ -40,8 +40,9 @@ async def run(args: BiotoolsToGitHubForPRPipelineArgs) -> dict:
 
     Returns
     -------
-    dict
-        A dictionary mapping file paths to their new content.
+    tuple[dict, dict]
+        A dictionary mapping file paths to their new content, and
+        a dictionary mapping issue titles to their bodies.
     """
     logger.info(f"Running bio.tools → GitHub PR pipeline for {args.metadata_model.name}")
 
@@ -66,6 +67,7 @@ async def run(args: BiotoolsToGitHubForPRPipelineArgs) -> dict:
     response = await hf_provider.generate([message_sys, message])
 
     file_changes = {"README.md": f"pew pew {biotools_model.name}\n{response.content}"}
+    issues = {"issue pew pew": "Pew pew issue body"}
 
     logger.info(f"Generated file changes for repo at {repo_path}: {file_changes.keys()}")
-    return file_changes
+    return file_changes, issues
