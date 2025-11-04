@@ -1,22 +1,36 @@
-# python
+"""
+Unit tests for the mapping.
+"""
+
 from bridge.pipelines.mapping.main import MapBioTools2GitHub, MapItem
 from bridge.pipelines.protocols import Method
 
 
 class DummyTopic:
+    """
+    Dummy topic class
+    """
+
     def __init__(self, term: str):
         self.term = term
 
 
 class DummyGHRepo:
+    """
+    Dummy GitHub repository class
+    """
+
     def __init__(self):
         self.name = "tool-name"
         self.homepage = "https://example.org"
         self.topics = "topics"
 
 
-
 class DummyBTMetadata:
+    """
+    Dummy bio.tools class.
+    """
+
     def __init__(self):
         self.name = "tool-name-on-gh"
         self.homepage = "https://gh.example"
@@ -25,6 +39,9 @@ class DummyBTMetadata:
 
 
 def test_mapbiotools2github_map_returns_expected_map():
+    """
+    Test for the mapping function
+    """
     gh_repo = DummyGHRepo()
     bt_metadata = DummyBTMetadata()
     mapper = MapBioTools2GitHub(repo=bt_metadata, metadata=gh_repo)
