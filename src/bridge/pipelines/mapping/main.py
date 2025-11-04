@@ -35,8 +35,8 @@ class MapBioTools2GitHub(ModelsMap):
                 bt_entry=self.repo.version, gh_entry=self.metadata, method=Method.EXACT  # TODO: releases[].tag_name
             ),
             "topic": MapItem(
-                bt_entry=self.repo.topic.term,  # TODO: topic is list of TopicItem
+                bt_entry=self.repo.topic.term,  # TODO: topic is list of TopicItem; we want to match to TopicItem.term
                 gh_entry=self.metadata.topics,
-                method=Method.EXACT,
+                method=Method.SUBSET,
             ),
         }
