@@ -1,9 +1,8 @@
 """
 Async client for the GitHub API.
-Gathers repository metadata and returns a comprehensive dictionary of information.
+Fetches a repository and returns the raw JSON (single call).
 """
 
-import asyncio
 import logging
 from typing import Any
 
@@ -19,71 +18,25 @@ logger = logging.getLogger(__name__)
 
 class GitHubIngestor(Ingestor):
     """
-    Ingest GitHub repository metadata via the GitHub REST API.
-
-    Parameters
-    ----------
-    owner : str
-        GitHub user or organization that owns the repository.
-    repo : str
-        Repository name.
+    Ingest GitHub repository metadata via the GitHub REST API (raw JSON).
     """
 
     def __init__(self, owner: str, repo: str):
         self.owner = owner
         self.repo = repo
 
-    async def _get(
-        self,
-        endpoint: str = "",
-        params: dict | None = None,
-        scope: str = "repo",
-        username: str | None = None,
-        headers: dict | None = None,
-    ) -> dict[str, Any]:
-        """
-        Perform async GET requests to GitHub API.
-
-        Parameters
-        ----------
-        endpoint : str
-            Specific API endpoint to query (default is root repo endpoint).
-        params : dict, optional
-            Query parameters for the request. Defaults to None.
-        scope : str
-            Scope of the request: 'repo' for repository, 'user' for user, 'raw' for raw endpoint. Default is 'repo'.
-        username : str, optional
-            GitHub username for 'user' scope requests. Required if scope is 'user'.
-        headers : dict, optional
-            Additional headers to include in the request. Defaults to None.
-
-        Returns
-        -------
-        dict
-            JSON response from the GitHub API.
-        """
-        base = settings.github_api_base
-        endpoint = endpoint.lstrip("/")
-
-        if scope == "repo":
-            url = f"{base}/repos/{self.owner}/{self.repo}/{endpoint}".rstrip("/")
-        elif scope == "user":
-            if not username:
-                raise ValueError("username must be provided for user scope")
-            url = f"{base}/users/{username}/{endpoint}".rstrip("/")
-        elif scope == "raw":
-            url = f"{base}/{endpoint}".rstrip("/")
-        else:
-            raise ValueError(f"Unknown scope: {scope}")
-
-        all_headers = {**get_github_headers(), **(headers or {})}
+    async def _get(self, url: str, *, params: dict | None = None, headers: dict | None = None) -> dict[str, Any]:
+        # Ask for topics in the repo payload as well (mercy preview still matters in practice).
+        base_headers = get_github_headers()
+        want_topics = "application/vnd.github.mercy-preview+json"
+        accept = base_headers.get("Accept", "application/vnd.github+json")
+        merged = {**base_headers, **(headers or {}), "Accept": f"{accept}; {want_topics}"}
 
         try:
-            async with httpx.AsyncClient(timeout=10) as client:
-                response = await client.get(url, headers=all_headers, params=params)
-                response.raise_for_status()
-                logger.debug(f"Fetched data from {url} successfully")
-                return response.json()
+            async with httpx.AsyncClient(timeout=15) as client:
+                resp = await client.get(url, headers=merged, params=params)
+                resp.raise_for_status()
+                return resp.json()
         except httpx.RequestError as e:
             logger.error(f"Network error while fetching {url}: {e}")
             raise
@@ -93,93 +46,34 @@ class GitHubIngestor(Ingestor):
 
     async def fetch(self) -> dict[str, Any]:
         """
-        Fetch metadata for the specified GitHub repository.
+        Fetch the full repository object (single endpoint).
 
         Returns
         -------
         dict
-            A dictionary containing various metadata about the repository.
+            Raw JSON for the repository from GET /repos/{owner}/{repo}.
         """
-        logger.debug(f"Fetching metadata for {self.owner}/{self.repo}")
-
-        # first get basic repo data to determine default branch
-        repo_data = await self._get("")
-        default_branch = repo_data.get("default_branch", "main")
-
-        # launch in parallel
-        results = await asyncio.gather(
-            self._get("/readme"),
-            self._get("/license"),
-            self._get("/languages"),
-            self._get("/contributors"),
-            self._get("/commits", {"per_page": 30}),
-            self._get("/pulls", {"state": "all", "per_page": 30}),
-            self._get("/issues", {"state": "all", "per_page": 30}),
-            self.get_topics(),
-            self.get_file_tree(default_branch),
-        )
-
-        result = {
-            "repo_data": repo_data,
-            "readme_data": results[0],
-            "license_data": results[1],
-            "languages_dict": results[2],
-            "contributors_data": results[3],
-            "commits_data": results[4],
-            "pull_requests_data": results[5],
-            "issues_data": results[6],
-            "topics": results[7],
-            "file_tree_data": results[8],
-        }
+        base = settings.github_api_base
+        url = f"{base}/repos/{self.owner}/{self.repo}"
+        logger.debug(f"Fetching repository: {url}")
+        data = await self._get(url)
         logger.info(f"Ingested data for {self.owner}/{self.repo} successfully")
-        return result
-
-    async def get_topics(self) -> dict[str, Any]:
-        """
-        Fetch the list of topics for the repository. Requires the topics preview header.
-
-        Returns
-        -------
-        dict[str, Any]
-            A dictionary containing the list of topics.
-        """
-        preview_header = {"Accept": "application/vnd.github.mercy-preview+json"}
-        result = await self._get("topics", headers=preview_header)
-        return {"names": result.get("names", [])}
-
-    async def get_file_tree(self, branch: str = "main") -> dict[str, Any] | None:
-        """
-        Fetch the file tree for the specified branch. Requires recursive tree retrieval.
-
-        Parameters
-        ----------
-        branch : str
-            Branch name to fetch the file tree from. Default is 'main'.
-
-        Returns
-        -------
-        dict[str, Any] | None
-            A dictionary representing the file tree, or None if not found.
-        """
-        branch_data = await self._get(f"/branches/{branch}")
-        tree_sha = branch_data.get("commit", {}).get("commit", {}).get("tree", {}).get("sha")
-        if not tree_sha:
-            logger.warning(f"No tree SHA found for branch {branch} in {self.repo}")
-            return None
-        return await self._get(f"/git/trees/{tree_sha}", params={"recursive": 1})
+        return data
 
     async def get_user(self, username: str) -> dict[str, Any]:
         """
-        Fetch metadata for a specified GitHub user.
+        Fetch a GitHub user by username.
 
         Parameters
         ----------
         username : str
-            GitHub username to fetch metadata for.
+            GitHub username.
 
         Returns
         -------
-        dict[str, Any]
-            JSON metadata for the specified GitHub user.
+        dict
+            Raw JSON for the user from GET /users/{username}.
         """
-        return await self._get(scope="user", username=username)
+        base = settings.github_api_base
+        url = f"{base}/users/{username}"
+        return await self._get(url)
