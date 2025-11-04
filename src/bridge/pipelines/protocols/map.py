@@ -1,4 +1,6 @@
-"""Abstract class for mapping."""
+"""
+Abstract class for mapping between repository and metadata models.
+"""
 
 from abc import ABC, abstractmethod
 from typing import Any
@@ -6,14 +8,14 @@ from typing import Any
 
 class ModelsMap(ABC):
     """
-    Abstract class for mapping.
+    Abstract class for mapping between repository and metadata models.
 
     Parameters
     ----------
     repo: Any
-        TODO
+        A repository model instance.
     metadata: Any
-        TODO
+        A metadata model instance.
     """
 
     def __init__(self, repo: Any, metadata: Any):
@@ -25,11 +27,11 @@ class ModelsMap(ABC):
     @abstractmethod
     def map(self) -> Any:
         """
-        Blah
+        Perform the mapping between repository and metadata models.
 
         Return
         -------
         Any
-            Blah.
+            The map representation of the models.
         """
         return
