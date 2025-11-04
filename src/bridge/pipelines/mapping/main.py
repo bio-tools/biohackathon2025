@@ -32,7 +32,7 @@ class MapBioTools2GitHub(ModelsMap):
             "name": MapItem(bt_entry=self.repo.name, gh_entry=self.metadata.name, method=Method.EXACT),
             "homepage": MapItem(bt_entry=self.repo.homepage, gh_entry=self.metadata.homepage, method=Method.EXACT),
             "version": MapItem(
-                bt_entry=self.repo.version, gh_entry=self.metadata, method=Method.EXACT  # releases[].tag_name
+                bt_entry=self.repo.version, gh_entry=self.metadata, method=Method.EXACT  # TODO: releases[].tag_name
             ),
             "topic": MapItem(
                 bt_entry=self.repo.topic.term,  # TODO: topic is list of TopicItem

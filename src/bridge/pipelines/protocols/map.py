@@ -3,7 +3,16 @@ Abstract class for mapping between repository and metadata models.
 """
 
 from abc import ABC, abstractmethod
+from enum import Enum
 from typing import Any
+
+
+class Method(Enum):
+    """
+    Matching method for mapping metadata record from one platform to another (GitHub, bio.tools).
+    """
+
+    EXACT = "exact"
 
 
 class ModelsMap(ABC):
@@ -25,7 +34,7 @@ class ModelsMap(ABC):
 
     @property
     @abstractmethod
-    def map(self) -> Any:
+    def map(self) -> dict[str, Any]:
         """
         Perform the mapping between repository and metadata models.
 
