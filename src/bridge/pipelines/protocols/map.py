@@ -4,6 +4,7 @@ Abstract class for mapping between repository and metadata models.
 
 import importlib
 from abc import ABC, abstractmethod
+from collections.abc import Callable
 from enum import Enum
 from functools import partial
 from typing import Any
@@ -90,7 +91,7 @@ class MapItem(BaseModel):
     schema_entry: Any
     repo_entry: Any
     method: Method | None
-    fn: callable | None = None
+    fn: Callable[[Any, Any], Any] | None = None
 
     @field_validator("fn", mode="before")
     @classmethod
