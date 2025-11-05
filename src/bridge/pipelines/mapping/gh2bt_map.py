@@ -5,7 +5,7 @@ Mapping classes for GitHub to bio.tools.
 from bridge.pipelines.protocols import MapItem, Method, ModelsMap
 
 
-class MapBioTools2GitHub(ModelsMap):
+class MapGitHub2BioTools(ModelsMap):
     """
     Map bio.tools metadata record to GitHub
     """
@@ -26,7 +26,7 @@ class MapBioTools2GitHub(ModelsMap):
             "link": MapItem(
                 bt_entry=[link.url for link in self.repo.link.url],
                 gh_entry=self.metadata.html_url,
-                method=Method.EXACT,  # TODO: check types
+                method=Method.EXACT,
             ),
             "licence": MapItem(
                 bt_entry=self.repo.license.spdx_id,

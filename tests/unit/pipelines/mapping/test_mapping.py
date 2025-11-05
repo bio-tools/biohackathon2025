@@ -2,6 +2,7 @@
 Unit tests for the mapping.
 """
 
+from bridge.pipelines.mapping.gh2bt_map import MapGitHub2BioTools
 from bridge.pipelines.mapping.main import MapBioTools2GitHub, MapItem
 from bridge.pipelines.protocols import Method
 
@@ -15,6 +16,42 @@ class DummyTopic:
         self.term = term
 
 
+class DummyUrlElem:
+    """
+    Dummy url element
+    """
+
+    def __init__(self, url: str):
+        self.url = url
+
+
+class DummyLinkContainer:
+    """
+    Dummy Links
+    """
+
+    def __init__(self, urls: list[str]):
+        self.url = [DummyUrlElem(u) for u in urls]
+
+
+class DummyLicense:
+    """
+    Dummy Lcence
+    """
+
+    def __init__(self, spdx_id: str):
+        self.spdx_id = spdx_id
+
+
+class DummyLatestRelease:
+    """
+    Dummy Latest release
+    """
+
+    def __init__(self, tag_name: str):
+        self.tag_name = tag_name
+
+
 class DummyGHRepo:
     """
     Dummy GitHub repository class
@@ -24,6 +61,10 @@ class DummyGHRepo:
         self.name = "tool-name"
         self.homepage = "https://example.org"
         self.topics = "topics"
+        self.languages = ["Python", "C++"]
+        self.latest_release = DummyLatestRelease(tag_name="v0.9.0")
+        self.html_url = "https://github.com/example/repo"
+        self.licence = "MIT"
 
 
 class DummyBTMetadata:
@@ -36,11 +77,14 @@ class DummyBTMetadata:
         self.homepage = "https://gh.example"
         self.version = "0.1.2"
         self.topic = DummyTopic(term="genomics")
+        self.language = ["Python", "C++"]
+        self.link = DummyLinkContainer(["https://example.com/a", "https://example.com/b"])
+        self.license = DummyLicense(spdx_id="MIT")
 
 
 def test_mapbiotools2github_map_returns_expected_map():
     """
-    Test for the mapping function
+    Test for the biotools 2 github mapping function
     """
     gh_repo = DummyGHRepo()
     bt_metadata = DummyBTMetadata()
@@ -59,3 +103,46 @@ def test_mapbiotools2github_map_returns_expected_map():
     assert homepage_item.bt_entry == bt_metadata.homepage
     assert homepage_item.gh_entry == gh_repo.homepage
     assert homepage_item.method == Method.EXACT
+
+
+def test_mapgithub2biotools_map_returns_expected_map():
+    """
+    Test for the github 2 biotools mapping function
+    """
+    repo = DummyBTMetadata()
+    metadata = DummyGHRepo()
+    mapper = MapGitHub2BioTools(repo=repo, metadata=metadata)
+
+    result = mapper.map()
+
+    assert set(result.keys()) == {"name", "language", "version", "link", "licence"}
+
+    name_item = result["name"]
+    assert isinstance(name_item, MapItem)
+    assert name_item.bt_entry == repo.name
+    assert name_item.gh_entry == metadata.name
+    assert name_item.method == Method.EXACT
+
+    language_item = result["language"]
+    assert isinstance(language_item, MapItem)
+    assert language_item.bt_entry == repo.language
+    assert language_item.gh_entry == metadata.languages
+    assert language_item.method == Method.EXACT
+
+    version_item = result["version"]
+    assert isinstance(version_item, MapItem)
+    assert version_item.bt_entry == repo.version
+    assert version_item.gh_entry == metadata.latest_release.tag_name
+    assert version_item.method == Method.EXACT
+
+    link_item = result["link"]
+    assert isinstance(link_item, MapItem)
+    assert link_item.bt_entry == ["https://example.com/a", "https://example.com/b"]
+    assert link_item.gh_entry == metadata.html_url
+    assert link_item.method == Method.EXACT
+
+    licence_item = result["licence"]
+    assert isinstance(licence_item, MapItem)
+    assert licence_item.bt_entry == repo.license.spdx_id
+    assert licence_item.gh_entry == metadata.licence
+    assert licence_item.method == Method.EXACT
