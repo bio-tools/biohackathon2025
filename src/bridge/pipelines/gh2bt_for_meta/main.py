@@ -77,6 +77,9 @@ async def run(args: GitHubToBiotoolsForMetaPipelineArgs) -> BiotoolsToolModel:
     )
     logger.info(type(biotools_metadata))
     logger.info(f"Extracted bio.tools metadata for repo {github_repo.repo.name}")
+    logger.info("\n")
+    logger.info(f"Try clicking this link https://bio-tools-dev.sdu.dk/register?json={biotools_metadata} ")
     serialized = biotools_metadata
+    # serialized = json.dumps(biotools_metadata.model_dump_json())
     logger.info(serialized)
     return serialized
