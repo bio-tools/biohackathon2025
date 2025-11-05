@@ -18,6 +18,7 @@ class Method(Enum):
 
     EXACT = "exact"
     SUBSET = "subset"
+    FUZZY = "fuzzy"
 
 
 class ModelsMap(ABC):
