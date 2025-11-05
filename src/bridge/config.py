@@ -25,7 +25,7 @@ class Settings(BaseSettings):
     huggingface_api_url: HttpUrl = "https://api-inference.huggingface.co"
 
     # Europe PMC
-    europepmc_api_url: HttpUrl = "https://www.ebi.ac.uk/europepmc/webservices/rest"
+    europe_pmc_api_url: HttpUrl = "https://www.ebi.ac.uk/europepmc/webservices/rest"
 
     # Logging
     log_level: str = "INFO"
