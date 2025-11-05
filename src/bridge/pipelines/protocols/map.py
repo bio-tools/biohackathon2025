@@ -34,8 +34,8 @@ def prepare_match_items(func: callable):
             else:
                 return item
 
-        item1_norm, item1_norm = normalize(item1), normalize(item2)
-        return func(self, item1_norm, item1_norm)
+        item1_norm, item2_norm = normalize(item1), normalize(item2)
+        return func(self, item1_norm, item2_norm)
 
     return wrapper
 
