@@ -114,3 +114,16 @@ class MapItem(BaseModel):
         if fn is None:
             return None
         return _to_path(fn)
+
+    def run(self) -> Any:
+        """
+        Run the mapping function if provided, otherwise return None.
+
+        Return
+        -------
+        Any
+            The result of the mapping function or None.
+        """
+        if self.fn is not None:
+            return self.fn(self.repo_entry, self.schema_entry)
+        return None
