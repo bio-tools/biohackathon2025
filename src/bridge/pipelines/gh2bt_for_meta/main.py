@@ -75,7 +75,7 @@ async def run(args: GitHubToBiotoolsForMetaPipelineArgs) -> BiotoolsToolModel:
         homepage=mapper.map["homepage"].run(),
         license=github_repo.repo.license,
     )
-
+    logger.info(type(biotools_metadata))
     logger.info(f"Extracted bio.tools metadata for repo {github_repo.repo.name}")
     serialized = biotools_metadata
     logger.info(serialized)
