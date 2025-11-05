@@ -3,7 +3,6 @@ Implements the GitHub→bio.tools metadata pipeline:
 derives a BiotoolsToolModel from a GitHubRepoModel.
 """
 
-import json
 import logging
 
 from bridge.core import BiotoolsToolModel, GitHubRepoModel
@@ -78,5 +77,5 @@ async def run(args: GitHubToBiotoolsForMetaPipelineArgs) -> BiotoolsToolModel:
     )
 
     logger.info(f"Extracted bio.tools metadata for repo {github_repo.repo.name}")
-    logger.info(json.dumps(biotools_metadata))
-    return json.dumps(biotools_metadata)
+    logger.info(biotools_metadata.model_dump_json(indent=2))
+    return biotools_metadata.model_dump_json(indent=2)
