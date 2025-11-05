@@ -11,59 +11,76 @@ from bridge.services.github import GitHubIngestor
 
 
 @pytest.mark.asyncio
-async def test_github_ingestor_fetch(httpx_mock: HTTPXMock):
+async def test_github_ingestor_fetch_repo_and_latest_release(httpx_mock: HTTPXMock):
     """
-    Test that GitHubIngestor can fetch data from the GitHub API.
-
-    Raises
-    ------
-    AssertionError
-        If the fetched data does not match the expected values.
+    GitHubIngestor.fetch returns repo JSON + latest release JSON on success.
     """
     owner, repo = "org", "repo"
     base = settings.github_api_base
 
-    httpx_mock.add_response(url=f"{base}/repos/{owner}/{repo}", json={"default_branch": "main"})
-    httpx_mock.add_response(url=f"{base}/repos/{owner}/{repo}/readme", json={"content": "..."})
-    httpx_mock.add_response(url=f"{base}/repos/{owner}/{repo}/license", json={"spdx_id": "Apache-2.0"})
-    httpx_mock.add_response(url=f"{base}/repos/{owner}/{repo}/languages", json={"Python": 1000})
-    httpx_mock.add_response(url=f"{base}/repos/{owner}/{repo}/contributors", json=[])
-    httpx_mock.add_response(url=f"{base}/repos/{owner}/{repo}/commits?per_page=30", json=[])
-    httpx_mock.add_response(url=f"{base}/repos/{owner}/{repo}/pulls?state=all&per_page=30", json=[])
-    httpx_mock.add_response(url=f"{base}/repos/{owner}/{repo}/issues?state=all&per_page=30", json=[])
-    httpx_mock.add_response(url=f"{base}/repos/{owner}/{repo}/topics", json={"names": ["bioinformatics"]})
-
-    # branch -> tree
+    # Repo data
     httpx_mock.add_response(
-        url=f"{base}/repos/{owner}/{repo}/branches/main",
-        json={"commit": {"commit": {"tree": {"sha": "abc"}}}},
+        url=f"{base}/repos/{owner}/{repo}",
+        json={
+            "full_name": f"{owner}/{repo}",
+            "default_branch": "main",
+        },
     )
-    # IMPORTANT: match query params
+
+    # Latest release data
     httpx_mock.add_response(
-        url=f"{base}/repos/{owner}/{repo}/git/trees/abc?recursive=1",
-        json={"tree": []},
+        url=f"{base}/repos/{owner}/{repo}/releases/latest",
+        json={
+            "tag_name": "v1.2.3",
+            "name": "First proper release",
+        },
     )
 
     ing = GitHubIngestor(owner, repo)
-    data = await ing.fetch()
+    result = await ing.fetch()
 
-    assert data["repo_data"]["default_branch"] == "main"
-    assert data["languages_dict"]["Python"] == 1000
+    assert result["repo"]["full_name"] == f"{owner}/{repo}"
+    assert result["repo"]["default_branch"] == "main"
+    assert result["latest_release"]["tag_name"] == "v1.2.3"
+
+
+@pytest.mark.asyncio
+async def test_github_ingestor_fetch_handles_no_releases(httpx_mock: HTTPXMock):
+    """
+    GitHubIngestor.fetch sets latest_release to None when there are no releases (404).
+    """
+    owner, repo = "org", "repo"
+    base = settings.github_api_base
+
+    # Repo exists
+    httpx_mock.add_response(
+        url=f"{base}/repos/{owner}/{repo}",
+        json={"full_name": f"{owner}/{repo}", "default_branch": "main"},
+    )
+
+    # GitHub returns 404 for /releases/latest when there are no releases
+    httpx_mock.add_response(
+        url=f"{base}/repos/{owner}/{repo}/releases/latest",
+        status_code=404,
+        json={"message": "Not Found"},
+    )
+
+    ing = GitHubIngestor(owner, repo)
+    result = await ing.fetch()
+
+    assert result["repo"]["full_name"] == f"{owner}/{repo}"
+    assert result["latest_release"] is None
 
 
 @pytest.mark.asyncio
 async def test_github_ingestor_raises_on_repo_error(httpx_mock: HTTPXMock):
     """
-    Test that GitHubIngestor.fetch raises an exception on repo fetch error.
-
-    Raises
-    ------
-    Exception
-        If the repository fetch does not raise an exception on error.
+    GitHubIngestor.fetch propagates HTTPStatusError when the repo itself fails.
     """
     owner, repo = "org", "repo"
     base = settings.github_api_base
 
+    # Repo fetch fails; fetch_latest_release is never called
     httpx_mock.add_response(
         url=f"{base}/repos/{owner}/{repo}",
         status_code=404,
@@ -74,3 +91,24 @@ async def test_github_ingestor_raises_on_repo_error(httpx_mock: HTTPXMock):
 
     with pytest.raises(httpx.HTTPStatusError):
         await ing.fetch()
+
+
+@pytest.mark.asyncio
+async def test_github_ingestor_get_user(httpx_mock: HTTPXMock):
+    """
+    GitHubIngestor.get_user returns raw user JSON.
+    """
+    username = "alice"
+    base = settings.github_api_base
+
+    httpx_mock.add_response(
+        url=f"{base}/users/{username}",
+        json={"login": username, "id": 123},
+    )
+
+    # owner/repo are irrelevant for get_user; just pass something.
+    ing = GitHubIngestor(owner="org", repo="repo")
+    user = await ing.get_user(username)
+
+    assert user["login"] == username
+    assert user["id"] == 123
