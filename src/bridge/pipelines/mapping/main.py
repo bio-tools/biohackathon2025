@@ -2,21 +2,7 @@
 Mapping classes for bio.tools to GitHub and vice versa.
 """
 
-from typing import Any
-
-from pydantic import BaseModel
-
-from bridge.pipelines.protocols import Method, ModelsMap
-
-
-class MapItem(BaseModel):
-    """
-    Map bio.tools metadata property to corresponding GitHub property and match method.
-    """
-
-    bt_entry: Any
-    gh_entry: Any
-    method: Method | None
+from bridge.pipelines.protocols import MapItem, Method, ModelsMap
 
 
 class MapBioTools2GitHub(ModelsMap):
