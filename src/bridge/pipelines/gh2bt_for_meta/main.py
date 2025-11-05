@@ -42,7 +42,7 @@ async def run(args: GitHubToBiotoolsForMetaPipelineArgs) -> BiotoolsToolModel:
     BiotoolsToolModel
         The extracted or updated bio.tools metadata model.
     """
-    logger.info(f"Running GitHub → bio.tools metadata pipeline for repo {args.repo_model.name}")
+    logger.info(f"Running GitHub → bio.tools metadata pipeline for repo {args.repo_model.repo.name}")
 
     github_repo = args.repo_model
 
@@ -64,10 +64,10 @@ async def run(args: GitHubToBiotoolsForMetaPipelineArgs) -> BiotoolsToolModel:
     response = await hf_provider.generate([message_sys, message])
 
     biotools_metadata = BiotoolsToolModel(
-        name=github_repo.name,
+        name=github_repo.repo.name,
         description=response.content[:1000],
         homepage="pewpew.com",
     )
 
-    logger.info(f"Extracted bio.tools metadata for repo {github_repo.name}")
+    logger.info(f"Extracted bio.tools metadata for repo {github_repo.repo.name}")
     return biotools_metadata
