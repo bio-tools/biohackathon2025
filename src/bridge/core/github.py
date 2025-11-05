@@ -10,7 +10,7 @@ from .github_repo import FullRepository
 
 class GitHubRepoModel(BaseModel):
     """
-    FullRepository model generated from GitHub repository schema.
+    Represent a GitHub repository with its latest release.
 
     Parameters
     ----------
