@@ -7,6 +7,8 @@ from abc import ABC, abstractmethod
 from enum import Enum
 from typing import Any
 
+from pydantic import BaseModel
+
 
 def prepare_match_items(func: callable):
     """
@@ -102,3 +104,13 @@ class ModelsMap(ABC):
             The map representation of the models.
         """
         return
+
+
+class MapItem(BaseModel):
+    """
+    Map bio.tools metadata property to corresponding GitHub property and match method.
+    """
+
+    bt_entry: Any
+    gh_entry: Any
+    method: Method | None
