@@ -30,9 +30,9 @@ class MapGitHub2BioTools(ModelsMap):
                 repo_entry=self.metadata.html_url,
                 method=Method.EXACT,
             ),
-            "licence": MapItem(
+            "license": MapItem(
                 schema_entry=self.repo.license.spdx_id,
-                repo_entry=self.metadata.licence,
+                repo_entry=self.metadata.license,
                 method=Method.EXACT,
             ),
         }
