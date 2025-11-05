@@ -85,9 +85,10 @@ poetry run bridge cli --help
 
 Various helper scripts are available under the `scripts/` directory.
 
-| script                | description                                             |
-|-----------------------|---------------------------------------------------------|
-| `gen-biotools-models` | Generate Pydantic models from the bio.tools JSON Schema |
+| script                | description                                                |
+|-----------------------|------------------------------------------------------------|
+| `gen-biotools-models` | Generate Pydantic models from the bio.tools JSON Schema    |
+| `gen-github-models`   | Generate Pydantic models from GitHub JSON response schemas |
 
 You can run them using Poetry:
 
