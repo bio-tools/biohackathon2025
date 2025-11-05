@@ -4,6 +4,7 @@ derives a BiotoolsToolModel from a GitHubRepoModel.
 """
 
 import logging
+import urllib
 
 from bridge.core import BiotoolsToolModel, GitHubRepoModel
 from bridge.pipelines.protocols import PipelineArgs
@@ -77,9 +78,8 @@ async def run(args: GitHubToBiotoolsForMetaPipelineArgs) -> BiotoolsToolModel:
     )
     logger.info(type(biotools_metadata))
     logger.info(f"Extracted bio.tools metadata for repo {github_repo.repo.name}")
-    logger.info("\n")
-    logger.info(f"Try clicking this link https://bio-tools-dev.sdu.dk/register?json={biotools_metadata} ")
-    serialized = biotools_metadata
-    # serialized = json.dumps(biotools_metadata.model_dump_json())
-    logger.info(serialized)
-    return serialized
+    logger.info(
+        f"Try clicking this link https://bio-tools-dev.sdu.dk/register"
+        f"?json={urllib.parse.quote(biotools_metadata.model_dump_json())} "
+    )
+    return biotools_metadata
