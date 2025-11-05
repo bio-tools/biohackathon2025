@@ -108,7 +108,7 @@ class ModelsMap(ABC):
 
 class MapItem(BaseModel):
     """
-    Map bio.tools metadata property to corresponding GitHub property and match method.
+    Map metadata property to corresponding repository metadata property and match method.
     """
 
     bt_entry: Any
