@@ -79,7 +79,9 @@ async def run(args: GitHubToBiotoolsForMetaPipelineArgs) -> BiotoolsToolModel:
     logger.info(type(biotools_metadata))
     logger.info(f"Extracted bio.tools metadata for repo {github_repo.repo.name}")
     logger.info(
-        f"Try clicking this link https://bio-tools-dev.sdu.dk/register"
-        f"?json={urllib.parse.quote(biotools_metadata.model_dump_json())} "
+        f"\n*** Want to create a bio.tools entry for this repo? ***\n"
+        f"Log in to https://bio-tools-dev.sdu.dk, then "
+        f"clicking the following link:\n\nhttps://bio-tools-dev.sdu.dk/register"
+        f"?json={urllib.parse.quote(biotools_metadata.model_dump_json())} \n"
     )
     return biotools_metadata
