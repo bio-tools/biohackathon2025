@@ -2,8 +2,9 @@
 Unit tests for the mapping.
 """
 
-from bridge.pipelines.mapping.bt2gh_map import MapBioTools2GitHub, MapItem
-from bridge.pipelines.mapping.gh2bt_map import MapGitHub2BioTools
+from bridge.pipelines.bt2gh_for_pr.map import MapBioTools2GitHub
+from bridge.pipelines.gh2bt_for_meta.map import MapGitHub2BioTools
+from bridge.pipelines.mapping.bt2gh_map import MapItem
 from bridge.pipelines.protocols import Method
 
 

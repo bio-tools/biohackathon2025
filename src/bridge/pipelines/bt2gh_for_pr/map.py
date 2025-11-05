@@ -1,5 +1,5 @@
 """
-Mapping classes for bio.tools to GitHub and vice versa.
+Mapping classes for bio.tools to GitHub.
 """
 
 from bridge.pipelines.protocols import MapItem, Method, ModelsMap
