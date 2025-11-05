@@ -2,9 +2,40 @@
 Abstract class for mapping between repository and metadata models.
 """
 
+import functools
 from abc import ABC, abstractmethod
 from enum import Enum
 from typing import Any
+
+
+def prepare_match_items(func: callable):
+    """
+    Check and normalize inputs for match methods.
+
+    Validation rule:
+    - None: returns 0 without further matching
+
+    Normalization rules:
+    - list/set/tuple: converted to set
+    # TODO: handle dicts?
+    """
+
+    @functools.wraps(func)
+    def wrapper(self, item1: Any, item2: Any) -> float:
+        # Missing inout value
+        if item1 is None or item2 is None:
+            return 0.0
+
+        def normalize(item):
+            if isinstance(item, (list, set, tuple)):
+                return set(item)
+            else:
+                return item
+
+        item1_norm, item1_norm = normalize(item1), normalize(item2)
+        return func(self, item1_norm, item1_norm)
+
+    return wrapper
 
 
 class Method(Enum):
@@ -15,7 +46,8 @@ class Method(Enum):
     EXACT = "exact"
     SUBSET = "subset"
 
-    def match_exact(self, item1: Any, item2: Any):
+    @prepare_match_items
+    def match_exact(self, item1: Any, item2: Any) -> float:
         """
         Evaluate whether or not match is exact.
 
@@ -31,21 +63,14 @@ class Method(Enum):
         float
             0 means no match, 1 means perfect match
         """
-        match_level = 0
-        if item1 == item2:
-            match_level = 1
-        # TODO: else - partial matches
-        return match_level
+        return 1.0 if item1 == item2 else 0.0
 
-    def match_subset(self, item1, item2):
+    @prepare_match_items
+    def match_subset(self, item1: Any, item2: Any) -> float:
         """
         Evaluate whether one set of values is equal to the intersection of the set of values and another set of values.
         """
-        # TODO: create decorator for mach methods
-        match_level = 0
-        if set(item1) == set(item1).intersection(set(item2)):
-            match_level = 1
-        return match_level
+        return 1.0 if item1 == item1.intersection(item2) else 0.0
 
 
 class ModelsMap(ABC):
