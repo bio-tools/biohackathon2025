@@ -60,7 +60,7 @@ class DummyGHRepo:
     def __init__(self):
         self.name = "tool-name"
         self.homepage = "https://example.org"
-        self.topics = "topics"
+        self.topics = ["topic1", "topic2"]
         self.languages = ["Python", "C++"]
         self.latest_release = DummyLatestRelease(tag_name="v0.9.0")
         self.html_url = "https://github.com/example/repo"
@@ -76,7 +76,7 @@ class DummyBTMetadata:
         self.name = "tool-name-on-gh"
         self.homepage = "https://gh.example"
         self.version = "0.1.2"
-        self.topic = DummyTopic(term="genomics")
+        self.topic = [DummyTopic(term="genomics")]
         self.language = ["Python", "C++"]
         self.link = DummyLinkContainer(["https://example.com/a", "https://example.com/b"])
         self.license = DummyLicense(spdx_id="MIT")
@@ -103,6 +103,12 @@ def test_mapbiotools2github_map_returns_expected_map():
     assert homepage_item.bt_entry == bt_metadata.homepage
     assert homepage_item.gh_entry == gh_repo.homepage
     assert homepage_item.method == Method.EXACT
+
+    topic_item = result["topic"]
+    assert isinstance(topic_item, MapItem)
+    assert topic_item.bt_entry == [ti.term for ti in bt_metadata.topic]
+    assert topic_item.gh_entry == gh_repo.topics
+    assert topic_item.method == Method.SUBSET
 
 
 def test_mapgithub2biotools_map_returns_expected_map():
