@@ -24,6 +24,9 @@ class Settings(BaseSettings):
     huggingface_token: str | None = None
     huggingface_api_url: HttpUrl = "https://api-inference.huggingface.co"
 
+    # Europe PMC
+    europepmc_api_url: HttpUrl = "https://www.ebi.ac.uk/europepmc/webservices/rest"
+
     # Logging
     log_level: str = "INFO"
 
@@ -41,6 +44,11 @@ class Settings(BaseSettings):
     def huggingface_api_base(self) -> str:
         """Base URL for Hugging Face API as a string"""
         return self._api_base(self.huggingface_api_url)
+
+    @property
+    def europepmc_api_base(self) -> str:
+        """Base URL for Europe PMC API as a string"""
+        return self._api_base(self.europepmc_api_base)
 
     @staticmethod
     def _api_base(url: HttpUrl) -> str:

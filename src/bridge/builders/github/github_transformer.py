@@ -39,6 +39,8 @@ class GitHubRepoTransformer(Transformer):
         if not repo_raw_data["homepage"]:
             repo_raw_data["homepage"] = None
 
+        repo_raw_data = raw_data.get("repo", {})
+        latest_release_raw_data = raw_data.get("latest_release")
         result = GitHubRepoModel(
             repo=FullRepository(**repo_raw_data),
             latest_release=Release(**latest_release_raw_data) if latest_release_raw_data else None,
