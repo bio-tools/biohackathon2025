@@ -94,20 +94,20 @@ def test_mapbiotools2github_map_returns_expected_map():
 
     name_item = result["name"]
     assert isinstance(name_item, MapItem)
-    assert name_item.bt_entry == bt_metadata.name
-    assert name_item.gh_entry == gh_repo.name
+    assert name_item.schema_entry == bt_metadata.name
+    assert name_item.repo_entry == gh_repo.name
     assert name_item.method == Method.EXACT
 
     homepage_item = result["homepage"]
     assert isinstance(homepage_item, MapItem)
-    assert homepage_item.bt_entry == bt_metadata.homepage
-    assert homepage_item.gh_entry == gh_repo.homepage
+    assert homepage_item.schema_entry == bt_metadata.homepage
+    assert homepage_item.repo_entry == gh_repo.homepage
     assert homepage_item.method == Method.EXACT
 
     topic_item = result["topic"]
     assert isinstance(topic_item, MapItem)
-    assert topic_item.bt_entry == [ti.term for ti in bt_metadata.topic]
-    assert topic_item.gh_entry == gh_repo.topics
+    assert topic_item.schema_entry == [ti.term for ti in bt_metadata.topic]
+    assert topic_item.repo_entry == gh_repo.topics
     assert topic_item.method == Method.SUBSET
 
 
@@ -125,30 +125,30 @@ def test_mapgithub2biotools_map_returns_expected_map():
 
     name_item = result["name"]
     assert isinstance(name_item, MapItem)
-    assert name_item.bt_entry == repo.name
-    assert name_item.gh_entry == metadata.name
+    assert name_item.schema_entry == repo.name
+    assert name_item.repo_entry == metadata.name
     assert name_item.method == Method.EXACT
 
     language_item = result["language"]
     assert isinstance(language_item, MapItem)
-    assert language_item.bt_entry == repo.language
-    assert language_item.gh_entry == metadata.languages
+    assert language_item.schema_entry == repo.language
+    assert language_item.repo_entry == metadata.languages
     assert language_item.method == Method.EXACT
 
     version_item = result["version"]
     assert isinstance(version_item, MapItem)
-    assert version_item.bt_entry == repo.version
-    assert version_item.gh_entry == metadata.latest_release.tag_name
+    assert version_item.schema_entry == repo.version
+    assert version_item.repo_entry == metadata.latest_release.tag_name
     assert version_item.method == Method.EXACT
 
     link_item = result["link"]
     assert isinstance(link_item, MapItem)
-    assert link_item.bt_entry == ["https://example.com/a", "https://example.com/b"]
-    assert link_item.gh_entry == metadata.html_url
+    assert link_item.schema_entry == ["https://example.com/a", "https://example.com/b"]
+    assert link_item.repo_entry == metadata.html_url
     assert link_item.method == Method.EXACT
 
     licence_item = result["licence"]
     assert isinstance(licence_item, MapItem)
-    assert licence_item.bt_entry == repo.license.spdx_id
-    assert licence_item.gh_entry == metadata.licence
+    assert licence_item.schema_entry == repo.license.spdx_id
+    assert licence_item.repo_entry == metadata.licence
     assert licence_item.method == Method.EXACT

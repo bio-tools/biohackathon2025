@@ -111,6 +111,6 @@ class MapItem(BaseModel):
     Map metadata property to corresponding repository metadata property and match method.
     """
 
-    bt_entry: Any
-    gh_entry: Any
+    schema_entry: Any
+    repo_entry: Any
     method: Method | None
