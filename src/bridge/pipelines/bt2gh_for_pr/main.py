@@ -9,7 +9,7 @@ import logging
 from bridge.core import BiotoolsToolModel, GitHubRepoModel
 from bridge.pipelines.protocols import PipelineArgs
 
-from .map import MapBioToolsToGitHub
+from .map import MapBioToolsToGitHub, MapDestination
 
 logger = logging.getLogger(__name__)
 
@@ -71,13 +71,17 @@ async def run(args: BiotoolsToGitHubForPRPipelineArgs) -> tuple[dict, dict]:
     # )
     # response = await hf_provider.generate([message_sys, message])
 
-    MapBioToolsToGitHub(
+    mapper = MapBioToolsToGitHub(
         repo=repo_path,  # TODO: actual GitHubRepoModel
         metadata=biotools_model,
     )
+    dest = MapDestination()
+
+    issues = {}
+    for issue in dest.issue:
+        issues |= mapper.map[issue].run()
 
     file_changes = {"README.md": f"pew pew {biotools_model.name}"}
-    issues = {"issue pew pew": "Pew pew issue body"}
 
     logger.info(f"Generated file changes for repo at {repo_path}: {file_changes.keys()}")
     return file_changes, issues
