@@ -49,7 +49,6 @@ async def run(args: BiotoolsToGitHubForPRPipelineArgs) -> tuple[dict, dict]:
     logger.info(f"Running bio.tools → GitHub PR pipeline for {args.metadata_model.name}")
 
     existing_repo_model = args.existing_repo_model
-    repo_path = args.repo_path
     biotools_model = args.metadata_model
 
     print(biotools_model)
@@ -81,11 +80,16 @@ async def run(args: BiotoolsToGitHubForPRPipelineArgs) -> tuple[dict, dict]:
     issues = {}
     for issue in dest.issue:
         map_item = mapper.map[issue]
-        new_issue = map_item.run()
+        new_issue = await map_item.run()
         if new_issue:
             issues |= new_issue
 
-    file_changes = {"README.md": f"pew pew {biotools_model.name}"}
+    file_changes = {}
+    for pr in dest.pr:
+        map_item = mapper.map[pr]
+        new_file_change = await map_item.run()
+        if new_file_change:
+            file_changes |= new_file_change
 
-    logger.info(f"Generated file changes for repo at {repo_path}: {file_changes.keys()}")
+    # logger.info(f"Generated file changes for repo at {repo_path}: {file_changes.keys()}")
     return file_changes, issues

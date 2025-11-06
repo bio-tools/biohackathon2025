@@ -48,7 +48,7 @@ class Settings(BaseSettings):
     @property
     def europepmc_api_base(self) -> str:
         """Base URL for Europe PMC API as a string"""
-        return self._api_base(self.europepmc_api_base)
+        return self._api_base(self.europe_pmc_api_url)
 
     @staticmethod
     def _api_base(url: HttpUrl) -> str:
