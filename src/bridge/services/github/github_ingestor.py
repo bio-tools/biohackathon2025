@@ -55,8 +55,9 @@ class GitHubIngestor(Ingestor):
         """
         repo_data = await self.fetch_repo()
         latest_release_data = await self.fetch_latest_release()
+        readme = await self.fetch_readme()
 
-        result: dict[str, Any] = {"repo": repo_data, "latest_release": latest_release_data}
+        result: dict[str, Any] = {"repo": repo_data, "latest_release": latest_release_data, "readme": readme}
         return result
 
     async def fetch_repo(self) -> dict[str, Any]:
@@ -96,6 +97,35 @@ class GitHubIngestor(Ingestor):
                 logger.info(f"No releases for {self.owner}/{self.repo}")
                 return None
             raise
+
+    async def fetch_readme(self) -> str | None:
+        """
+        Fetch the README content (decoded) or return None if not found.
+
+        Returns
+        -------
+        str | None
+            Decoded README content, or None if not found.
+        """
+        base = settings.github_api_base
+        url = f"{base}/repos/{self.owner}/{self.repo}/readme"
+        headers = {"X-GitHub-Api-Version": "2022-11-28"}
+        try:
+            logger.debug(f"Fetching README: {url}")
+            data = await self._get(url, headers=headers)
+            import base64
+
+            content_encoded = data.get("content", "")
+            content_bytes = base64.b64decode(content_encoded)
+            content_str = content_bytes.decode("utf-8", errors="replace")
+            logger.info(f"Ingested README for {self.owner}/{self.repo} successfully")
+            return content_str
+        except httpx.HTTPStatusError as e:
+            if e.response.status_code == 404:
+                logger.info(f"No README found for {self.owner}/{self.repo}")
+                return None
+            raise
+
 
     async def get_user(self, username: str) -> dict[str, Any]:
         """
