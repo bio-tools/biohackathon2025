@@ -72,7 +72,7 @@ class MapGitHub2BioTools(ModelsMap):
                 fn=map_maturity,
             ),
             "version": MapItem(
-                schema_entry=self.metadata.version,  # list of versions in bio.tools
+                schema_entry=self.metadata.version,
                 repo_entry=self.repo.latest_release.tag_name,
                 method=Method.EXACT,
                 fn=map_version,
