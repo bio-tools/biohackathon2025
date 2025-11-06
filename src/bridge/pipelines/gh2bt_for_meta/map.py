@@ -29,7 +29,7 @@ class MapGitHub2BioTools(ModelsMap):
             # Languages are both lists
             "language": MapItem(
                 schema_entry=self.metadata.language,
-                repo_entry=self.repo.repo.language,
+                repo_entry=self.repo.languages,
                 method=Method.EXACT,
                 fn=map_language,
             ),
