@@ -80,7 +80,10 @@ async def run(args: BiotoolsToGitHubForPRPipelineArgs) -> tuple[dict, dict]:
 
     issues = {}
     for issue in dest.issue:
-        issues |= mapper.map[issue].run()
+        map_item = mapper.map[issue]
+        new_issue = map_item.run()
+        if new_issue:
+            issues |= new_issue
 
     file_changes = {"README.md": f"pew pew {biotools_model.name}"}
 

@@ -30,6 +30,7 @@ class MapBioTools2GitHub(ModelsMap):
     Map bio.tools metadata record to GitHub
     """
 
+    @property
     def map(self) -> dict[str, MapItem]:
         """
         Map bio.tools metadata property to corresponding GitHub property.
