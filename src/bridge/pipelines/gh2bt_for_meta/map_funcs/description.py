@@ -24,8 +24,8 @@ async def map_description(gh_description: dict | None, bt_description: str | Non
             message_sys = ChatMessage(
                 role="system",
                 content=(
-                    "You are an expert in bioinformatics tool documentation. Generate concise, "
-                    "clear descriptions for tools based on their README content."
+                    "You are an expert in bioinformatics tool documentation. "
+                    "Generate concise, clear descriptions for tools based on their README content."
                 ),
             )
             message_user = ChatMessage(
