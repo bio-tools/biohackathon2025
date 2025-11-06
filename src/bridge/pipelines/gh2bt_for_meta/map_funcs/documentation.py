@@ -12,7 +12,7 @@ def _add_doc_if_not_exists(
     """
     Add documentation item if it doesn't already exist.
     """
-    if bt_documentation is None:
+    if not bt_documentation:
         bt_documentation = []
 
     # Normalize the incoming URL for comparison
@@ -73,7 +73,7 @@ def map_documentation(
     """
     Map GitHub wiki presence to bio.tools documentation field.
     """
-    if gh_repo_data is None:
+    if not gh_repo_data:
         return bt_documentation
 
     gh_html_url = gh_repo_data.get("html_url")

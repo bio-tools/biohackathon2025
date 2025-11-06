@@ -6,12 +6,8 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-# TODO: consider semantic versioning comparison
-# TODO: multiple versions and releases
-# TODO: latest release?
 
-
-def map_version(gh_version: str | None, bt_version: str | None) -> str | None:
+def map_version(gh_version: str | None, bt_version: list | None) -> str | None:
     """
     Map GitHub releases metadata to bio.tools version metadata.
 
@@ -19,39 +15,32 @@ def map_version(gh_version: str | None, bt_version: str | None) -> str | None:
     - Existing GitHub version, no bio.tools version: add version to bio.tools
     - No GitHub version, existing bio.tools version: note missing GitHub version
         - create issue
-        - what to do in bio.tools?
-    - No GitHub version, no bio.tools version: no action
+    - No GitHub version, no bio.tools version: no action (create issue?)
     - Existing GitHub version and bio.tools version, exact match: no action
     - Existing GitHub version and bio.tools version, conflict: update bio.tools
-
-    Parameters
-    ----------
-    gh_version : str
-        Github repository version (tag name).
-    bt_version : str
-        bio.tools record version.
-
-    Returns
-    -------
-    str
-        Original or updated version.
     """
-    if gh_version is None:
+    if not gh_version:
         # if no GitHub version, return bio.tools version, which may be None
         if bt_version:
-            logger.info(f"NOTE: GitHub has no version tag, but bio.tools has version '{bt_version}'")
-        return bt_version
+            logger.info(f"CONFLICT: GitHub has no version tag, but bio.tools has version '{bt_version}'")
+        return None
 
-    if bt_version is None:
-        # if no bio.tools version, return GitHub version
+    if not bt_version:
+        # if no bio.tools version, return GitHub version as list
         logger.info(f"ADDED: version '{gh_version}'")
-        return gh_version
+        return [gh_version]
 
-    if bt_version != gh_version:
-        # if both versions exist, but they are not the same, return GitHub Version
-        logger.info(f"CONFLICT: overwrite existing bio.tools version '{bt_version}' with GitHub version '{gh_version}'")
-        return gh_version
+    if gh_version not in bt_version:
+        # TODO: consider ordering
+        if any(bt > gh_version for bt in bt_version):
+            # if any version in bt_version is newer than gh_version, consider conflict
+            logger.warning(
+                f"CONFLICT: bio.tools version(s) '{bt_version}' is/are newer than GitHub latest version '{gh_version}'"
+            )
+            return [gh_version]
+        # if both versions exist, but GitHub version not in bio.tools, add it
+        logger.info(f"ADDED: version '{gh_version}' to existing bio.tools versions '{bt_version}'")
+        return bt_version + [gh_version]
 
-    # both versions exist and are the same
-    logger.info(f"EXACT MATCH: version '{bt_version}'")
+    logger.info(f"MATCH: latest version '{bt_version}' already in bio.tools")
     return bt_version
