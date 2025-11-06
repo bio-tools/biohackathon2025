@@ -47,21 +47,21 @@ async def run(args: GitHubToBiotoolsForMetaPipelineArgs) -> BiotoolsToolModel:
     github_repo = args.repo_model
 
     # TODO: Implement actual logic to extract (or update) bio.tools metadata from github_repo
-
-    hf_provider = HuggingFaceProvider()
-    message_sys = ChatMessage(
-        role="system",
-        content=(
-            "You are a Star Trek expert. Respond only to the current user message. "
-            "Keep your response to a single, self-contained, metaphorical sentence. "
-            "Do not ask questions. Do not continue the conversation. Do not add extra explanation."
-        ),
-    )
-    message = ChatMessage(
-        role="user",
-        content="Explain quantum entanglement in one sentence using metaphors a Klingon warrior would understand.",
-    )
-    response = await hf_provider.generate([message_sys, message])
+    
+    # hf_provider = HuggingFaceProvider()
+    # message_sys = ChatMessage(
+    #     role="system",
+    #     content=(
+    #         "You are a Star Trek expert. Respond only to the current user message. "
+    #         "Keep your response to a single, self-contained, metaphorical sentence. "
+    #         "Do not ask questions. Do not continue the conversation. Do not add extra explanation."
+    #     ),
+    # )
+    # message = ChatMessage(
+    #     role="user",
+    #     content="Explain quantum entanglement in one sentence using metaphors a Klingon warrior would understand.",
+    # )
+    # response = await hf_provider.generate([message_sys, message])
 
     biotools_metadata = BiotoolsToolModel(
         name=github_repo.repo.name,
