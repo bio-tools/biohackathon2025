@@ -45,7 +45,7 @@ def _require_primary_publications(meta: BiotoolsToolModel) -> list[PublicationIt
     return primary
 
 
-async def main(meta: BiotoolsToolModel) -> dict[str, str]:
+async def map_citation(meta: BiotoolsToolModel) -> dict[str, str]:
     """
     Generate CITATION.cff content from the primary publications of a bio.tools tool.
     It uses Europe PMC to resolve publication metadata.
