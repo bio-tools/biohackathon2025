@@ -48,7 +48,7 @@ async def run(args: GitHubToBiotoolsForMetaPipelineArgs) -> BiotoolsToolModel:
     logger.info(f"Running GitHub → bio.tools metadata pipeline for repo {args.repo_model.repo.name}")
 
     github_repo = args.repo_model
-    logger.info(1)
+
     # TODO: Implement actual logic to extract (or update) bio.tools metadata from github_repo
 
     # hf_provider = HuggingFaceProvider()
