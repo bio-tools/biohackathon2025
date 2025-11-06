@@ -13,8 +13,8 @@ def map_license(gh_license: str, bt_license: str) -> str | None:
 
     Behaviour:
     Use case: Existing GitHub license, no bio.tools license: add license to bio.tools
-    Use case: No GitHub license, existing bio.tools license: suggest adding license to GitHub
-    Use case: No GitHub license, no bio.tools license: suggest adding license
+    Use case: No GitHub license, existing bio.tools license: note missing GitHub license
+    Use case: No GitHub license, no bio.tools license: no action
     Use case: Existing GitHub license and bio.tools license, exact match: no action
     Use case: Existing GitHub license and bio.tools license, conflict: update bio.tools
 
