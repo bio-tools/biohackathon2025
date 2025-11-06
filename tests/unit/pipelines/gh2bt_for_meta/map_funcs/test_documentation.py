@@ -5,6 +5,7 @@ Unit tests for documentation mapping functions.
 from bridge.core.biotools import DocumentationItem, TypeEnum1
 from bridge.core.github_pages import GitHubPages
 from bridge.pipelines.gh2bt_for_meta.map_funcs.documentation import (
+    _add_doc_if_not_exists,
     map_code_of_conduct,
     map_documentation,
     map_github_pages,
@@ -271,3 +272,55 @@ class TestMapDocumentation:
         assert "https://example.com/docs" in urls
         assert "https://github.com/owner/repo/wiki" in urls
         assert "https://owner.github.io/repo" in urls
+
+
+class TestUrlNormalization:
+    """Test URL normalization in duplicate detection."""
+
+    def test_trailing_slash_normalization(self):
+        """Test that URLs with and without trailing slashes are treated as duplicates."""
+        # Add URL without trailing slash
+        existing_doc = DocumentationItem(url="https://example.com/docs", type=[TypeEnum1.General])
+        bt_documentation = [existing_doc]
+
+        # Try to add same URL with trailing slash
+        result = _add_doc_if_not_exists(bt_documentation, "https://example.com/docs/", TypeEnum1.General)
+
+        # Should still be only 1 item (duplicate detected)
+        assert len(result) == 1
+
+    def test_case_insensitive_normalization(self):
+        """Test that URLs with different cases are treated as duplicates."""
+        # Add URL in lowercase
+        existing_doc = DocumentationItem(url="https://example.com/docs", type=[TypeEnum1.General])
+        bt_documentation = [existing_doc]
+
+        # Try to add same URL with different case
+        result = _add_doc_if_not_exists(bt_documentation, "https://EXAMPLE.com/docs", TypeEnum1.General)
+
+        # Should still be only 1 item (duplicate detected)
+        assert len(result) == 1
+
+    def test_trailing_slash_and_case_normalization(self):
+        """Test that URLs with both trailing slash and case differences are treated as duplicates."""
+        # Add URL in lowercase without trailing slash
+        existing_doc = DocumentationItem(url="https://example.com/docs", type=[TypeEnum1.General])
+        bt_documentation = [existing_doc]
+
+        # Try to add same URL with uppercase and trailing slash
+        result = _add_doc_if_not_exists(bt_documentation, "https://Example.COM/docs/", TypeEnum1.General)
+
+        # Should still be only 1 item (duplicate detected)
+        assert len(result) == 1
+
+    def test_different_urls_not_normalized_away(self):
+        """Test that genuinely different URLs are not treated as duplicates."""
+        # Add URL
+        existing_doc = DocumentationItem(url="https://example.com/docs", type=[TypeEnum1.General])
+        bt_documentation = [existing_doc]
+
+        # Try to add different URL
+        result = _add_doc_if_not_exists(bt_documentation, "https://example.com/wiki", TypeEnum1.General)
+
+        # Should have 2 items (different URLs)
+        assert len(result) == 2

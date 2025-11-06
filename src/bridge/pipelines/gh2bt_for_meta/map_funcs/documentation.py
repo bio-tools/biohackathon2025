@@ -15,8 +15,10 @@ def _add_doc_if_not_exists(
     if bt_documentation is None:
         bt_documentation = []
 
-    # Check if URL already exists in documentation
-    url_exists = any(str(doc.url.root) == url for doc in bt_documentation)
+    # Normalize the incoming URL for comparison
+    normalized_url = url.rstrip("/").lower()
+
+    url_exists = any(str(doc.url.root).rstrip("/").lower() == normalized_url for doc in bt_documentation)
 
     if not url_exists:
         doc_item = DocumentationItem(url=url, type=[doc_type])
