@@ -2,6 +2,32 @@
 Cross-cutting utilities.
 """
 
+import inspect
+
+
+async def maybe_await(func, *args, **kwargs):
+    """
+    Call a function that may be async or sync, and await it if necessary.
+
+    Parameters
+    ----------
+    func : Callable
+        The function to call.
+    *args
+        Positional arguments to pass to the function.
+    **kwargs
+        Keyword arguments to pass to the function.
+
+    Returns
+    -------
+    Any
+        The result of the function call, awaited if it was async.
+    """
+    if inspect.iscoroutinefunction(func):
+        return await func(*args, **kwargs)
+    else:
+        return func(*args, **kwargs)
+
 
 def require_args(*required):
     """
