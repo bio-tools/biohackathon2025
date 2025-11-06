@@ -79,7 +79,7 @@ class HttpsCertificate(BaseModel):
     expires_at: date | None = None
 
 
-class GithubPages(BaseModel):
+class GitHubPages(BaseModel):
     """GitHub Pages configuration and metadata."""
 
     url: AnyUrl = Field(
