@@ -11,6 +11,8 @@ from typing import Any
 
 from pydantic import BaseModel, ConfigDict, field_serializer, field_validator
 
+from .none_propagation import SafeAttr, deep_unwrap
+
 
 class Method(Enum):
     """
@@ -36,8 +38,12 @@ class ModelsMap(ABC):
 
     def __init__(self, repo: Any, metadata: Any):
         super().__init__()
-        self.repo = repo
-        self.metadata = metadata
+        self._repo_raw = repo
+        self._metadata_raw = metadata
+
+        # expose safe proxies for all downstream attribute chains
+        self.repo = SafeAttr(repo)
+        self.metadata = SafeAttr(metadata)
 
     @property
     @abstractmethod
@@ -120,11 +126,13 @@ class MapItem(BaseModel):
         """
         Run the mapping function if provided, otherwise return None.
 
-        Return
+        Returns
         -------
         Any
             The result of the mapping function or None.
         """
-        if self.fn is not None:
-            return self.fn(self.repo_entry, self.schema_entry)
-        return None
+        if not self.fn:
+            return None
+        repo = deep_unwrap(self.repo_entry)
+        schema = deep_unwrap(self.schema_entry)
+        return self.fn(repo, schema)
