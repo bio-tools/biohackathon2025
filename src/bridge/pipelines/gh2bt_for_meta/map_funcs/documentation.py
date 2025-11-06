@@ -38,6 +38,19 @@ def map_wiki(
     return bt_documentation
 
 
+def map_code_of_conduct(
+    gh_code_of_conduct: dict | None, bt_documentation: list[DocumentationItem] | None
+) -> list[DocumentationItem] | None:
+    """
+    Map GitHub code of conduct presence to bio.tools documentation.
+    """
+    if gh_code_of_conduct and gh_code_of_conduct.get("html_url"):
+        coc_url = gh_code_of_conduct.get("html_url")
+        return _add_doc_if_not_exists(bt_documentation, coc_url, TypeEnum1.Code_of_conduct)
+
+    return bt_documentation
+
+
 def map_documentation(
     gh_repo_data: dict | None, bt_documentation: list[DocumentationItem] | None
 ) -> list[DocumentationItem] | None:
