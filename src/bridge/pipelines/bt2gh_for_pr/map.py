@@ -6,6 +6,8 @@ from pydantic import BaseModel
 
 from bridge.pipelines.protocols import MapItem, Method, ModelsMap
 
+from .map_funcs import map_description
+
 
 class MapDestination(BaseModel):
     """
@@ -48,6 +50,9 @@ class MapBioTools2GitHub(ModelsMap):
                 method=Method.SUBSET,
             ),
             "description": MapItem(
-                schema_entry=self.metadata.description, repo_entry=self.repo.repo.description, method=Method.EXACT
+                schema_entry=self.metadata.description,
+                repo_entry=self.repo.repo.description,
+                method=Method.EXACT,
+                fn=map_description,
             ),
         }
