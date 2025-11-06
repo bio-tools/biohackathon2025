@@ -69,6 +69,7 @@ async def create_pr_from_meta(schema: str, repo_type: str, **kwargs):
         pipeline_args = args_model(**merged_kwargs)
         file_changes, issues = await pipeline(pipeline_args)
 
+        pr = {}
         if file_changes:
             branch = "update"
             repo_provider.apply_changes_and_push(cloned_repo, branch, file_changes)
