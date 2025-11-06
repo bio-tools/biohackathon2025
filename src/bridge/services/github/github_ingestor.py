@@ -126,7 +126,6 @@ class GitHubIngestor(Ingestor):
                 return None
             raise
 
-
     async def get_user(self, username: str) -> dict[str, Any]:
         """
         Fetch a GitHub user by username.
