@@ -9,11 +9,12 @@ repository to enable software citation.
 """
 
 import sys
+from typing import Any
 
 import yaml
 
 from bridge.builders import compose_europe_pmc_metadata
-from bridge.core import BiotoolsToolModel, Publication
+from bridge.core import Publication
 from bridge.core.biotools import PublicationItem, TypeEnum2
 
 TIMEOUT = 20
@@ -45,18 +46,25 @@ def _require_primary_publications(bt_publication: list[PublicationItem] | None) 
     return primary
 
 
-def _compose_citation(meta, references):
+def _compose_citation(bt_params: dict[str, Any], references: list[Publication]):
     """Generate a CITATION.cff dict from bio.tools metadata and references."""
+    name = bt_params.get("name", None)
+    biotools_id = bt_params.get("biotoolsID", None)
+    homepage = bt_params.get("homepage", None)
+    license = bt_params.get("license", None)
+    topic = bt_params.get("topic", None)
+    description = bt_params.get("description", None)
+
     base_cff = {
         "cff-version": "1.2.0",
-        "title": meta.name or meta.biotoolsID,
+        "title": name or biotools_id,
         "version": None,
         "type": "software",
-        "repository": meta.homepage,
-        "identifiers": [{"type": "other", "value": meta.biotoolsID, "description": "bio.tools"}],
-        "license": meta.license,
-        "keywords": meta.topic,
-        "abstract": meta.description,
+        "repository": homepage,
+        "identifiers": [{"type": "other", "value": biotools_id, "description": "bio.tools"}],
+        "license": license,
+        "keywords": topic,
+        "abstract": description,
     }
 
     if not references:
@@ -75,15 +83,25 @@ def _compose_citation(meta, references):
     return {"CITATION.cff": yaml.dump(base_cff, sort_keys=False)}
 
 
-async def map_citation(gh_citation_cff_exists: bool, bt_publication: list[PublicationItem] | None) -> dict[str, str]:
+async def map_citation(gh_citation_cff_exists: bool, bt_params: dict[str, Any]) -> dict[str, str]:
     """
     Generate CITATION.cff content from the primary publications of a bio.tools tool.
     It uses Europe PMC to resolve publication metadata.
 
     Parameters
     ----------
-    meta : BiotoolsToolModel
-        The bio.tools tool metadata model.
+    gh_citation_cff_exists : bool
+        Whether a CITATION.cff file already exists in the GitHub repository.
+    bt_params : dict[str, Any]
+        The bio.tools tool relevant metadata as a dictionary.
+        Should contain:
+        - publication - List of publication items from bio.tools metadata.
+        - name - Name of the tool.
+        - biotoolsID - bio.tools identifier of the tool.
+        - homepage - Homepage URL of the tool.
+        - license - License of the tool.
+        - topic - List of topics associated with the tool.
+        - description - Description of the tool.
 
     Returns
     -------
@@ -95,6 +113,8 @@ async def map_citation(gh_citation_cff_exists: bool, bt_publication: list[Public
     SystemExit
         If no primary publications could be resolved.
     """
+    bt_publication = bt_params.get("publication", None)
+
     primary_publications = _require_primary_publications(bt_publication)
     references: list[Publication] = []
 
@@ -109,6 +129,6 @@ async def map_citation(gh_citation_cff_exists: bool, bt_publication: list[Public
         except Exception as e:
             print(f"Warning: could not resolve {primary_pub}: {e}", file=sys.stderr)
 
-    cff = _compose_citation(meta=BiotoolsToolModel(), references=references)
+    cff = _compose_citation(bt_params=bt_params, references=references)
 
     return {"CITATION.cff": yaml.dump(cff, sort_keys=False)}
