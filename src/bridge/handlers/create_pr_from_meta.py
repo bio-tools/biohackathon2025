@@ -61,6 +61,7 @@ async def create_pr_from_meta(schema: str, repo_type: str, **kwargs):
 
     with repo_provider.clone_context(fork.full_name) as cloned_repo:
         pipeline_kwargs = {
+            "existing_repo_model": repo_model,
             "repo_path": cloned_repo,
             "metadata_model": metadata,
         }
