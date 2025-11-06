@@ -6,8 +6,10 @@ produce file changes to propose in a pull request.
 
 import logging
 
-from bridge.core import BiotoolsToolModel
+from bridge.core import BiotoolsToolModel, GitHubRepoModel
 from bridge.pipelines.protocols import PipelineArgs
+
+from .map import MapBioToolsToGitHub
 
 logger = logging.getLogger(__name__)
 
@@ -24,6 +26,7 @@ class BiotoolsToGitHubForPRPipelineArgs(PipelineArgs):
         The source bio.tools metadata model.
     """
 
+    existing_repo_model: GitHubRepoModel
     repo_path: str
     metadata_model: BiotoolsToolModel
 
@@ -67,6 +70,11 @@ async def run(args: BiotoolsToGitHubForPRPipelineArgs) -> tuple[dict, dict]:
     #     content="Explain quantum entanglement in one sentence using metaphors a Klingon warrior would understand.",
     # )
     # response = await hf_provider.generate([message_sys, message])
+
+    MapBioToolsToGitHub(
+        repo=repo_path,  # TODO: actual GitHubRepoModel
+        metadata=biotools_model,
+    )
 
     file_changes = {"README.md": f"pew pew {biotools_model.name}"}
     issues = {"issue pew pew": "Pew pew issue body"}
