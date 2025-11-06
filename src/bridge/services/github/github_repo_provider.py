@@ -77,7 +77,8 @@ class GitHubRepoProvider(RepoProvider):
 
                 # poll until fork is available (but don't fail hard if slow)
                 for i in range(max_wait):
-                    check = await client.get(f"{settings.github_api_url}/repos/{fork_full_name}", headers=headers)
+                    print(f"{settings.github_api_url}repos/{fork_full_name}")
+                    check = await client.get(f"{settings.github_api_url}repos/{fork_full_name}", headers=headers)
                     if check.status_code == 200:
                         logger.debug(f"Fork {fork_full_name} became ready after {i + 1}s.")
                         return check.json()
