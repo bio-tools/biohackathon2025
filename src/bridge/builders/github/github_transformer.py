@@ -46,7 +46,7 @@ class GitHubRepoTransformer(Transformer):
         result = GitHubRepoModel(
             repo=FullRepository(**repo_raw_data),
             latest_release=Release(**latest_release_raw_data) if latest_release_raw_data else None,
-            readme=raw_data.get("readme"),
             github_pages=GitHubPages(**github_pages_raw_data) if github_pages_raw_data else None,
+            readme=raw_data.get("readme"),
         )
         return result
