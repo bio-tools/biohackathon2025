@@ -4,7 +4,7 @@ Mapping classes for GitHub to bio.tools.
 
 from bridge.pipelines.protocols import MapItem, Method, ModelsMap
 
-from .map_funcs import map_homepage
+from .map_funcs import map_homepage, map_license
 
 
 class MapGitHub2BioTools(ModelsMap):
@@ -29,14 +29,15 @@ class MapGitHub2BioTools(ModelsMap):
             # link in bio.tools is a list of objects with url property. We need to compare only
             # the list of urls.
             "link": MapItem(
-                schema_entry=self.metadata.repo.html_url,
-                repo_entry=[link.url for link in self.repo.link],
+                schema_entry=[link.url for link in self.metadata.link],
+                repo_entry=self.repo.html_url,
                 method=Method.EXACT,
             ),
             "license": MapItem(
                 schema_entry=self.metadata.repo.license.spdx_id,
                 repo_entry=self.repo.license,
                 method=Method.EXACT,
+                fn=map_license,
             ),
             "homepage": MapItem(
                 schema_entry=self.metadata.repo.homepage,
