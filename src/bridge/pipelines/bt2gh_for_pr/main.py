@@ -86,7 +86,12 @@ async def run(args: BiotoolsToGitHubForPRPipelineArgs) -> tuple[dict, dict]:
         if new_issue:
             issues |= new_issue
 
-    file_changes = {"README.md": f"pew pew {biotools_model.name}"}
+    file_changes = {}
+    for pr in dest.pr:
+        map_item = mapper.map[pr]
+        new_file_change = map_item.run_file_change(repo_path=repo_path)
+        if new_file_change:
+            file_changes |= new_file_change
 
     logger.info(f"Generated file changes for repo at {repo_path}: {file_changes.keys()}")
     return file_changes, issues
