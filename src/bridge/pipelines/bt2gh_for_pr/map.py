@@ -5,6 +5,7 @@ Mapping classes for bio.tools to GitHub.
 from pydantic import BaseModel
 
 from bridge.pipelines.protocols import MapItem, Method, ModelsMap
+from bridge.pipelines.utils import check_file_with_extension_exists
 
 from .map_funcs import map_citation, map_description
 
@@ -61,8 +62,19 @@ class MapBioTools2GitHub(ModelsMap):
                 fn=map_description,
             ),
             "citation": MapItem(
-                schema_entry={},
-                repo_entry=self.repo.citation,
+                schema_entry={
+                    "publication": self.metadata.publication,
+                    "name": self.metadata.name,
+                    "biotoolsID": self.metadata.biotoolsID,
+                    "homepage": self.metadata.homepage,
+                    "license": self.metadata.license,
+                    "topic": self.metadata.topic,
+                    "description": self.metadata.description,
+                },
+                repo_entry=check_file_with_extension_exists(
+                    in_folder_path=self.repo_path,
+                    file_extension=".cff",
+                ),
                 method=Method.FUZZY,
                 fn=map_citation,
             ),
