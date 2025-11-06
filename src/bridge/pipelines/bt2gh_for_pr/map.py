@@ -7,7 +7,7 @@ from pydantic import BaseModel
 from bridge.pipelines.protocols import MapItem, Method, ModelsMap
 from bridge.pipelines.utils import check_file_with_extension_exists
 
-from .map_funcs import map_citation, map_description
+from .map_funcs import map_citation, map_description, map_function2topics
 
 
 class MapDestination(BaseModel):
@@ -77,5 +77,10 @@ class MapBioTools2GitHub(ModelsMap):
                 ),
                 method=Method.FUZZY,
                 fn=map_citation,
+            ),
+            "function2topics": MapItem(
+                schema_entry=self.metadata.function,
+                repo_entry=self.repo.topics,
+                fn=map_function2topics,
             ),
         }
