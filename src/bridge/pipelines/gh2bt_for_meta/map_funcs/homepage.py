@@ -2,10 +2,16 @@
 Mapping functions for homepage metadata.
 """
 
+import logging
+
+from pydantic import AnyUrl
+
 from bridge.core.biotools import UrlftpType
 
+logger = logging.getLogger(__name__)
 
-def map_homepage(gh_schema: list[UrlftpType | None], bt_homepage: UrlftpType | None) -> UrlftpType | None:
+
+def map_homepage(gh_schema: dict[AnyUrl | str | None], bt_homepage: UrlftpType | None) -> UrlftpType | None:
     """
     Map GitHub homepage metadata to bio.tools homepage metadata.
     """
@@ -14,20 +20,21 @@ def map_homepage(gh_schema: list[UrlftpType | None], bt_homepage: UrlftpType | N
     # if both exist, check that they are the same
     if gh_homepage is not None and bt_homepage is not None:
         if str(gh_homepage).rstrip("/") != str(bt_homepage.root).rstrip("/"):
-            print(3)
-            raise ValueError(f"Conflict between GitHub homepage '{gh_homepage}' and bio.tools homepage '{bt_homepage}'")
+            logger.info(
+                f"CONFLICT: existing GitHub homepage '{gh_homepage}'"
+                f"differs from bio.tools homepage '{bt_homepage.root}'"
+            )
         return bt_homepage
 
     if gh_homepage is not None:
         # if there is a GitHub homepage, return it
-        print(1)
-        print(gh_homepage)
-        return str(gh_homepage)
+        logger.info(f"ADDED: homepage '{gh_homepage}'")
+        return UrlftpType(root=str(gh_homepage))
 
     if bt_homepage is not None:
         # if there is an existing bio.tools homepage, return it
-        print(2)
-        print(bt_homepage)
-        return str(bt_homepage)
-    print(3)
-    return str(gh_url)
+        logger.info(f"EXISTING: homepage '{bt_homepage.root}'")
+        return bt_homepage
+
+    logger.info(f"ADDED: homepage as GitHub repo url '{gh_url}'")
+    return UrlftpType(root=str(gh_url))

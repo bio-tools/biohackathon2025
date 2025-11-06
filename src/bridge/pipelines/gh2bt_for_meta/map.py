@@ -4,7 +4,7 @@ Mapping classes for GitHub to bio.tools.
 
 from bridge.pipelines.protocols import MapItem, Method, ModelsMap
 
-from .map_funcs import map_description, map_homepage, map_license, map_maturity,map_documentation
+from .map_funcs import map_description, map_documentation, map_homepage, map_license, map_maturity
 
 
 class MapGitHub2BioTools(ModelsMap):

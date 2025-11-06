@@ -42,9 +42,6 @@ class MapBioTools2GitHub(ModelsMap):
         """
         return {
             "name": MapItem(schema_entry=self.metadata.name, repo_entry=self.repo.repo.name, method=Method.EXACT),
-            "homepage": MapItem(
-                schema_entry=self.metadata.homepage, repo_entry=self.repo.repo.homepage, method=Method.EXACT
-            ),
             "version": MapItem(
                 schema_entry=self.metadata.latest_release.tag_name,
                 repo_entry=self.repo.version,
