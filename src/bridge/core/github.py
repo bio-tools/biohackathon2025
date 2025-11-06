@@ -6,6 +6,7 @@ from pydantic import BaseModel
 
 from bridge.core.github_pages import GitHubPages
 
+from .github_languages import Language
 from .github_latest_release import Release
 from .github_repo import FullRepository
 
@@ -30,3 +31,4 @@ class GitHubRepoModel(BaseModel):
     latest_release: Release | None
     github_pages: GitHubPages | None
     readme: str | None
+    languages: Language | None
