@@ -18,6 +18,7 @@ class Settings(BaseSettings):
     github_api_url: HttpUrl = "https://api.github.com"
 
     # bio.tools
+    biotools_url: HttpUrl = "https://bio.tools/"
     biotools_api_url: HttpUrl = "https://bio.tools/api/"
 
     # Hugging Face
