@@ -9,15 +9,7 @@ logger = logging.getLogger(__name__)
 
 def map_version(gh_version: str | None, bt_version: list | None) -> str | None:
     """
-    Map GitHub releases metadata to bio.tools version metadata.
-
-    Use cases:
-    - Existing GitHub version, no bio.tools version: add version to bio.tools
-    - No GitHub version, existing bio.tools version: note missing GitHub version
-        - create issue
-    - No GitHub version, no bio.tools version: no action (create issue?)
-    - Existing GitHub version and bio.tools version, exact match: no action
-    - Existing GitHub version and bio.tools version, conflict: update bio.tools
+    Map GitHub releases smetadata to bio.tools version metadata.
     """
     if not gh_version:
         # if no GitHub version, return bio.tools version, which may be None
