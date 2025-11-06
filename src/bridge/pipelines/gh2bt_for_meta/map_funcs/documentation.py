@@ -3,6 +3,7 @@ Mapping functions for documentation field.
 """
 
 from bridge.core.biotools import DocumentationItem, TypeEnum1
+from bridge.core.github_pages import GitHubPages
 
 
 def _add_doc_if_not_exists(
@@ -30,7 +31,7 @@ def map_wiki(
     """
     Map GitHub wiki presence to bio.tools documentation.
     """
-    if gh_has_wiki and gh_html_url:
+    if gh_has_wiki:
         repo_url = str(gh_html_url).rstrip("/")
         wiki_url = f"{repo_url}/wiki"
         return _add_doc_if_not_exists(bt_documentation, wiki_url, TypeEnum1.General)
@@ -51,6 +52,19 @@ def map_code_of_conduct(
     return bt_documentation
 
 
+def map_github_pages(
+    gh_pages: GitHubPages | None, bt_documentation: list[DocumentationItem] | None
+) -> list[DocumentationItem] | None:
+    """
+    Map GitHub Pages to bio.tools documentation.
+    """
+    if gh_pages and gh_pages.get("html_url"):
+        pages_url = str(gh_pages.get("html_url"))
+        return _add_doc_if_not_exists(bt_documentation, pages_url, TypeEnum1.General)
+
+    return bt_documentation
+
+
 def map_documentation(
     gh_repo_data: dict | None, bt_documentation: list[DocumentationItem] | None
 ) -> list[DocumentationItem] | None:
@@ -63,8 +77,10 @@ def map_documentation(
     gh_html_url = gh_repo_data.get("html_url")
     gh_has_wiki = gh_repo_data.get("has_wiki")
     gh_code_of_conduct = gh_repo_data.get("code_of_conduct")
+    gh_pages = gh_repo_data.get("github_pages")
 
     bt_documentation = map_wiki(gh_html_url, gh_has_wiki, bt_documentation)
     bt_documentation = map_code_of_conduct(gh_code_of_conduct, bt_documentation)
+    bt_documentation = map_github_pages(gh_pages, bt_documentation)
 
     return bt_documentation
