@@ -7,7 +7,8 @@ import logging
 
 from bridge.core import BiotoolsToolModel, GitHubRepoModel
 from bridge.pipelines.protocols import PipelineArgs
-from bridge.services import ChatMessage, HuggingFaceProvider
+
+from .map import MapGitHub2BioTools
 
 logger = logging.getLogger(__name__)
 
@@ -48,25 +49,30 @@ async def run(args: GitHubToBiotoolsForMetaPipelineArgs) -> BiotoolsToolModel:
 
     # TODO: Implement actual logic to extract (or update) bio.tools metadata from github_repo
 
-    hf_provider = HuggingFaceProvider()
-    message_sys = ChatMessage(
-        role="system",
-        content=(
-            "You are a bioinformatics expert with a precise and to the point writing style."
-        ),
+    # hf_provider = HuggingFaceProvider()
+    # message_sys = ChatMessage(
+    #     role="system",
+    #     content=(
+    #         "You are a Star Trek expert. Respond only to the current user message. "
+    #         "Keep your response to a single, self-contained, metaphorical sentence. "
+    #         "Do not ask questions. Do not continue the conversation. Do not add extra explanation."
+    #     ),
+    # )
+    # message = ChatMessage(
+    #     role="user",
+    #     content="Explain quantum entanglement in one sentence using metaphors a Klingon warrior would understand.",
+    # )
+    # response = await hf_provider.generate([message_sys, message])
+
+    mapper = MapGitHub2BioTools(
+        repo=github_repo,
+        metadata=args.existing_metadata,
     )
-    message = ChatMessage(
-        role="user",
-        content=". Extract a 1-sentence description from this README." +
-            github_repo.readme,
-    )
-    response = await hf_provider.generate([message_sys, message])
-    logger.info(f"Generated description from README for repo {github_repo.repo.name}")
 
     biotools_metadata = BiotoolsToolModel(
         name=github_repo.repo.name,
-        description=github_repo.repo.description,
-        homepage="pewpew.com",
+        description="pew pew pew pew pew pew",
+        homepage=mapper.map["homepage"].run(),
     )
 
     logger.info(f"Extracted bio.tools metadata for repo {github_repo.repo.name}")

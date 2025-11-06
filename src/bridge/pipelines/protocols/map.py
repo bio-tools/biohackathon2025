@@ -2,42 +2,16 @@
 Abstract class for mapping between repository and metadata models.
 """
 
-import functools
+import importlib
 from abc import ABC, abstractmethod
+from collections.abc import Callable
 from enum import Enum
+from functools import partial
 from typing import Any
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict, field_serializer, field_validator
 
-
-def prepare_match_items(func: callable):
-    """
-    Check and normalize inputs for match methods.
-
-    Validation rule:
-    - None: returns 0 without further matching
-
-    Normalization rules:
-    - list/set/tuple: converted to set
-    # TODO: handle dicts?
-    """
-
-    @functools.wraps(func)
-    def wrapper(self, item1: Any, item2: Any) -> float:
-        # Missing inout value
-        if item1 is None or item2 is None:
-            return 0.0
-
-        def normalize(item):
-            if isinstance(item, (list, set, tuple)):
-                return set(item)
-            else:
-                return item
-
-        item1_norm, item2_norm = normalize(item1), normalize(item2)
-        return func(self, item1_norm, item2_norm)
-
-    return wrapper
+from .none_propagation import SafeAttr, deep_unwrap
 
 
 class Method(Enum):
@@ -47,32 +21,7 @@ class Method(Enum):
 
     EXACT = "exact"
     SUBSET = "subset"
-
-    @prepare_match_items
-    def match_exact(self, item1: Any, item2: Any) -> float:
-        """
-        Evaluate whether or not match is exact.
-
-        Parameters
-        ----------
-        item1 : Any
-            Value of a metadata record property from either bio.tools or GitHub.
-        item1 : Any
-            Value of corresponding property in metadata record form other platform.
-
-        Returns
-        -------
-        float
-            0 means no match, 1 means perfect match
-        """
-        return 1.0 if item1 == item2 else 0.0
-
-    @prepare_match_items
-    def match_subset(self, item1: Any, item2: Any) -> float:
-        """
-        Evaluate whether one set of values is equal to the intersection of the set of values and another set of values.
-        """
-        return 1.0 if item1 == item1.intersection(item2) else 0.0
+    FUZZY = "fuzzy"
 
 
 class ModelsMap(ABC):
@@ -89,8 +38,12 @@ class ModelsMap(ABC):
 
     def __init__(self, repo: Any, metadata: Any):
         super().__init__()
-        self.repo = repo
-        self.metadata = metadata
+        self._repo_raw = repo
+        self._metadata_raw = metadata
+
+        # expose safe proxies for all downstream attribute chains
+        self.repo = SafeAttr(repo)
+        self.metadata = SafeAttr(metadata)
 
     @property
     @abstractmethod
@@ -106,11 +59,80 @@ class ModelsMap(ABC):
         return
 
 
+def _to_path(fn):
+    if isinstance(fn, partial):
+        raise TypeError("partials aren’t serializable by simple dotted path")
+
+    mod = getattr(fn, "__module__", "")
+    qn = getattr(fn, "__qualname__", "")
+    if not (mod and qn):
+        raise TypeError("callable lacks module/qualname")
+
+    if mod == "__main__" or "<locals>" in qn:
+        raise TypeError("callable must be a top-level, importable symbol")
+
+    return f"{mod}:{qn}"
+
+
+def _import_from_path(path: str):
+    # Supports "pkg.mod:attr.nested" or "pkg.mod.attr.nested"
+    sep = ":" if ":" in path else "."
+    mod_path, attr = path.rsplit(sep, 1)
+    mod = importlib.import_module(mod_path)
+    obj = mod
+    for part in attr.split("."):
+        obj = getattr(obj, part)
+    if not callable(obj):
+        raise TypeError(f"{path!r} is not callable")
+    return obj
+
+
 class MapItem(BaseModel):
     """
     Map metadata property to corresponding repository metadata property and match method.
     """
 
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
     schema_entry: Any
     repo_entry: Any
     method: Method | None
+    fn: Callable[[Any, Any], Any] | None = None
+
+    @field_validator("fn", mode="before")
+    @classmethod
+    def ensure_callable_or_none(cls, v):
+        """
+        Validate that fn is either None, a callable, or a dotted path to a callable.
+        """
+        if v is None:
+            return None
+        if isinstance(v, str):
+            v = _import_from_path(v)
+        if not callable(v):
+            raise TypeError("fn must be None, a callable, or a dotted path to one")
+        return v
+
+    @field_serializer("fn")
+    def serialize_fn(self, fn):
+        """
+        Serialize fn to a dotted path.
+        """
+        if fn is None:
+            return None
+        return _to_path(fn)
+
+    def run(self) -> Any:
+        """
+        Run the mapping function if provided, otherwise return None.
+
+        Returns
+        -------
+        Any
+            The result of the mapping function or None.
+        """
+        if not self.fn:
+            return None
+        repo = deep_unwrap(self.repo_entry)
+        schema = deep_unwrap(self.schema_entry)
+        return self.fn(repo, schema)
