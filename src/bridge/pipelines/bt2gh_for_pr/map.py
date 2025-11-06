@@ -76,8 +76,8 @@ class MapBioTools2GitHub(ModelsMap):
                 fn=map_citation,
             ),
             "homepage": MapItem(
-                schema_entry=self.repo.get_schema_entry("homepage"),
-                repo_entry=self.metadata.homepage,
+                schema_entry=self.metadata.repo.homepage,
+                repo_entry={"homepage": self.repo.repo.homepage, "html_url": self.repo.repo.html_url},
                 method=Method.EXACT,
                 fn=map_homepage,
             ),
