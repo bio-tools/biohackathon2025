@@ -77,6 +77,7 @@ async def run(args: GitHubToBiotoolsForMetaPipelineArgs) -> BiotoolsToolModel:
         description=((await mapper.map["description"].run()) or "***Please change this description***"),
         homepage=await mapper.map["homepage"].run(),
         maturity=await mapper.map["maturity"].run(),
+        language=await mapper.map["language"].run(),
     )
 
     biotools_url = settings.biotools_url
