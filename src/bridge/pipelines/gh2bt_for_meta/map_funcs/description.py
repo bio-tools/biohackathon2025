@@ -13,18 +13,20 @@ async def map_description(gh_description: dict | None, bt_description: str | Non
     """
     Map GitHub description metadata to bio.tools description metadata.
     """
-    if gh_description.get("description") is not None:
+    if gh_description.get("description") is None:
         # if there is no GitHub description, run LLM call on readme, overwrite only when no bt_description'
         if bt_description is None:
             hf_provider = HuggingFaceProvider()
             prompt = (
-                f"Generate a concise 1-2 sentence description for a bioinformatics tool based on the following"
-                f" README content:\n\n{gh_description.get('readme')}\n\nDescription:"
+                f"Generate a concise 1-2 sentence description for a bioinformatics tool "
+                f"based on the following README content:\n\n{gh_description.get('readme')}\n\nDescription:"
             )
             message_sys = ChatMessage(
                 role="system",
-                content="You are an expert in bioinformatics tool documentation. Generate concise, "
-                "clear descriptions for tools based on their README content.",
+                content=(
+                    "You are an expert in bioinformatics tool documentation. "
+                    "Generate concise, clear descriptions for tools based on their README content."
+                ),
             )
             message_user = ChatMessage(
                 role="user",
@@ -33,8 +35,8 @@ async def map_description(gh_description: dict | None, bt_description: str | Non
             try:
                 response = await hf_provider.generate([message_sys, message_user])
                 logging.info(
-                    "ADDED: No GitHub description and no existing bio.tools description; using readme "
-                    "to generate description."
+                    "ADDED: No GitHub description and no existing bio.tools "
+                    "description; using readme to generate description."
                 )
                 return response.content.strip()[1:100]
             except Exception as e:
@@ -50,6 +52,8 @@ async def map_description(gh_description: dict | None, bt_description: str | Non
         ):
             logging.info("EXACT MATCH: GitHub description matches existing bio.tools description.")
             return bt_description
-        else:
+        elif bt_description is not None:
             logging.info("CONFLICT: Using GitHub description to overwrite existing bio.tools description.")
-            return gh_description.get("description")
+        else:
+            logging.info("ADDED: Using GitHub description as no existing bio.tools description.")
+        return gh_description.get("description")
