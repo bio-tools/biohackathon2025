@@ -81,7 +81,7 @@ class GitHubRepoProvider(RepoProvider):
                     check = await client.get(f"{settings.github_api_url}repos/{fork_full_name}", headers=headers)
                     if check.status_code == 200:
                         logger.debug(f"Fork {fork_full_name} became ready after {i + 1}s.")
-                        return check.json()
+                        return fork_info
                     await asyncio.sleep(1)
 
                 # if still not ready, just warn and continue with the initial response
