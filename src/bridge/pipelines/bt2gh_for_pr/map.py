@@ -15,9 +15,9 @@ class MapBioTools2GitHub(ModelsMap):
         Map bio.tools metadata property to corresponding GitHub property.
         """
         return {
-            "name": MapItem(schema_entry=self.repo.name, repo_entry=self.metadata.name, method=Method.EXACT),
+            "name": MapItem(schema_entry=self.metadata.repo.name, repo_entry=self.repo.name, method=Method.EXACT),
             "homepage": MapItem(
-                schema_entry=self.repo.homepage, repo_entry=self.metadata.homepage, method=Method.EXACT
+                schema_entry=self.metadata.repo.homepage, repo_entry=self.repo.homepage, method=Method.EXACT
             ),
             "version": MapItem(
                 schema_entry=self.repo.version,
@@ -26,7 +26,7 @@ class MapBioTools2GitHub(ModelsMap):
             ),
             "topic": MapItem(
                 schema_entry=[ti.term for ti in self.repo.topic],
-                repo_entry=self.metadata.topics,
+                repo_entry=self.metadata.repo.topics,
                 method=Method.SUBSET,
             ),
         }
