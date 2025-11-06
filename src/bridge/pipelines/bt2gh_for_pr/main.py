@@ -48,6 +48,7 @@ async def run(args: BiotoolsToGitHubForPRPipelineArgs) -> tuple[dict, dict]:
     """
     logger.info(f"Running bio.tools → GitHub PR pipeline for {args.metadata_model.name}")
 
+    existing_repo_model = args.existing_repo_model
     repo_path = args.repo_path
     biotools_model = args.metadata_model
 
@@ -72,7 +73,7 @@ async def run(args: BiotoolsToGitHubForPRPipelineArgs) -> tuple[dict, dict]:
     # response = await hf_provider.generate([message_sys, message])
 
     mapper = MapBioToolsToGitHub(
-        repo=repo_path,  # TODO: actual GitHubRepoModel
+        repo=existing_repo_model,
         metadata=biotools_model,
     )
     dest = MapDestination()
