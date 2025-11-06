@@ -7,7 +7,8 @@ import logging
 
 from bridge.core import BiotoolsToolModel, GitHubRepoModel
 from bridge.pipelines.protocols import PipelineArgs
-from bridge.services import ChatMessage, HuggingFaceProvider
+
+from .map import MapGitHub2BioTools
 
 logger = logging.getLogger(__name__)
 
@@ -47,7 +48,7 @@ async def run(args: GitHubToBiotoolsForMetaPipelineArgs) -> BiotoolsToolModel:
     github_repo = args.repo_model
 
     # TODO: Implement actual logic to extract (or update) bio.tools metadata from github_repo
-    
+
     # hf_provider = HuggingFaceProvider()
     # message_sys = ChatMessage(
     #     role="system",
@@ -63,10 +64,15 @@ async def run(args: GitHubToBiotoolsForMetaPipelineArgs) -> BiotoolsToolModel:
     # )
     # response = await hf_provider.generate([message_sys, message])
 
+    mapper = MapGitHub2BioTools(
+        repo=github_repo,
+        metadata=args.existing_metadata,
+    )
+
     biotools_metadata = BiotoolsToolModel(
         name=github_repo.repo.name,
-        description=response.content[:1000],
-        homepage="pewpew.com",
+        description="pew pew",
+        homepage=mapper.map["homepage"].run(),
     )
 
     logger.info(f"Extracted bio.tools metadata for repo {github_repo.repo.name}")
