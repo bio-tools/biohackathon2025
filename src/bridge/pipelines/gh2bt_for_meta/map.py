@@ -4,7 +4,7 @@ Mapping classes for GitHub to bio.tools.
 
 from bridge.pipelines.protocols import MapItem, Method, ModelsMap
 
-from .map_funcs import map_description, map_documentation, map_homepage, map_license, map_maturity
+from .map_funcs import map_description, map_documentation, map_homepage, map_license, map_maturity, map_version
 
 
 class MapGitHub2BioTools(ModelsMap):
@@ -22,9 +22,6 @@ class MapGitHub2BioTools(ModelsMap):
             # Languages are both lists
             "language": MapItem(
                 schema_entry=self.metadata.language, repo_entry=self.repo.repo.language, method=Method.EXACT
-            ),
-            "version": MapItem(
-                schema_entry=self.metadata.version, repo_entry=self.repo.latest_release.tag_name, method=Method.EXACT
             ),
             # link in bio.tools is a list of objects with url property. We need to compare only
             # the list of urls.
@@ -73,5 +70,11 @@ class MapGitHub2BioTools(ModelsMap):
                 },
                 method=Method.FUZZY,
                 fn=map_maturity,
+            ),
+            "version": MapItem(
+                schema_entry=self.metadata.version,  # list of versions in bio.tools
+                repo_entry=self.repo.latest_release.tag_name,
+                method=Method.EXACT,
+                fn=map_version,
             ),
         }
