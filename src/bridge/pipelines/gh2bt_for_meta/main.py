@@ -48,7 +48,7 @@ async def run(args: GitHubToBiotoolsForMetaPipelineArgs) -> BiotoolsToolModel:
     logger.info(f"Running GitHub → bio.tools metadata pipeline for repo {args.repo_model.repo.name}")
 
     github_repo = args.repo_model
-
+    logger.info(1)
     # TODO: Implement actual logic to extract (or update) bio.tools metadata from github_repo
 
     # hf_provider = HuggingFaceProvider()
@@ -75,12 +75,10 @@ async def run(args: GitHubToBiotoolsForMetaPipelineArgs) -> BiotoolsToolModel:
         name=github_repo.repo.name,
         description="pew pew pew pew pew pew",
         homepage=mapper.map["homepage"].run(),
-        license=github_repo.repo.license,
     )
 
     biotools_url = "https://bio-tools-dev.sdu.dk"
 
-    logger.info(type(biotools_metadata))
     logger.info(f"Extracted bio.tools metadata for repo {github_repo.repo.name}")
     logger.info(
         f"\n\n*** 🛠  Want to create a bio.tools entry for this repo? ***\n"
