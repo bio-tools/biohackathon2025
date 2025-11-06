@@ -7,7 +7,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def map_license(gh_license: str, bt_license: str) -> str | None:
+def map_license(gh_license: str | None, bt_license: str | None) -> str | None:
     """
     Map GitHub license metadata to bio.tools license metadata.
 
