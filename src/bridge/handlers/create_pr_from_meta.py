@@ -61,6 +61,7 @@ async def create_pr_from_meta(schema: str, repo_type: str, **kwargs):
 
     with repo_provider.clone_context(fork.full_name) as cloned_repo:
         pipeline_kwargs = {
+            "existing_repo_model": repo_model,
             "repo_path": cloned_repo,
             "metadata_model": metadata,
         }
@@ -68,17 +69,19 @@ async def create_pr_from_meta(schema: str, repo_type: str, **kwargs):
         pipeline_args = args_model(**merged_kwargs)
         file_changes, issues = await pipeline(pipeline_args)
 
-        branch = "update"
-        repo_provider.apply_changes_and_push(cloned_repo, branch, file_changes)
-        pr = await repo_provider.create_pull_request(
-            owner=owner,
-            repo=repo,
-            title=f"Update from {schema}",
-            body=f"Auto-generated PR from {schema} ID {identifier}.",
-            head_branch=f"{fork.owner}:{branch}",
-            base_branch=repo_model.default_branch,
-        )
-        logger.info(f"Created PR for {owner}/{repo}: {pr.get('html_url')}")
+        pr = {}
+        if file_changes:
+            branch = "update"
+            repo_provider.apply_changes_and_push(cloned_repo, branch, file_changes)
+            pr = await repo_provider.create_pull_request(
+                owner=owner,
+                repo=repo,
+                title=f"Update from {schema}",
+                body=f"Auto-generated PR from {schema} ID {identifier}.",
+                head_branch=f"{fork.owner}:{branch}",
+                base_branch=repo_model.repo.default_branch,
+            )
+            logger.info(f"Created PR for {owner}/{repo}: {pr.get('html_url')}")
 
         allow_issues = kwargs.get("allow_issues", None)
 

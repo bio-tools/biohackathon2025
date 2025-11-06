@@ -27,3 +27,6 @@ __pycache__/
 
 # Python
 *.whl
+
+# VSCode
+.vscode
