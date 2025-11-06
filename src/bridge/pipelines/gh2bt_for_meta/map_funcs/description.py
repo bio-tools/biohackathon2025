@@ -19,7 +19,7 @@ async def map_description(gh_description: dict | None, bt_description: str | Non
             hf_provider = HuggingFaceProvider()
             prompt = (
                 f"Generate a concise 1-2 sentence description for a bioinformatics tool "
-                f"based on the following README content:\n\n{gh_description.get('readme')}\n\nDescription:"
+                f"based on the following README content:\n\n{gh_description.get('readme')}"
             )
             message_sys = ChatMessage(
                 role="system",
