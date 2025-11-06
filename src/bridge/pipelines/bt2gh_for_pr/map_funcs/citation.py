@@ -113,6 +113,9 @@ async def map_citation(gh_citation_cff_exists: bool, bt_params: dict[str, Any]) 
     SystemExit
         If no primary publications could be resolved.
     """
+    if gh_citation_cff_exists:
+        raise SystemExit("CITATION.cff already exists in the GitHub repository; skipping creation.")
+
     bt_publication = bt_params.get("publication", None)
 
     primary_publications = _require_primary_publications(bt_publication)
