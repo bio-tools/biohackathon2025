@@ -89,7 +89,7 @@ async def run(args: BiotoolsToGitHubForPRPipelineArgs) -> tuple[dict, dict]:
     file_changes = {}
     for pr in dest.pr:
         map_item = mapper.map[pr]
-        new_file_change = map_item.run_file_change(repo_path=repo_path)
+        new_file_change = map_item.run()
         if new_file_change:
             file_changes |= new_file_change
 
