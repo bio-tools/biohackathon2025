@@ -62,7 +62,9 @@ def map_documentation(
 
     gh_html_url = gh_repo_data.get("html_url")
     gh_has_wiki = gh_repo_data.get("has_wiki")
+    gh_code_of_conduct = gh_repo_data.get("code_of_conduct")
 
     bt_documentation = map_wiki(gh_html_url, gh_has_wiki, bt_documentation)
+    bt_documentation = map_code_of_conduct(gh_code_of_conduct, bt_documentation)
 
     return bt_documentation
