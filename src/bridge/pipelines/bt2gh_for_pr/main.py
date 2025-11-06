@@ -9,6 +9,7 @@ import logging
 from bridge.core import BiotoolsToolModel
 from bridge.pipelines.protocols import PipelineArgs
 from bridge.services import ChatMessage, HuggingFaceProvider
+from bridge.pipelines.bt2gh_for_pr.map import MapBioTools2GitHub
 
 logger = logging.getLogger(__name__)
 
@@ -49,24 +50,29 @@ async def run(args: BiotoolsToGitHubForPRPipelineArgs) -> tuple[dict, dict]:
     repo_path = args.repo_path
     biotools_model = args.metadata_model
 
+    print(biotools_model)
+
     # TODO: Implement actual logic to generate file changes based on biotools_model
+    #biotools_mapped = MapBioToolsToGitHub(biotools_model, )
 
-    hf_provider = HuggingFaceProvider()
-    message_sys = ChatMessage(
-        role="system",
-        content=(
-            "You are a Star Trek expert. Respond only to the current user message. "
-            "Keep your response to a single, self-contained, metaphorical sentence. "
-            "Do not ask questions. Do not continue the conversation. Do not add extra explanation."
-        ),
-    )
-    message = ChatMessage(
-        role="user",
-        content="Explain quantum entanglement in one sentence using metaphors a Klingon warrior would understand.",
-    )
-    response = await hf_provider.generate([message_sys, message])
 
-    file_changes = {"README.md": f"pew pew {biotools_model.name}\n{response.content}"}
+
+    # hf_provider = HuggingFaceProvider()
+    # message_sys = ChatMessage(
+    #     role="system",
+    #     content=(
+    #         "You are a Star Trek expert. Respond only to the current user message. "
+    #         "Keep your response to a single, self-contained, metaphorical sentence. "
+    #         "Do not ask questions. Do not continue the conversation. Do not add extra explanation."
+    #     ),
+    # )
+    # message = ChatMessage(
+    #     role="user",
+    #     content="Explain quantum entanglement in one sentence using metaphors a Klingon warrior would understand.",
+    # )
+    # response = await hf_provider.generate([message_sys, message])
+
+    #file_changes = {"README.md": f"pew pew {biotools_model.name}\n{response.content}"}
     issues = {"issue pew pew": "Pew pew issue body"}
 
     logger.info(f"Generated file changes for repo at {repo_path}: {file_changes.keys()}")
