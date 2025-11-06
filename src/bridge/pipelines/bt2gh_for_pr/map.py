@@ -7,7 +7,7 @@ from pydantic import BaseModel
 from bridge.pipelines.protocols import MapItem, Method, ModelsMap
 from bridge.pipelines.utils import check_file_with_extension_exists
 
-from .map_funcs import map_citation, map_description
+from .map_funcs import map_citation, map_description, map_homepage
 
 
 class MapDestination(BaseModel):
@@ -22,7 +22,7 @@ class MapDestination(BaseModel):
         List of properties to be mapped to pull requests.
     """
 
-    issue: list[str] = ["description"]
+    issue: list[str] = ["description", "homepage"]
     pr: list[str] = ["citation"]
 
 
@@ -77,5 +77,11 @@ class MapBioTools2GitHub(ModelsMap):
                 ),
                 method=Method.FUZZY,
                 fn=map_citation,
+            ),
+            "homepage": MapItem(
+                schema_entry=self.metadata.homepage,
+                repo_entry={"homepage": self.repo.repo.homepage, "html_url": self.repo.repo.html_url},
+                method=Method.EXACT,
+                fn=map_homepage,
             ),
         }
