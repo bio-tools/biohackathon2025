@@ -9,7 +9,7 @@ import logging
 from bridge.core import BiotoolsToolModel, GitHubRepoModel
 from bridge.pipelines.protocols import PipelineArgs
 
-from .map import MapBioToolsToGitHub, MapDestination
+from .map import MapBioTools2GitHub, MapDestination
 
 logger = logging.getLogger(__name__)
 
@@ -72,7 +72,7 @@ async def run(args: BiotoolsToGitHubForPRPipelineArgs) -> tuple[dict, dict]:
     # )
     # response = await hf_provider.generate([message_sys, message])
 
-    mapper = MapBioToolsToGitHub(
+    mapper = MapBioTools2GitHub(
         repo=existing_repo_model,
         metadata=biotools_model,
     )
