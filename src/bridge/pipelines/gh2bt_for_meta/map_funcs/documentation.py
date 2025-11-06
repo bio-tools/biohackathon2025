@@ -5,6 +5,39 @@ Mapping functions for documentation field.
 from bridge.core.biotools import DocumentationItem, TypeEnum1
 
 
+def _add_doc_if_not_exists(
+    bt_documentation: list[DocumentationItem] | None, url: str, doc_type: TypeEnum1
+) -> list[DocumentationItem]:
+    """
+    Add documentation item if it doesn't already exist.
+    """
+    if bt_documentation is None:
+        bt_documentation = []
+
+    # Check if URL already exists in documentation
+    url_exists = any(str(doc.url.root) == url for doc in bt_documentation)
+
+    if not url_exists:
+        doc_item = DocumentationItem(url=url, type=[doc_type])
+        bt_documentation.append(doc_item)
+
+    return bt_documentation
+
+
+def map_wiki(
+    gh_html_url: str | None, gh_has_wiki: bool | None, bt_documentation: list[DocumentationItem] | None
+) -> list[DocumentationItem] | None:
+    """
+    Map GitHub wiki presence to bio.tools documentation.
+    """
+    if gh_has_wiki and gh_html_url:
+        repo_url = str(gh_html_url).rstrip("/")
+        wiki_url = f"{repo_url}/wiki"
+        return _add_doc_if_not_exists(bt_documentation, wiki_url, TypeEnum1.General)
+
+    return bt_documentation
+
+
 def map_documentation(
     gh_repo_data: dict | None, bt_documentation: list[DocumentationItem] | None
 ) -> list[DocumentationItem] | None:
@@ -12,31 +45,11 @@ def map_documentation(
     Map GitHub wiki presence to bio.tools documentation field.
     """
     if gh_repo_data is None:
-        # if there is no GitHub repo data, return the existing bio.tools documentation (which may also be None)
         return bt_documentation
 
-    gh_has_wiki = gh_repo_data.get("has_wiki")
     gh_html_url = gh_repo_data.get("html_url")
+    gh_has_wiki = gh_repo_data.get("has_wiki")
 
-    if gh_has_wiki is None or gh_html_url is None:
-        # if there is no GitHub wiki info or repo URL, return the existing bio.tools documentation
-        return bt_documentation
-
-    if gh_has_wiki:
-        repo_url = str(gh_html_url).rstrip("/")
-        wiki_url = f"{repo_url}/wiki"
-
-        # Initialize documentation list if None
-        if bt_documentation is None:
-            bt_documentation = []
-
-        # Check if wiki URL already exists in documentation
-        wiki_exists = any(str(doc.url.root) == wiki_url for doc in bt_documentation)
-
-        if not wiki_exists:
-            wiki_doc = DocumentationItem(url=wiki_url, type=[TypeEnum1.General])
-            bt_documentation.append(wiki_doc)
-
-        return bt_documentation
+    bt_documentation = map_wiki(gh_html_url, gh_has_wiki, bt_documentation)
 
     return bt_documentation
