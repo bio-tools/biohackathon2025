@@ -11,24 +11,24 @@ def map_license(gh_license: str, bt_license: str) -> str | None:
     """
     Map GitHub license metadata to bio.tools license metadata.
 
-    Behaviour:
-    Use case: Existing GitHub license, no bio.tools license: add license to bio.tools
-    Use case: No GitHub license, existing bio.tools license: note missing GitHub license
-    Use case: No GitHub license, no bio.tools license: no action
-    Use case: Existing GitHub license and bio.tools license, exact match: no action
-    Use case: Existing GitHub license and bio.tools license, conflict: update bio.tools
+    Use cases:
+    - Existing GitHub license, no bio.tools license: add license to bio.tools
+    - No GitHub license, existing bio.tools license: note missing GitHub license
+    - No GitHub license, no bio.tools license: no action
+    - Existing GitHub license and bio.tools license, exact match: no action
+    - Existing GitHub license and bio.tools license, conflict: update bio.tools
 
     Parameters
     ----------
-    gh_license: str
-        Github repository license (SPDX ID)
-    bt_license: str
-        bio.tools record license
+    gh_license : str
+        Github repository license (SPDX ID).
+    bt_license : str
+        bio.tools record license.
 
     Returns
     -------
     str
-        Original or updated license
+        Original or updated license.
     """
     if gh_license is None:
         # if no GitHub license, return bio.tools license, which may be None
