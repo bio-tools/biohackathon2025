@@ -4,7 +4,14 @@ Mapping classes for GitHub to bio.tools.
 
 from bridge.pipelines.protocols import MapItem, Method, ModelsMap
 
-from .map_funcs import map_description, map_documentation, map_homepage, map_license, map_maturity
+from .map_funcs import (
+    map_description,
+    map_documentation,
+    map_homepage,
+    map_language,
+    map_license,
+    map_maturity,
+)
 
 
 class MapGitHub2BioTools(ModelsMap):
@@ -21,7 +28,10 @@ class MapGitHub2BioTools(ModelsMap):
             "name": MapItem(schema_entry=self.metadata.name, repo_entry=self.repo.repo.name, method=Method.EXACT),
             # Languages are both lists
             "language": MapItem(
-                schema_entry=self.metadata.language, repo_entry=self.repo.repo.language, method=Method.EXACT
+                schema_entry=self.metadata.language,
+                repo_entry=self.repo.repo.language,
+                method=Method.EXACT,
+                fn=map_language,
             ),
             "version": MapItem(
                 schema_entry=self.metadata.version, repo_entry=self.repo.latest_release.tag_name, method=Method.EXACT
