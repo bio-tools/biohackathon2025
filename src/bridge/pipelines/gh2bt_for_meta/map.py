@@ -41,7 +41,7 @@ class MapGitHub2BioTools(ModelsMap):
             ),
             "homepage": MapItem(
                 schema_entry=self.metadata.repo.homepage,
-                repo_entry=self.repo.homepage,
+                repo_entry={"homepage": self.repo.repo.homepage, "html_url": self.repo.repo.html_url},
                 method=Method.FUZZY,
                 fn=map_homepage,
             ),
