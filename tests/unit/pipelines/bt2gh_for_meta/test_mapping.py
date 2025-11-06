@@ -131,6 +131,12 @@ def test_mapgithub2biotools_map_returns_expected_map():
     assert deep_unwrap(name_item.schema_entry) == bt_tool.name
     assert name_item.method == Method.EXACT
 
+    name_item = result["homepage"]
+    assert isinstance(name_item, MapItem)
+    assert deep_unwrap(name_item.repo_entry) == {gh_repo.repo.name, gh_repo.repo.html_url}
+    assert deep_unwrap(name_item.schema_entry) == bt_tool.name
+    assert name_item.method == Method.EXACT
+
     language_item = result["language"]
     assert isinstance(language_item, MapItem)
     assert deep_unwrap(language_item.repo_entry) == gh_repo.repo.language
