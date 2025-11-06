@@ -17,10 +17,9 @@ async def map_description(gh_description: dict | None, bt_description: str | Non
         # if there is no GitHub description, run LLM call on readme, overwrite only when no bt_description'
         if bt_description is None:
             hf_provider = HuggingFaceProvider()
-            readme_content = gh_description.get("readme")
             prompt = (
                 f"Generate a concise 1-2 sentence description for a bioinformatics tool "
-                f"based on the following README content:\n\n{readme_content}\n\nDescription:"
+                f"based on the following README content:\n\n{gh_description.get('readme')}\n\nDescription:"
             )
             message_sys = ChatMessage(
                 role="system",
@@ -36,8 +35,8 @@ async def map_description(gh_description: dict | None, bt_description: str | Non
             try:
                 response = await hf_provider.generate([message_sys, message_user])
                 logging.info(
-                    "ADDED: No GitHub description and no existing bio.tools description; "
-                    "using readme to generate description."
+                    "ADDED: No GitHub description and no existing bio.tools "
+                    "description; using readme to generate description."
                 )
                 return response.content.strip()[1:100]
             except Exception as e:
