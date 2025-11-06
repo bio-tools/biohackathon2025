@@ -29,4 +29,7 @@ class MapBioTools2GitHub(ModelsMap):
                 repo_entry=[ti.term for ti in self.repo.repo.topics],
                 method=Method.SUBSET,
             ),
+            "description": MapItem(
+                schema_entry=self.metadata.description, repo_entry=self.repo.repo.description, method=Method.EXACT
+            ),
         }
