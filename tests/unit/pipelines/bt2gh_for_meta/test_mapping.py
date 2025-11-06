@@ -6,109 +6,123 @@ from bridge.pipelines.bt2gh_for_pr.map import MapBioTools2GitHub
 from bridge.pipelines.gh2bt_for_meta.map import MapGitHub2BioTools
 from bridge.pipelines.protocols import Method
 from bridge.pipelines.protocols.map import MapItem
+from bridge.pipelines.protocols.none_propagation import deep_unwrap
 
 
-class DummyTopic:
+class DummyGitHubRepoModel:
     """
-    Dummy topic class
-    """
-
-    def __init__(self, term: str):
-        self.term = term
-
-
-class DummyUrlElem:
-    """
-    Dummy url element
+    Minimal dummy for `GitHubRepoModel`:
     """
 
-    def __init__(self, url: str):
-        self.url = url
+    class Release:
+        """
+        Minimal dummy for a GitHub Release
+        """
+
+        def __init__(self, tag_name: str):
+            self.tag_name = tag_name
+
+    class LinkElem:
+        """
+        Minimal dummy for a link element
+        """
+
+        def __init__(self, url: str):
+            self.url = url
+
+    class LinkContainer:
+        """
+        Minimal dummy for a link container
+        """
+
+        def __init__(self, urls: list[str]):
+            # production code may iterate `repo.link.url` where .url is a list
+            self.url = [DummyGitHubRepoModel.LinkElem(u) for u in urls]
+
+    class License:
+        """
+        Minimal dummy for a license element
+        """
+
+        def __init__(self, spdx_id: str):
+            self.spdx_id = spdx_id
+
+    class FullRepo:
+        """
+        Minimal dummy for a full GitHub repo object
+        """
+
+        def __init__(self):
+            self.name = "repo-name"
+            self.language = "Python"
+            self.link = DummyGitHubRepoModel.LinkContainer([])
+            self.license = DummyGitHubRepoModel.License("MIT")
+            self.html_url = "https://github.com/example/"
+            self.homepage = "homepage"
+            self.topics = ["genomics"]
+
+    def __init__(self):
+        self.repo = DummyGitHubRepoModel.FullRepo()
+        self.latest_release = DummyGitHubRepoModel.Release("1.2.3")
 
 
-class DummyLinkContainer:
+class DummyBioToolsTool:
     """
-    Dummy Links
+    Minimal dummy for a bio.tools `ToolModel`-like object:
     """
 
-    def __init__(self, urls: list[str]):
-        self.url = [DummyUrlElem(u) for u in urls]
+    class Topic:
+        """
+        Minimal dummy for a bio.tools Topic object
+        """
 
-
-class DummyLicense:
-    """
-    Dummy Lcence
-    """
-
-    def __init__(self, spdx_id: str):
-        self.spdx_id = spdx_id
-
-
-class DummyLatestRelease:
-    """
-    Dummy Latest release
-    """
-
-    def __init__(self, tag_name: str):
-        self.tag_name = tag_name
-
-
-class DummyGHRepo:
-    """
-    Dummy GitHub repository class
-    """
+        def __init__(self, term: str):
+            self.term = term
 
     def __init__(self):
         self.name = "tool-name"
+        # bio.tools model uses `homepage`
         self.homepage = "https://example.org"
-        self.topics = ["topic1", "topic2"]
-        self.languages = ["Python", "C++"]
-        self.latest_release = DummyLatestRelease(tag_name="v0.9.0")
-        self.html_url = "https://github.com/example/repo"
-        self.licence = "MIT"
-
-
-class DummyBTMetadata:
-    """
-    Dummy bio.tools class.
-    """
-
-    def __init__(self):
-        self.name = "tool-name-on-gh"
-        self.homepage = "https://gh.example"
-        self.version = "0.1.2"
-        self.topic = [DummyTopic(term="genomics")]
-        self.language = ["Python", "C++"]
-        self.link = DummyLinkContainer(["https://example.com/a", "https://example.com/b"])
-        self.license = DummyLicense(spdx_id="MIT")
+        # many mappers expect `topics` as list of objects with .term
+        self.topic = [DummyBioToolsTool.Topic("genomics")]
+        # some mappers check `.language` or `.languages`
+        self.language = ["Python"]
+        self.license = license or "MIT"
+        # ToolModel uses `version` as list in the real schema; provide both shapes
+        self.version = "1.2.3"
+        self.link = [
+            DummyGitHubRepoModel.LinkElem("https://example.com/a"),
+            DummyGitHubRepoModel.LinkElem("https://example.com/b"),
+        ]
+        self.license = ["MIT"]
 
 
 def test_mapbiotools2github_map_returns_expected_map():
     """
     Test for the biotools 2 github mapping function
     """
-    gh_repo = DummyGHRepo()
-    bt_metadata = DummyBTMetadata()
-    mapper = MapBioTools2GitHub(repo=bt_metadata, metadata=gh_repo)
+    gh_repo = DummyGitHubRepoModel()
+    bt_tool = DummyBioToolsTool()
+    mapper = MapBioTools2GitHub(repo=bt_tool, metadata=gh_repo)
 
     result = mapper.map()
 
     name_item = result["name"]
     assert isinstance(name_item, MapItem)
-    assert name_item.schema_entry == bt_metadata.name
-    assert name_item.repo_entry == gh_repo.name
+    assert deep_unwrap(name_item.schema_entry) == gh_repo.repo.name
+    assert deep_unwrap(name_item.repo_entry) == bt_tool.name
     assert name_item.method == Method.EXACT
 
     homepage_item = result["homepage"]
     assert isinstance(homepage_item, MapItem)
-    assert homepage_item.schema_entry == bt_metadata.homepage
-    assert homepage_item.repo_entry == gh_repo.homepage
+    assert deep_unwrap(homepage_item.schema_entry) == gh_repo.repo.homepage
+    assert deep_unwrap(homepage_item.repo_entry) == bt_tool.homepage
     assert homepage_item.method == Method.EXACT
 
     topic_item = result["topic"]
     assert isinstance(topic_item, MapItem)
-    assert topic_item.schema_entry == [ti.term for ti in bt_metadata.topic]
-    assert topic_item.repo_entry == gh_repo.topics
+    assert deep_unwrap(topic_item.schema_entry) == gh_repo.repo.topics
+    assert deep_unwrap(topic_item.repo_entry) == [ti.term for ti in bt_tool.topic]
     assert topic_item.method == Method.SUBSET
 
 
@@ -116,40 +130,40 @@ def test_mapgithub2biotools_map_returns_expected_map():
     """
     Test for the github 2 biotools mapping function
     """
-    repo = DummyBTMetadata()
-    metadata = DummyGHRepo()
-    mapper = MapGitHub2BioTools(repo=repo, metadata=metadata)
+    gh_repo = DummyGitHubRepoModel()
+    bt_tool = DummyBioToolsTool()
+    mapper = MapGitHub2BioTools(repo=bt_tool, metadata=gh_repo)
 
-    result = mapper.map()
+    result = mapper.map
 
-    assert set(result.keys()) == {"name", "language", "version", "link", "licence"}
+    assert set(result) == {"name", "language", "version", "link", "license", "homepage"}
 
     name_item = result["name"]
     assert isinstance(name_item, MapItem)
-    assert name_item.schema_entry == repo.name
-    assert name_item.repo_entry == metadata.name
+    assert deep_unwrap(name_item.schema_entry) == gh_repo.repo.name
+    assert deep_unwrap(name_item.repo_entry) == bt_tool.name
     assert name_item.method == Method.EXACT
 
     language_item = result["language"]
     assert isinstance(language_item, MapItem)
-    assert language_item.schema_entry == repo.language
-    assert language_item.repo_entry == metadata.languages
+    assert deep_unwrap(language_item.schema_entry) == gh_repo.repo.language
+    assert deep_unwrap(language_item.repo_entry) == bt_tool.language
     assert language_item.method == Method.EXACT
 
     version_item = result["version"]
     assert isinstance(version_item, MapItem)
-    assert version_item.schema_entry == repo.version
-    assert version_item.repo_entry == metadata.latest_release.tag_name
+    assert deep_unwrap(version_item.schema_entry) == gh_repo.latest_release.tag_name
+    assert deep_unwrap(version_item.repo_entry) == bt_tool.version
     assert version_item.method == Method.EXACT
 
     link_item = result["link"]
     assert isinstance(link_item, MapItem)
-    assert link_item.schema_entry == ["https://example.com/a", "https://example.com/b"]
-    assert link_item.repo_entry == metadata.html_url
+    assert deep_unwrap(link_item.schema_entry) == gh_repo.repo.html_url
+    assert deep_unwrap(link_item.repo_entry) == ["https://example.com/a", "https://example.com/b"]
     assert link_item.method == Method.EXACT
 
-    licence_item = result["licence"]
-    assert isinstance(licence_item, MapItem)
-    assert licence_item.schema_entry == repo.license.spdx_id
-    assert licence_item.repo_entry == metadata.licence
-    assert licence_item.method == Method.EXACT
+    license_item = result["license"]
+    assert isinstance(license_item, MapItem)
+    assert deep_unwrap(license_item.schema_entry) == gh_repo.repo.license.spdx_id
+    assert deep_unwrap(license_item.repo_entry) == bt_tool.license
+    assert license_item.method == Method.EXACT
