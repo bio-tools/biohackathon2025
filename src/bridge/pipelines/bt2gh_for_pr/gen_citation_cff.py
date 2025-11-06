@@ -80,12 +80,28 @@ async def main(meta: BiotoolsToolModel) -> dict[str, str]:
             print(f"Warning: could not resolve {primary_pub}: {e}", file=sys.stderr)
 
     if not references:
-        raise SystemExit("Resolved 0 Primary publications; aborting.")
+        # Compose CITATION.cff without publications
+        cff = {
+            "cff-version": "1.2.0",
+            "message": "If you use this software, please cite it using this CITATION.cff.",
+            # Minimal software metadata inferred from bio.tools
+            "title": meta.name or meta.biotoolsID,
+            "version": None,
+            "type": "software",
+            "repository": meta.homepage,
+            "identifiers": [{"type": "other", "value": meta.biotoolsID, "description": "bio.tools"}],
+            "license": meta.license,
+            "keywords": meta.topic,
+            "abstract": meta.description
+        }
+        return {"CITATION.cff": yaml.dump(cff, sort_keys=False)}
+        raise SystemExit("Resolved 0 Primary publications; creating CITATION.cff without publications.")
+
 
     # Choose one preferred-citation (e.g., the most recent Primary, or first and most recent)
     preferred = max(references, key=lambda r: (r.year or 0, r.title or ""))
 
-    # 4) Compose CITATION.cff
+    # Compose CITATION.cff with publication(s)
     cff = {
         "cff-version": "1.2.0",
         "message": "If you use this software, please cite it and the Primary publications below.",
@@ -93,8 +109,13 @@ async def main(meta: BiotoolsToolModel) -> dict[str, str]:
         "title": meta.name or meta.biotoolsID,
         "version": None,
         "type": "software",
+        "repository": meta.homepage,
         "preferred-citation": preferred,
         "references": references,
+        "identifiers": [{"type": "other", "value": meta.biotoolsID, "description": "bio.tools"}],
+        "license": meta.license,
+        "keywords": meta.topic,
+        "abstract": meta.description
     }
 
     return {"CITATION.cff": yaml.dump(cff, sort_keys=False)}
