@@ -18,7 +18,7 @@ class MapGitHub2BioTools(ModelsMap):
         Map GitHub metadata property to corresponding bio.tools property.
         """
         return {
-            "name": MapItem(schema_entry=self.repo.repo.name, repo_entry=self.metadata.name, method=Method.EXACT),
+            "name": MapItem(schema_entry=self.metadata.name, repo_entry=self.repo.repo.name, method=Method.EXACT),
             # Languages are both lists
             "language": MapItem(
                 schema_entry=self.metadata.language, repo_entry=self.repo.repo.language, method=Method.EXACT
@@ -30,17 +30,17 @@ class MapGitHub2BioTools(ModelsMap):
             # the list of urls.
             "link": MapItem(
                 schema_entry=[link.url for link in self.metadata.link],
-                repo_entry=self.repo.html_url,
+                repo_entry=self.repo.repo.html_url,
                 method=Method.EXACT,
             ),
             "license": MapItem(
-                schema_entry=self.metadata.repo.license.spdx_id,
-                repo_entry=self.repo.license,
+                schema_entry=self.metadata.license,
+                repo_entry=self.repo.repo.license.spdx_id,
                 method=Method.EXACT,
                 fn=map_license,
             ),
             "homepage": MapItem(
-                schema_entry=self.metadata.repo.homepage,
+                schema_entry=self.metadata.homepage,
                 repo_entry={"homepage": self.repo.repo.homepage, "html_url": self.repo.repo.html_url},
                 method=Method.FUZZY,
                 fn=map_homepage,
@@ -48,10 +48,10 @@ class MapGitHub2BioTools(ModelsMap):
             "documentation": MapItem(
                 schema_entry=self.metadata.documentation,
                 repo_entry={
-                    "html_url": self.repo.html_url,
+                    "html_url": self.repo.repo.html_url,
                     "has_wiki": self.repo.repo.has_wiki,
-                    "has_pages": self.repo.repo.has_pages,
                     "code_of_conduct": self.repo.repo.code_of_conduct,
+                    "github_pages": self.repo.github_pages,
                 },
                 method=Method.FUZZY,
                 fn=map_documentation,
