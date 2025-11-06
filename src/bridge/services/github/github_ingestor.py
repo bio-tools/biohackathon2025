@@ -55,9 +55,15 @@ class GitHubIngestor(Ingestor):
         """
         repo_data = await self.fetch_repo()
         latest_release_data = await self.fetch_latest_release()
+        github_pages = await self.fetch_github_pages()
         readme = await self.fetch_readme()
 
-        result: dict[str, Any] = {"repo": repo_data, "latest_release": latest_release_data, "readme": readme}
+        result: dict[str, Any] = {
+            "repo": repo_data,
+            "latest_release": latest_release_data,
+            "github_pages": github_pages,
+            "readme": readme,
+        }
         return result
 
     async def fetch_repo(self) -> dict[str, Any]:
@@ -95,6 +101,27 @@ class GitHubIngestor(Ingestor):
         except httpx.HTTPStatusError as e:
             if e.response.status_code == 404:
                 logger.info(f"No releases for {self.owner}/{self.repo}")
+                return None
+            raise
+
+    async def fetch_github_pages(self) -> dict[str, Any]:
+        """
+        Fetch the GitHub Pages information for the repository.
+
+        Returns
+        -------
+        dict
+            Raw JSON for the GitHub Pages from GET /repos/{owner}/{repo}/pages.
+        """
+        base = settings.github_api_base
+        url = f"{base}/repos/{self.owner}/{self.repo}/pages"
+        headers = {"X-GitHub-Api-Version": "2022-11-28"}
+        try:
+            logger.debug(f"Fetching GitHub pages: {url}")
+            return await self._get(url, headers=headers)
+        except httpx.HTTPStatusError as e:
+            if e.response.status_code == 404:
+                logger.info(f"No GitHub pages found for {self.owner}/{self.repo}")
                 return None
             raise
 
