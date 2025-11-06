@@ -79,7 +79,7 @@ async def create_pr_from_meta(schema: str, repo_type: str, **kwargs):
                 title=f"Update from {schema}",
                 body=f"Auto-generated PR from {schema} ID {identifier}.",
                 head_branch=f"{fork.owner}:{branch}",
-                base_branch=repo_model.default_branch,
+                base_branch=repo_model.repo.default_branch,
             )
             logger.info(f"Created PR for {owner}/{repo}: {pr.get('html_url')}")
 
