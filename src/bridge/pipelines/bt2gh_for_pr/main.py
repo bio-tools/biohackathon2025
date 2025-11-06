@@ -75,6 +75,7 @@ async def run(args: BiotoolsToGitHubForPRPipelineArgs) -> tuple[dict, dict]:
     mapper = MapBioTools2GitHub(
         repo=existing_repo_model,
         metadata=biotools_model,
+        repo_path=repo_path,
     )
     dest = MapDestination()
 
