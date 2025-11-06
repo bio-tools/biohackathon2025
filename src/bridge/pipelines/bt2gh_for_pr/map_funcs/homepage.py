@@ -4,19 +4,21 @@ Map functions for the homepage data in the from bio.tools to GitHub.
 
 import logging
 
+from pydantic import AnyUrl
+
 from bridge.core.biotools import UrlftpType
 
 logger = logging.getLogger(__name__)
 
 
-def map_homepage(gh_schema: list[UrlftpType | None], bt_homepage: UrlftpType | None) -> dict[str, str] | None:
+def map_homepage(gh_schema: dict[AnyUrl | str | None], bt_homepage: UrlftpType | None) -> dict[str, str] | None:
     """
     Map bio.tools homepage metadata to GitHub homepage metadata.
 
 
     Parameters
     ----------
-    gh_schema : list[UrlftpType | None]
+    gh_schema : dict[AnyUrl | str | None]
         The GitHub schema containing existing homepage information.
         Needs to include:
         - "homepage": The existing GitHub homepage URL.
