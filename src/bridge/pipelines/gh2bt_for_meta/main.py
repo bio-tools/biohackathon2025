@@ -74,27 +74,27 @@ async def run(args: GitHubToBiotoolsForMetaPipelineArgs) -> BiotoolsToolModel:
 
     biotools_metadata = BiotoolsToolModel(
         name=github_repo.repo.name,
-        description=await mapper.map["description"].run(),
+        description=((await mapper.map["description"].run()) or "***Please change this description***"),
         homepage=await mapper.map["homepage"].run(),
         maturity=await mapper.map["maturity"].run(),
     )
 
     biotools_url = settings.biotools_url
-
+    logger.info(args.existing_metadata)
     logger.info(f"Extracted bio.tools metadata for repo {github_repo.repo.name}")
     if args.existing_metadata is not None:
         logger.info(
             f"\n\n*** 🛠  Want to update the bio.tools entry for this repo? (You must have edit "
             f"permissions on this tool in bio.tools) ***\n"
             f"🚀 (1) Log in to {biotools_url}\n"
-            f"✨ (2) click the following link:\n\n{str(biotools_url)[:-4]}/edit"
+            f"✨ (2) click the following link:\n\n{str(biotools_url)}/{args.existing_metadata.name}/edit"
             f"?json={urllib.parse.quote(base64.b64encode(biotools_metadata.model_dump_json().encode('ascii')))} \n"
         )
     else:
         logger.info(
             f"\n\n*** 🛠  Want to create a bio.tools entry for this repo? ***\n"
             f"🚀 (1) Log in to {biotools_url}\n"
-            f"✨ (2) click the following link:\n\n{str(biotools_url)[:-4]}/register"
+            f"✨ (2) click the following link:\n\n{str(biotools_url)}/register"
             f"?json={urllib.parse.quote(base64.b64encode(biotools_metadata.model_dump_json().encode('ascii')))} \n"
         )
     return biotools_metadata
