@@ -8,7 +8,6 @@ import logging
 
 from bridge.core import BiotoolsToolModel, GitHubRepoModel
 from bridge.pipelines.protocols import PipelineArgs
-from bridge.utils import maybe_await
 
 from .map import MapBioTools2GitHub, MapDestination
 
@@ -83,14 +82,14 @@ async def run(args: BiotoolsToGitHubForPRPipelineArgs) -> tuple[dict, dict]:
     issues = {}
     for issue in dest.issue:
         map_item = mapper.map[issue]
-        new_issue = await maybe_await(map_item.run)
+        new_issue = await map_item.run()
         if new_issue:
             issues |= new_issue
 
     file_changes = {}
     for pr in dest.pr:
         map_item = mapper.map[pr]
-        new_file_change = await maybe_await(map_item.run)
+        new_file_change = await map_item.run()
         if new_file_change:
             file_changes |= new_file_change
 

@@ -9,7 +9,6 @@ import urllib
 
 from bridge.core import BiotoolsToolModel, GitHubRepoModel
 from bridge.pipelines.protocols import PipelineArgs
-from bridge.utils import maybe_await
 
 from .map import MapGitHub2BioTools
 
@@ -71,12 +70,12 @@ async def run(args: GitHubToBiotoolsForMetaPipelineArgs) -> BiotoolsToolModel:
         repo=github_repo,
         metadata=args.existing_metadata,
     )
-     
+
     biotools_metadata = BiotoolsToolModel(
         name=github_repo.repo.name,
-        description= await mapper.map["description"].run(),
-        homepage= mapper.map["homepage"].run(),
-    )
+        description=await mapper.map["description"].run(),
+        homepage=await mapper.map["homepage"].run(),
+)
 
     biotools_url = "https://bio-tools-dev.sdu.dk"
 
