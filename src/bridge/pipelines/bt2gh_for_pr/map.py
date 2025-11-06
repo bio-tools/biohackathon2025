@@ -2,7 +2,25 @@
 Mapping classes for bio.tools to GitHub.
 """
 
+from pydantic import BaseModel
+
 from bridge.pipelines.protocols import MapItem, Method, ModelsMap
+
+
+class MapDestination(BaseModel):
+    """
+    Set destination (issue or PR) for each mapped property.
+
+    Parameters
+    ----------
+    issue : list[str]
+        List of properties to be mapped to issues.
+    pr : list[str]
+        List of properties to be mapped to pull requests.
+    """
+
+    issue: list[str] = ["description"]
+    pr: list[str] = []
 
 
 class MapBioTools2GitHub(ModelsMap):
