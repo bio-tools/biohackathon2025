@@ -31,7 +31,7 @@ def map_wiki(
     """
     Map GitHub wiki presence to bio.tools documentation.
     """
-    if gh_has_wiki:
+    if gh_has_wiki and gh_html_url:
         repo_url = str(gh_html_url).rstrip("/")
         wiki_url = f"{repo_url}/wiki"
         return _add_doc_if_not_exists(bt_documentation, wiki_url, TypeEnum1.General)
@@ -58,8 +58,8 @@ def map_github_pages(
     """
     Map GitHub Pages to bio.tools documentation.
     """
-    if gh_pages and gh_pages.get("html_url"):
-        pages_url = str(gh_pages.get("html_url"))
+    if gh_pages and gh_pages.html_url:
+        pages_url = str(gh_pages.html_url)
         return _add_doc_if_not_exists(bt_documentation, pages_url, TypeEnum1.General)
 
     return bt_documentation
