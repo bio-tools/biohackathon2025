@@ -68,11 +68,11 @@ async def run(args: GitHubToBiotoolsForMetaPipelineArgs) -> BiotoolsToolModel:
         repo=github_repo,
         metadata=args.existing_metadata,
     )
-
+     
     biotools_metadata = BiotoolsToolModel(
         name=github_repo.repo.name,
-        description="pew pew pew pew pew pew",
-        homepage=mapper.map["homepage"].run(),
+        description= await mapper.map["description"].run(),
+        homepage= mapper.map["homepage"].run(),
     )
 
     logger.info(f"Extracted bio.tools metadata for repo {github_repo.repo.name}")
