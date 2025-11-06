@@ -92,11 +92,10 @@ async def main(meta: BiotoolsToolModel) -> dict[str, str]:
             "identifiers": [{"type": "other", "value": meta.biotoolsID, "description": "bio.tools"}],
             "license": meta.license,
             "keywords": meta.topic,
-            "abstract": meta.description
+            "abstract": meta.description,
         }
         return {"CITATION.cff": yaml.dump(cff, sort_keys=False)}
         raise SystemExit("Resolved 0 Primary publications; creating CITATION.cff without publications.")
-
 
     # Choose one preferred-citation (e.g., the most recent Primary, or first and most recent)
     preferred = max(references, key=lambda r: (r.year or 0, r.title or ""))
@@ -115,7 +114,7 @@ async def main(meta: BiotoolsToolModel) -> dict[str, str]:
         "identifiers": [{"type": "other", "value": meta.biotoolsID, "description": "bio.tools"}],
         "license": meta.license,
         "keywords": meta.topic,
-        "abstract": meta.description
+        "abstract": meta.description,
     }
 
     return {"CITATION.cff": yaml.dump(cff, sort_keys=False)}

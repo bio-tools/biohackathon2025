@@ -8,8 +8,6 @@ import logging
 
 from bridge.core import BiotoolsToolModel
 from bridge.pipelines.protocols import PipelineArgs
-from bridge.services import ChatMessage, HuggingFaceProvider
-from bridge.pipelines.bt2gh_for_pr.map import MapBioTools2GitHub
 
 logger = logging.getLogger(__name__)
 
@@ -47,15 +45,12 @@ async def run(args: BiotoolsToGitHubForPRPipelineArgs) -> tuple[dict, dict]:
     """
     logger.info(f"Running bio.tools → GitHub PR pipeline for {args.metadata_model.name}")
 
-    repo_path = args.repo_path
     biotools_model = args.metadata_model
 
     print(biotools_model)
 
     # TODO: Implement actual logic to generate file changes based on biotools_model
-    #biotools_mapped = MapBioToolsToGitHub(biotools_model, )
-
-
+    # biotools_mapped = MapBioToolsToGitHub(biotools_model, )
 
     # hf_provider = HuggingFaceProvider()
     # message_sys = ChatMessage(
@@ -72,8 +67,9 @@ async def run(args: BiotoolsToGitHubForPRPipelineArgs) -> tuple[dict, dict]:
     # )
     # response = await hf_provider.generate([message_sys, message])
 
-    #file_changes = {"README.md": f"pew pew {biotools_model.name}\n{response.content}"}
+    # file_changes = {"README.md": f"pew pew {biotools_model.name}\n{response.content}"}
+    file_changes = {}
     issues = {"issue pew pew": "Pew pew issue body"}
 
-    logger.info(f"Generated file changes for repo at {repo_path}: {file_changes.keys()}")
+    # logger.info(f"Generated file changes for repo at {repo_path}: {file_changes.keys()}")
     return file_changes, issues
