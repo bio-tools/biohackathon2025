@@ -48,10 +48,10 @@ class MapGitHub2BioTools(ModelsMap):
             "documentation": MapItem(
                 schema_entry=self.metadata.documentation,
                 repo_entry={
-                    "html_url": self.repo.html_url,
+                    "html_url": self.repo.repo.html_url,
                     "has_wiki": self.repo.repo.has_wiki,
-                    "has_pages": self.repo.repo.has_pages,
                     "code_of_conduct": self.repo.repo.code_of_conduct,
+                    "github_pages": self.repo.github_pages,
                 },
                 method=Method.FUZZY,
                 fn=map_documentation,
