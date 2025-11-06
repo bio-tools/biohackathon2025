@@ -4,7 +4,7 @@ Mapping classes for GitHub to bio.tools.
 
 from bridge.pipelines.protocols import MapItem, Method, ModelsMap
 
-from .map_funcs import map_description, map_homepage, map_license
+from .map_funcs import map_description, map_documentation, map_homepage, map_license
 
 
 class MapGitHub2BioTools(ModelsMap):
@@ -44,6 +44,17 @@ class MapGitHub2BioTools(ModelsMap):
                 repo_entry={"homepage": self.repo.repo.homepage, "html_url": self.repo.repo.html_url},
                 method=Method.FUZZY,
                 fn=map_homepage,
+            ),
+            "documentation": MapItem(
+                schema_entry=self.metadata.documentation,
+                repo_entry={
+                    "html_url": self.repo.html_url,
+                    "has_wiki": self.repo.repo.has_wiki,
+                    "has_pages": self.repo.repo.has_pages,
+                    "code_of_conduct": self.repo.repo.code_of_conduct,
+                },
+                method=Method.FUZZY,
+                fn=map_documentation,
             ),
             "description": MapItem(
                 schema_entry=self.metadata.description,
