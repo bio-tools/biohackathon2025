@@ -36,12 +36,12 @@ def _flatten_function(function: list[FunctionItem]) -> list[str]:
         for op_item in fnc_item.operation:
             function_flat += [op_item.term]
         for io_item in fnc_item.input + fnc_item.output:
-            function += [io_item.data.term]
+            function_flat += [io_item.data.term]
             for form_item in io_item.format:
-                function += [form_item.term]
+                function_flat += [form_item.term]
 
     # replace all spaces with hyphens
-    function_flat = [term.replace(" ", "-") for term in function_flat]
+    function_flat = [term.replace(" ", "-").lower() for term in function_flat]
 
     return function_flat
 
@@ -69,7 +69,7 @@ def map_function2topics(gh_topics: list[str] | None, bt_function: list[FunctionI
     terms = " ".join(sorted(terms_missing))
 
     # adjust message based on singular/plural
-    noun, verb, pronoun = "term", "is", "it" if num_missing == 1 else "terms", "are", "them"
+    noun, verb, pronoun = ("term", "is", "it") if num_missing == 1 else ("terms", "are", "them")
 
     return {
         "Add function annotations from bio.tools metadata": (
