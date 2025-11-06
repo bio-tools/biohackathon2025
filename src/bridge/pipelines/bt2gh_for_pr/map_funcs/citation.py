@@ -134,4 +134,4 @@ async def map_citation(gh_citation_cff_exists: bool, bt_params: dict[str, Any]) 
 
     cff = _compose_citation(bt_params=bt_params, references=references)
 
-    return {"CITATION.cff": yaml.dump(cff, sort_keys=False)}
+    return cff
