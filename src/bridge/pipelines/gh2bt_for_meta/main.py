@@ -66,7 +66,7 @@ async def run(args: GitHubToBiotoolsForMetaPipelineArgs) -> BiotoolsToolModel:
     # response = await hf_provider.generate([message_sys, message])
 
     mapper = MapGitHub2BioTools(
-        repo=github_repo.repo,
+        repo=github_repo,
         metadata=args.existing_metadata,
     )
 
