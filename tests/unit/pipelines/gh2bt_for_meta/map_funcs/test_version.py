@@ -19,7 +19,7 @@ from bridge.pipelines.gh2bt_for_meta.map_funcs.version import map_version
         # Case 4: Both versions exist and match
         ("v1.0.0", ["v1.0.0"], ["v1.0.0"]),
         # Case 5: Both versions exist and conflict
-        ("v2.0.0", ["v1.0.0"], ["v2.0.0"]),
+        ("v2.0.0", ["v1.0.0"], ["v1.0.0", "v2.0.0"]),
         # Case 6: bio.tools version is newer than GitHub version
         ("v1.6.0", ["v1.1.0", "v2.0.0"], ["v1.6.0"]),
     ],
