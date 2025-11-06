@@ -23,7 +23,6 @@ def map_version(gh_version: str | None, bt_version: list | None) -> str | None:
         return [gh_version]
 
     if gh_version not in bt_version:
-        # TODO: consider ordering
         if any(bt > gh_version for bt in bt_version):
             # if any version in bt_version is newer than gh_version, consider conflict
             logger.warning(
