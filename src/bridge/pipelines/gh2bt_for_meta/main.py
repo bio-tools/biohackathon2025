@@ -9,6 +9,7 @@ import urllib
 
 from bridge.core import BiotoolsToolModel, GitHubRepoModel
 from bridge.pipelines.protocols import PipelineArgs
+from bridge.utils import maybe_await
 
 from .map import MapGitHub2BioTools
 
