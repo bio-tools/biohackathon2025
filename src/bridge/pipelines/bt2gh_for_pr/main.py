@@ -6,8 +6,10 @@ produce file changes to propose in a pull request.
 
 import logging
 
-from bridge.core import BiotoolsToolModel
+from bridge.core import BiotoolsToolModel, GitHubRepoModel
 from bridge.pipelines.protocols import PipelineArgs
+
+from .map import MapBioTools2GitHub, MapDestination
 
 logger = logging.getLogger(__name__)
 
@@ -24,6 +26,7 @@ class BiotoolsToGitHubForPRPipelineArgs(PipelineArgs):
         The source bio.tools metadata model.
     """
 
+    existing_repo_model: GitHubRepoModel
     repo_path: str
     metadata_model: BiotoolsToolModel
 
@@ -45,6 +48,7 @@ async def run(args: BiotoolsToGitHubForPRPipelineArgs) -> tuple[dict, dict]:
     """
     logger.info(f"Running bio.tools → GitHub PR pipeline for {args.metadata_model.name}")
 
+    existing_repo_model = args.existing_repo_model
     biotools_model = args.metadata_model
 
     print(biotools_model)
@@ -67,9 +71,20 @@ async def run(args: BiotoolsToGitHubForPRPipelineArgs) -> tuple[dict, dict]:
     # )
     # response = await hf_provider.generate([message_sys, message])
 
-    # file_changes = {"README.md": f"pew pew {biotools_model.name}\n{response.content}"}
-    file_changes = {}
-    issues = {"issue pew pew": "Pew pew issue body"}
+    mapper = MapBioTools2GitHub(
+        repo=existing_repo_model,
+        metadata=biotools_model,
+    )
+    dest = MapDestination()
+
+    issues = {}
+    for issue in dest.issue:
+        map_item = mapper.map[issue]
+        new_issue = map_item.run()
+        if new_issue:
+            issues |= new_issue
+
+    file_changes = {"README.md": f"pew pew {biotools_model.name}"}
 
     # logger.info(f"Generated file changes for repo at {repo_path}: {file_changes.keys()}")
     return file_changes, issues

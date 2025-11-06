@@ -18,7 +18,10 @@ class GitHubRepoModel(BaseModel):
         The full repository data.
     latest_release : GitHubLatestReleaseModel | None
         The latest release data, or None if no releases exist.
+    readme : str | None
+        The README content of the repository, or None if not available.
     """
 
     repo: FullRepository
     latest_release: Release | None
+    readme: str | None

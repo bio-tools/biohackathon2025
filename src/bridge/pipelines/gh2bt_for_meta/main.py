@@ -3,7 +3,9 @@ Implements the GitHub→bio.tools metadata pipeline:
 derives a BiotoolsToolModel from a GitHubRepoModel.
 """
 
+import base64
 import logging
+import urllib
 
 from bridge.core import BiotoolsToolModel, GitHubRepoModel
 from bridge.pipelines.protocols import PipelineArgs
@@ -71,10 +73,17 @@ async def run(args: GitHubToBiotoolsForMetaPipelineArgs) -> BiotoolsToolModel:
 
     biotools_metadata = BiotoolsToolModel(
         name=github_repo.repo.name,
-        # description=response.content[:1000],
-        description="Fake description",
+        description="pew pew pew pew pew pew",
         homepage=mapper.map["homepage"].run(),
     )
 
+    biotools_url = "https://bio-tools-dev.sdu.dk"
+
     logger.info(f"Extracted bio.tools metadata for repo {github_repo.repo.name}")
+    logger.info(
+        f"\n\n*** 🛠  Want to create a bio.tools entry for this repo? ***\n"
+        f"🚀 (1) Log in to {biotools_url}\n"
+        f"✨ (2) click the following link:\n\n{biotools_url}/register"
+        f"?json={urllib.parse.quote(base64.b64encode(biotools_metadata.model_dump_json().encode('ascii')))} \n"
+    )
     return biotools_metadata
