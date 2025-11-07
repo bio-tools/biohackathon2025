@@ -7,7 +7,7 @@ from pydantic import BaseModel
 from bridge.pipelines.protocols import MapItem, Method, ModelsMap
 from bridge.pipelines.utils import check_file_with_extension_exists
 
-from .map_funcs import map_citation, map_description, map_function2topics
+from .map_funcs import map_citation, map_description, map_homepage, map_function2topics
 
 
 class MapDestination(BaseModel):
@@ -22,7 +22,7 @@ class MapDestination(BaseModel):
         List of properties to be mapped to pull requests.
     """
 
-    issue: list[str] = ["description"]
+    issue: list[str] = ["description", "homepage"]
     pr: list[str] = ["citation"]
 
 
@@ -42,17 +42,14 @@ class MapBioTools2GitHub(ModelsMap):
         """
         return {
             "name": MapItem(schema_entry=self.metadata.name, repo_entry=self.repo.repo.name, method=Method.EXACT),
-            "homepage": MapItem(
-                schema_entry=self.metadata.homepage, repo_entry=self.repo.homepage, method=Method.EXACT
-            ),
             "version": MapItem(
-                schema_entry=self.metadata.version,
-                repo_entry=self.repo.latest_release.tag_name,
+                schema_entry=self.metadata.latest_release.tag_name,
+                repo_entry=self.repo.version,
                 method=Method.EXACT,
             ),
             "topic": MapItem(
-                schema_entry=self.metadata.topic,
-                repo_entry=[ti.term for ti in self.repo.repo.topics],
+                schema_entry=[ti.term for ti in self.metadata.topic],
+                repo_entry=self.repo.repo.topics,
                 method=Method.SUBSET,
             ),
             "description": MapItem(
@@ -84,4 +81,10 @@ class MapBioTools2GitHub(ModelsMap):
                 fn=map_function2topics,
             ),
             # TODO: function2readme
+            "homepage": MapItem(
+                schema_entry=self.metadata.homepage,
+                repo_entry={"homepage": self.repo.repo.homepage, "html_url": self.repo.repo.html_url},
+                method=Method.EXACT,
+                fn=map_homepage,
+            ),
         }
