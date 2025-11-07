@@ -11,6 +11,8 @@ from typing import Any
 
 from pydantic import BaseModel, ConfigDict, field_serializer, field_validator
 
+from bridge.utils import maybe_await
+
 from .none_propagation import SafeAttr, deep_unwrap
 
 
@@ -122,7 +124,7 @@ class MapItem(BaseModel):
             return None
         return _to_path(fn)
 
-    def run(self) -> Any:
+    async def run(self) -> Any:
         """
         Run the mapping function if provided, otherwise return None.
 
@@ -135,4 +137,4 @@ class MapItem(BaseModel):
             return None
         repo = deep_unwrap(self.repo_entry)
         schema = deep_unwrap(self.schema_entry)
-        return self.fn(repo, schema)
+        return await maybe_await(self.fn, repo, schema)

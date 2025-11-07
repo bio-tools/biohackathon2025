@@ -21,9 +21,9 @@ class Author(BaseModel):
         extra="ignore",
     )
 
-    first_name: str | None
-    last_name: str | None
-    name: str | None
+    first_name: str | None = None
+    last_name: str | None = None
+    name: str | None = None
 
 
 class Publication(BaseModel):
@@ -57,16 +57,16 @@ class Publication(BaseModel):
     model_config = ConfigDict(
         extra="ignore",
     )
-    doi: str | None
+    doi: str | None = None
 
-    title: str | None
-    authors: list[Author] | None
-    year: int | None
+    title: str | None = None
+    authors: list[Author] | None = None
+    year: int | None = None
 
-    journal: str | None
-    volume: str | None
-    issue: str | None
-    page_start: int | None
-    page_end: int | None
+    journal: str | None = None
+    volume: str | None = None
+    issue: str | None = None
+    page_start: int | None = None
+    page_end: int | None = None
 
     pub_type: str | None = "article"
