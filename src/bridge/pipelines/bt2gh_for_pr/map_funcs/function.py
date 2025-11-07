@@ -1,5 +1,5 @@
 """
-Functions for mapping bio.tools function items (operation, input, output) to GitHub
+Functions for mapping bio.tools function EDAM annotation terms (operation, input, output) to GitHub
 """
 
 from bridge.core.biotools import FunctionItem
