@@ -16,16 +16,23 @@ async def map_description(gh_description: dict | None, bt_description: str | Non
     if gh_description.get("description") is None:
         # if there is no GitHub description, run LLM call on readme, overwrite only when no bt_description'
         if bt_description is None:
+            readme = gh_description.get("readme")
             hf_provider = HuggingFaceProvider()
             prompt = (
-                f"Generate a concise 1-2 sentence description for a bioinformatics tool "
-                f"based on the following README content:\n\n{gh_description.get('readme')}\n\nDescription:"
+                f"Based on the following README content, generate a description for a bioinformatics tool. "
+                f"Limit your response to 1–2 sentences. "
+                f"Do not include any extra commentary or explanation. "
+                f"Only output the description itself.\n\n{readme}"
             )
             message_sys = ChatMessage(
                 role="system",
                 content=(
                     "You are an expert in bioinformatics tool documentation. "
-                    "Generate concise, clear descriptions for tools based on their README content."
+                    "Your task is to generate a concise, clear, and short description for a software tool. "
+                    "Limit your response to 1–2 sentences. "
+                    "Do not include any explanation, reasoning, or commentary. "
+                    "Only output the description itself."
+                    "/nothink"
                 ),
             )
             message_user = ChatMessage(
@@ -35,10 +42,10 @@ async def map_description(gh_description: dict | None, bt_description: str | Non
             try:
                 response = await hf_provider.generate([message_sys, message_user])
                 logging.info(
-                    "ADDED: No GitHub description and no existing bio.tools "
-                    "description; using readme to generate description."
+                    "ADDED: No GitHub description and no existing bio.tools description; using "
+                    + "readme to generate description."
                 )
-                return response.content.strip()[1:100]
+                return response.content.strip()[0:999]
             except Exception as e:
                 logging.warning(f"HuggingFaceProvider call failed: {e}. Returning empty description.")
                 return None

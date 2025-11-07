@@ -3,6 +3,7 @@ Mapping functions for documentation field.
 """
 
 from bridge.core.biotools import DocumentationItem, TypeEnum1
+from bridge.core.github_pages import GitHubPages
 
 
 def _add_doc_if_not_exists(
@@ -11,11 +12,13 @@ def _add_doc_if_not_exists(
     """
     Add documentation item if it doesn't already exist.
     """
-    if bt_documentation is None:
+    if not bt_documentation:
         bt_documentation = []
 
-    # Check if URL already exists in documentation
-    url_exists = any(str(doc.url.root) == url for doc in bt_documentation)
+    # Normalize the incoming URL for comparison
+    normalized_url = url.rstrip("/").lower()
+
+    url_exists = any(str(doc.url.root).rstrip("/").lower() == normalized_url for doc in bt_documentation)
 
     if not url_exists:
         doc_item = DocumentationItem(url=url, type=[doc_type])
@@ -51,20 +54,35 @@ def map_code_of_conduct(
     return bt_documentation
 
 
+def map_github_pages(
+    gh_pages: GitHubPages | None, bt_documentation: list[DocumentationItem] | None
+) -> list[DocumentationItem] | None:
+    """
+    Map GitHub Pages to bio.tools documentation.
+    """
+    if gh_pages and gh_pages.html_url:
+        pages_url = str(gh_pages.html_url)
+        return _add_doc_if_not_exists(bt_documentation, pages_url, TypeEnum1.General)
+
+    return bt_documentation
+
+
 def map_documentation(
     gh_repo_data: dict | None, bt_documentation: list[DocumentationItem] | None
 ) -> list[DocumentationItem] | None:
     """
     Map GitHub wiki presence to bio.tools documentation field.
     """
-    if gh_repo_data is None:
+    if not gh_repo_data:
         return bt_documentation
 
     gh_html_url = gh_repo_data.get("html_url")
     gh_has_wiki = gh_repo_data.get("has_wiki")
     gh_code_of_conduct = gh_repo_data.get("code_of_conduct")
+    gh_pages = gh_repo_data.get("github_pages")
 
     bt_documentation = map_wiki(gh_html_url, gh_has_wiki, bt_documentation)
     bt_documentation = map_code_of_conduct(gh_code_of_conduct, bt_documentation)
+    bt_documentation = map_github_pages(gh_pages, bt_documentation)
 
     return bt_documentation
