@@ -48,12 +48,12 @@ class HuggingFaceProvider(LLMProvider):
     ----------
     model : str
         The Hugging Face model identifier to use for chat generation.
-        Default is "Qwen/Qwen2.5-7B" (https://huggingface.co/Qwen/Qwen2.5-7B).
+        Default is "Qwen/Qwen3-8B" (https://huggingface.co/Qwen/Qwen2.5-7B).
     provider : HF_Provider
         The inference provider to use. Default is "featherless-ai".
     """
 
-    def __init__(self, model: str = "Qwen/Qwen2.5-7B", provider: HF_Provider = "featherless-ai"):
+    def __init__(self, model: str = "Qwen/Qwen3-8B", provider: HF_Provider = "featherless-ai"):
         settings.require_huggingface_token()
 
         self.model = model
