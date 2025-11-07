@@ -70,11 +70,11 @@ async def run(args: GitHubToBiotoolsForMetaPipelineArgs) -> BiotoolsToolModel:
         repo=github_repo,
         metadata=args.existing_metadata,
     )
-     
+
     biotools_metadata = BiotoolsToolModel(
         name=github_repo.repo.name,
-        description= await mapper.map["description"].run(),
-        homepage= mapper.map["homepage"].run(),
+        description=await mapper.map["description"].run(),
+        homepage=mapper.map["homepage"].run(),
     )
 
     biotools_url = "https://bio-tools-dev.sdu.dk"
