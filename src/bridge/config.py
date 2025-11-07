@@ -18,6 +18,7 @@ class Settings(BaseSettings):
     github_api_url: HttpUrl = "https://api.github.com"
 
     # bio.tools
+    biotools_url: HttpUrl = "https://bio.tools/"
     biotools_api_url: HttpUrl = "https://bio.tools/api/"
 
     # Hugging Face
@@ -48,7 +49,7 @@ class Settings(BaseSettings):
     @property
     def europepmc_api_base(self) -> str:
         """Base URL for Europe PMC API as a string"""
-        return self._api_base(self.europepmc_api_base)
+        return self._api_base(self.europe_pmc_api_url)
 
     @staticmethod
     def _api_base(url: HttpUrl) -> str:

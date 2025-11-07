@@ -57,12 +57,14 @@ class GitHubIngestor(Ingestor):
         latest_release_data = await self.fetch_latest_release()
         github_pages = await self.fetch_github_pages()
         readme = await self.fetch_readme()
+        languages = await self.fetch_languages()
 
         result: dict[str, Any] = {
             "repo": repo_data,
             "latest_release": latest_release_data,
             "github_pages": github_pages,
             "readme": readme,
+            "languages": languages,
         }
         return result
 
@@ -101,6 +103,27 @@ class GitHubIngestor(Ingestor):
         except httpx.HTTPStatusError as e:
             if e.response.status_code == 404:
                 logger.info(f"No releases for {self.owner}/{self.repo}")
+                return None
+            raise
+
+    async def fetch_languages(self) -> dict[str, Any] | None:
+        """
+        Fetch the programming languages used in the repository.
+
+        Returns
+        -------
+        dict | None
+            Raw JSON for the languages from GET /repos/{owner}/{repo}/languages.
+        """
+        base = settings.github_api_base
+        url = f"{base}/repos/{self.owner}/{self.repo}/languages"
+        headers = {"X-GitHub-Api-Version": "2022-11-28"}
+        try:
+            logger.debug(f"Fetching languages: {url}")
+            return await self._get(url, headers=headers)
+        except httpx.HTTPStatusError as e:
+            if e.response.status_code == 404:
+                logger.info(f"No languages found for {self.owner}/{self.repo}")
                 return None
             raise
 

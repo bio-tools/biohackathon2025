@@ -6,6 +6,7 @@ import logging
 
 from bridge.builders.protocols import Transformer
 from bridge.core import GitHubRepoModel
+from bridge.core.github_languages import Language
 from bridge.core.github_latest_release import Release
 from bridge.core.github_pages import GitHubPages
 from bridge.core.github_repo import FullRepository
@@ -37,6 +38,7 @@ class GitHubRepoTransformer(Transformer):
         repo_raw_data = raw_data.get("repo", {})
         latest_release_raw_data = raw_data.get("latest_release")
         github_pages_raw_data = raw_data.get("github_pages")
+        languages_raw_data = raw_data.get("languages")
 
         if not repo_raw_data["homepage"]:
             repo_raw_data["homepage"] = None
@@ -48,5 +50,6 @@ class GitHubRepoTransformer(Transformer):
             latest_release=Release(**latest_release_raw_data) if latest_release_raw_data else None,
             github_pages=GitHubPages(**github_pages_raw_data) if github_pages_raw_data else None,
             readme=raw_data.get("readme"),
+            languages=Language(**languages_raw_data) if languages_raw_data else None,
         )
         return result
