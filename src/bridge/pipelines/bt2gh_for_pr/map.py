@@ -72,7 +72,7 @@ class MapBioTools2GitHub(ModelsMap):
             ),
             "topics": MapItem(
                 schema_entry={"topics": self.metadata.topic, "functions": self.metadata.function},
-                repo_entry=self.repo.topic,
+                repo_entry=self.repo.repo.topics,
                 method=Method.FUZZY,
                 fn=map_edam2topics,
             ),
