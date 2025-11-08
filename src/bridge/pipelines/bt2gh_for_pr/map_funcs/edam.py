@@ -1,19 +1,24 @@
 """
-Functions for mapping bio.tools function EDAM annotation terms (operation, input, output) to GitHub
+Functions for mapping bio.tools function and topic EDAM annotation terms (topic, operation, input, output) to GitHub
 """
 
+import logging
+
 from bridge.core.biotools import FunctionItem
+
+logger = logging.getLogger(__name__)
 
 
 def _flatten_function(function: list[FunctionItem]) -> list[str]:
     """
-    Flatten bio.tools function annotations for operation, input, and output.
+    Flatten bio.tools topic annototions and function annotations for operation, input, and output.
 
     Terms may contain spaces. Those spaces are replaced by hyphens.
     This will allow copy/pasting the terms into GitHub and ensure that
     multi-word terms are not recognized as separate topics but as one.
 
     Relevant terms:
+    - topic[].term
     - function[].operation[].term
     - function[].input[].data.term
     - function[].input[].format[].term
@@ -46,20 +51,28 @@ def _flatten_function(function: list[FunctionItem]) -> list[str]:
     return function_flat
 
 
-def map_function2topics(gh_topics: list[str] | None, bt_function: list[FunctionItem] | None) -> dict[str, str] | None:
+def map_edam2topics(gh_topics: list[str] | None, bt_edam: dict[str, any] | None) -> dict[str, str] | None:
     """
-    Map bio.tools function items to GitHub topics.
+    Map bio.tools edam items to GitHub topics.
 
     Returns
     -------
     dict[str, str] | None
         A dictionary with issue title as key and issue body as value, or None if no issue is needed.
     """
-    if bt_function is None:
+    topic_terms = bt_edam.get("topics", [])
+    # get only each term for topic items
+    topic_terms = [ti.term for ti in topic_terms]
+    topic_terms = [term.replace(" ", "-").lower() for term in topic_terms]
+    function_terms = _flatten_function(bt_edam.get("functions", []))
+    edam_terms = topic_terms + function_terms
+
+    if not edam_terms:
         # no function annotations in bio.tools
         return None
 
-    edam_terms = _flatten_function(bt_function)
+    if gh_topics is None:
+        gh_topics = []
     terms_missing = set(edam_terms).difference(set(gh_topics))
     if not terms_missing:
         # no bio.tools function annotations missing in GitHub topics
@@ -71,9 +84,11 @@ def map_function2topics(gh_topics: list[str] | None, bt_function: list[FunctionI
     # adjust message based on singular/plural
     noun, verb, pronoun = ("term", "is", "it") if num_missing == 1 else ("terms", "are", "them")
 
+    logger.info(f"ADDED: {num_missing} EDAM {noun} to GitHub topics: {terms}")
+
     return {
-        "Add function annotations from bio.tools metadata": (
-            f"The bio.tools function annotations contain {num_missing} EDAM {noun} "
+        "Add edam annotations from bio.tools metadata": (
+            f"The bio.tools edam annotations contain {num_missing} EDAM {noun} "
             f"that {verb} not included in the GitHub topics: \n\n{terms}\n\n"
             f"Please consider adding {pronoun} to the GitHub repository."
         )

@@ -51,26 +51,7 @@ async def run(args: BiotoolsToGitHubForPRPipelineArgs) -> tuple[dict, dict]:
     existing_repo_model = args.existing_repo_model
     biotools_model = args.metadata_model
 
-    print(biotools_model)
-
-    # TODO: Implement actual logic to generate file changes based on biotools_model
-    # biotools_mapped = MapBioToolsToGitHub(biotools_model, )
-
-    # hf_provider = HuggingFaceProvider()
-    # message_sys = ChatMessage(
-    #     role="system",
-    #     content=(
-    #         "You are a Star Trek expert. Respond only to the current user message. "
-    #         "Keep your response to a single, self-contained, metaphorical sentence. "
-    #         "Do not ask questions. Do not continue the conversation. Do not add extra explanation."
-    #     ),
-    # )
-    # message = ChatMessage(
-    #     role="user",
-    #     content="Explain quantum entanglement in one sentence using metaphors a Klingon warrior would understand.",
-    # )
-    # response = await hf_provider.generate([message_sys, message])
-
+    # Generate file changes based on biotools_model
     mapper = MapBioTools2GitHub(
         repo=existing_repo_model,
         metadata=biotools_model,
