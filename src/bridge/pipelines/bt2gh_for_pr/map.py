@@ -7,7 +7,7 @@ from pydantic import BaseModel
 from bridge.pipelines.protocols import MapItem, Method, ModelsMap
 from bridge.pipelines.utils import check_file_with_extension_exists
 
-from .map_funcs import map_citation, map_description, map_homepage, map_function2topics
+from .map_funcs import map_citation, map_description, map_edam2topics, map_homepage
 
 
 class MapDestination(BaseModel):
@@ -22,7 +22,7 @@ class MapDestination(BaseModel):
         List of properties to be mapped to pull requests.
     """
 
-    issue: list[str] = ["description", "homepage"]
+    issue: list[str] = ["description", "homepage", "topics"]
     pr: list[str] = ["citation"]
 
 
@@ -47,11 +47,6 @@ class MapBioTools2GitHub(ModelsMap):
                 repo_entry=self.repo.version,
                 method=Method.EXACT,
             ),
-            "topic": MapItem(
-                schema_entry=[ti.term for ti in self.metadata.topic],
-                repo_entry=self.repo.repo.topics,
-                method=Method.SUBSET,
-            ),
             "description": MapItem(
                 schema_entry=self.metadata.description,
                 repo_entry=self.repo.repo.description,
@@ -75,10 +70,11 @@ class MapBioTools2GitHub(ModelsMap):
                 method=Method.FUZZY,
                 fn=map_citation,
             ),
-            "function2topics": MapItem(
-                schema_entry=self.metadata.function,
-                repo_entry=self.repo.topics,
-                fn=map_function2topics,
+            "topics": MapItem(
+                schema_entry={"topics": self.metadata.topic, "functions": self.metadata.function},
+                repo_entry=self.repo.repo.topics,
+                method=Method.FUZZY,
+                fn=map_edam2topics,
             ),
             # TODO: function2readme
             "homepage": MapItem(
