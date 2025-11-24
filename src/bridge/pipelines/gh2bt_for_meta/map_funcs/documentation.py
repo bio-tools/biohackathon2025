@@ -5,6 +5,8 @@ Mapping functions for documentation field.
 from bridge.core.biotools import DocumentationItem, TypeEnum1
 from bridge.core.github_pages import GitHubPages
 
+# TODO: add logging
+
 
 def _add_doc_if_not_exists(
     bt_documentation: list[DocumentationItem] | None, url: str, doc_type: TypeEnum1

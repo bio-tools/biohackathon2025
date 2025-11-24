@@ -2,11 +2,10 @@
 Mapping functions for description metadata.
 """
 
-import logging
-
+from bridge.logging import get_user_logger
 from bridge.services import ChatMessage, HuggingFaceProvider
 
-logger = logging.getLogger(__name__)
+logger = get_user_logger()
 
 
 async def map_description(gh_description: dict | None, bt_description: str | None) -> str | None:
@@ -41,13 +40,13 @@ async def map_description(gh_description: dict | None, bt_description: str | Non
             )
             try:
                 response = await hf_provider.generate([message_sys, message_user])
-                logging.info(
-                    "ADDED: No GitHub description and no existing bio.tools description; using "
-                    + "readme to generate description."
+                logger.added(
+                    "No GitHub description and no existing bio.tools description; using "
+                    "readme to generate description."
                 )
                 return response.content.strip()[0:999]
             except Exception as e:
-                logging.warning(f"HuggingFaceProvider call failed: {e}. Returning empty description.")
+                logger.note(f"HuggingFaceProvider call failed: {e}. Returning empty description.")
                 return None
         return bt_description
     else:
@@ -57,10 +56,10 @@ async def map_description(gh_description: dict | None, bt_description: str | Non
             bt_description is not None
             and gh_description.get("description").rstrip(". ").strip() == bt_description.rstrip(". ").strip()
         ):
-            logging.info("EXACT MATCH: GitHub description matches existing bio.tools description.")
+            logger.exact_match("GitHub description matches existing bio.tools description.")
             return bt_description
         elif bt_description is not None:
-            logging.info("CONFLICT: Using GitHub description to overwrite existing bio.tools description.")
+            logger.conflict("Using GitHub description to overwrite existing bio.tools description.")
         else:
-            logging.info("ADDED: Using GitHub description as no existing bio.tools description.")
+            logger.added("Using GitHub description as no existing bio.tools description.")
         return gh_description.get("description")

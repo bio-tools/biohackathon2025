@@ -17,6 +17,8 @@ from bridge.builders import compose_europe_pmc_metadata
 from bridge.core import Publication
 from bridge.core.biotools import PublicationItem, TypeEnum2
 
+# TODO: add logging
+
 TIMEOUT = 20
 
 
