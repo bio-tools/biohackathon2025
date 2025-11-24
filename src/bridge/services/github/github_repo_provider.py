@@ -29,11 +29,122 @@ class GitHubRepoProvider(RepoProvider):
 
     def __init__(self):
         settings.require_github_token()
+        self._login: str | None = None
         logger.debug("GitHubRepoProvider initialized (token verified).")
 
-    async def fork(self, owner: str, repo: str, wait_ready: bool = True, max_wait: int = 20) -> ForkInfo:
+    async def _get_authenticated_login(self) -> str:
         """
-        Fork a GitHub repository.
+        Return the login of the authenticated GitHub user (cached).
+
+        Returns
+        -------
+        str
+            GitHub username of the authenticated user.
+        """
+        if self._login is not None:
+            return self._login
+
+        base = settings.github_api_base
+        url = f"{base}/user"
+        headers = get_github_headers()
+
+        async with httpx.AsyncClient(timeout=10) as client:
+            response = await client.get(url, headers=headers)
+            response.raise_for_status()
+            data = response.json()
+            self._login = data["login"]
+            logger.debug(f"Authenticated as GitHub user '{self._login}'")
+            return self._login
+
+    async def _get_existing_fork(self, source_owner: str, source_repo: str) -> ForkInfo | None:
+        """
+        Return ForkInfo for an existing fork of `source_owner/source_repo` owned by
+        the authenticated user, or None if it does not exist.
+
+        Parameters
+        ----------
+        source_owner : str
+            Owner of the source repository.
+        source_repo : str
+            Name of the source repository.
+
+        Returns
+        -------
+        ForkInfo | None
+            ForkInfo of the existing fork, or None if not found.
+        """
+        login = await self._get_authenticated_login()
+        base = settings.github_api_base
+        url = f"{base}/repos/{login}/{source_repo}"
+        headers = get_github_headers()
+
+        logger.debug(f"Checking for existing fork {login}/{source_repo} of {source_owner}/{source_repo}")
+
+        async with httpx.AsyncClient(timeout=10) as client:
+            response = await client.get(url, headers=headers)
+            if response.status_code == 404:
+                logger.debug("No existing fork found.")
+                return None
+
+            response.raise_for_status()
+            data = response.json()
+
+        if not data.get("fork"):
+            logger.debug(f"Repo {login}/{source_repo} exists but is not a fork.")
+            return None
+
+        parent_full_name = data.get("parent", {}).get("full_name")
+        if parent_full_name != f"{source_owner}/{source_repo}":
+            logger.debug(
+                f"Repo {login}/{source_repo} is a fork, but parent is {parent_full_name}, "
+                f"not {source_owner}/{source_repo}."
+            )
+            return None
+
+        fork_info = ForkInfo(
+            full_name=data["full_name"],
+            owner=data["owner"]["login"],
+            repo=data["name"],
+        )
+        logger.info(f"Reusing existing fork: {fork_info.full_name}")
+        return fork_info
+
+    async def _delete_repo(self, owner: str, repo: str) -> None:
+        """
+        Delete a GitHub repository.
+        NOTE: This is destructive.
+
+        Parameters
+        ----------
+        owner : str
+            Owner of the repository.
+        repo : str
+            Name of the repository.
+        """
+        base = settings.github_api_base
+        url = f"{base}/repos/{owner}/{repo}"
+        headers = get_github_headers()
+
+        logger.warning(f"Deleting repo {owner}/{repo}")
+
+        async with httpx.AsyncClient(timeout=10) as client:
+            response = await client.delete(url, headers=headers)
+
+        # 204: deleted; 404: already gone -> both OK
+        if response.status_code not in (204, 404):
+            try:
+                response.raise_for_status()
+            except httpx.HTTPStatusError as e:
+                logger.error(f"Failed to delete repo {owner}/{repo}: {e}")
+                raise
+
+        logger.info(f"Repo {owner}/{repo} deleted or did not exist.")
+
+    async def fork(
+        self, owner: str, repo: str, replace_existing: bool = True, wait_ready: bool = True, max_wait: int = 20
+    ) -> ForkInfo:
+        """
+        Fork a GitHub repository (or return an existing fork).
 
         Parameters
         ----------
@@ -41,6 +152,8 @@ class GitHubRepoProvider(RepoProvider):
             The owner of the repository to fork.
         repo : str
             The name of the repository to fork.
+        replace_existing : bool
+            Whether to delete an existing fork (if present) before creating a new one. Default is True.
         wait_ready : bool
             Whether to wait until the fork is fully ready. Default is True.
         max_wait : int
@@ -56,6 +169,14 @@ class GitHubRepoProvider(RepoProvider):
         HTTPError
             If the fork operation fails.
         """
+        existing_fork = await self._get_existing_fork(owner, repo)
+
+        if not replace_existing and existing_fork is not None:
+            return existing_fork
+
+        if replace_existing and existing_fork is not None:
+            await self._delete_repo(existing_fork.owner, existing_fork.repo)
+
         base = settings.github_api_base
         url = f"{base}/repos/{owner}/{repo}/forks"
         headers = get_github_headers()

@@ -4,6 +4,8 @@ Opens a PR in a repository based on metadata from a specified schema.
 """
 
 import logging
+import time
+import uuid
 
 from bridge.bootstrap import (
     get_pipeline,
@@ -15,6 +17,25 @@ from bridge.pipelines import PipelineGoal
 from bridge.utils import require_args
 
 logger = logging.getLogger(__name__)
+
+
+def _unique_branch_name(prefix: str = "update") -> str:
+    """
+    Generate a unique branch name using the given prefix.
+
+    Parameters
+    ----------
+    prefix : str
+        The prefix for the branch name.
+
+    Returns
+    -------
+    str
+        A unique branch name.
+    """
+    timestamp = int(time.time())
+    rnd = uuid.uuid4().hex[:6]
+    return f"{prefix}/{timestamp}-{rnd}"
 
 
 @require_args("owner", "repo", "identifier")
@@ -71,7 +92,7 @@ async def create_pr_from_meta(schema: str, repo_type: str, **kwargs):
 
         pr = {}
         if file_changes:
-            branch = "update"
+            branch = _unique_branch_name()
             repo_provider.apply_changes_and_push(cloned_repo, branch, file_changes)
             pr = await repo_provider.create_pull_request(
                 owner=owner,
