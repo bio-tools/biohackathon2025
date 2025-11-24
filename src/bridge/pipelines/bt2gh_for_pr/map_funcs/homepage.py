@@ -2,13 +2,12 @@
 Map functions for the homepage data in the from bio.tools to GitHub.
 """
 
-import logging
-
 from pydantic import AnyUrl
 
 from bridge.core.biotools import UrlftpType
+from bridge.logging import get_user_logger
 
-logger = logging.getLogger(__name__)
+logger = get_user_logger()
 
 
 def map_homepage(gh_schema: dict[AnyUrl | str | None], bt_homepage: UrlftpType | None) -> dict[str, str] | None:
@@ -37,19 +36,19 @@ def map_homepage(gh_schema: dict[AnyUrl | str | None], bt_homepage: UrlftpType |
     bt_hp = str(bt_homepage).rstrip("/") if bt_homepage else None
 
     if bt_hp is None:
-        logger.info("NOTE: bio.tools homepage is None, nothing to map.")
+        logger.note("bio.tools homepage is None, nothing to map.")
         return None
 
     if bt_hp == gh_url:
-        logger.info("NOTE: bio.tools homepage is the same as GitHub URL, no need to map.")
+        logger.exact("bio.tools homepage is the same as GitHub URL, no need to map.")
         return None
 
     if gh_hp is not None:
         if gh_hp != bt_hp:
-            logger.info(f"CONFLICT: existing GitHub homepage '{gh_hp}' differs from bio.tools homepage '{bt_hp}'")
+            logger.conflict(f"existing GitHub homepage '{gh_hp}' differs from bio.tools homepage '{bt_hp}'")
             return None
 
-    logger.info(f"ADDED: homepage '{bt_hp}'")
+    logger.added(f"homepage '{bt_hp}'")
     return {
         "Add homepage from bio.tools metadata": (
             f"The bio.tools homepage is:\n\n{bt_hp}\n\n"

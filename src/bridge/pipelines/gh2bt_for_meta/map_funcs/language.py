@@ -2,12 +2,11 @@
 Mapping functions for language field.
 """
 
-import logging
-
 from bridge.core.biotools import LanguageEnum
 from bridge.core.github_languages import Language
+from bridge.logging import get_user_logger
 
-logger = logging.getLogger(__name__)
+logger = get_user_logger()
 
 
 def _find_matching_bt_language(str_lang: str) -> LanguageEnum | None:
@@ -30,7 +29,7 @@ def _cast_to_biotools_languages(languages: set[str]) -> list[LanguageEnum]:
         if matched_lang:
             bt_languages.append(matched_lang)
         else:
-            logger.warning(f"Unknown language '{lang}' not found in bio.tools LanguageEnum.")
+            logger.note(f"Unknown language '{lang}' not found in bio.tools LanguageEnum.")
     return bt_languages
 
 
@@ -47,21 +46,21 @@ def map_language(gh_languages: Language | None, bt_languages: list[LanguageEnum]
     bt_languages_set_lower = {lang.lower() for lang in bt_languages_set} if bt_languages_set else set()
 
     if gh_languages_set_lower == bt_languages_set_lower:
-        logger.info("GitHub languages match bio.tools languages.")
+        logger.exact("GitHub languages match bio.tools languages.")
         return bt_languages
 
     if gh_languages is not None and bt_languages is not None:
         if gh_languages_set_lower != bt_languages_set_lower:
-            logger.info(
-                f"CONFLICT: existing GitHub languages '{gh_languages_set}'"
+            logger.conflict(
+                f"Existing GitHub languages '{gh_languages_set}'"
                 f" differ from bio.tools languages '{bt_languages_set}'"
             )
         return _cast_to_biotools_languages(gh_languages_set)
 
     if gh_languages is not None:
-        logger.info(f"ADDED: GitHub languages '{gh_languages_set}'")
+        logger.added(f"GitHub languages '{gh_languages_set}'")
         return _cast_to_biotools_languages(gh_languages_set)
 
     if bt_languages is not None:
-        logger.info(f"EXISTING: bio.tools languages '{bt_languages_set}'")
+        logger.unchanged(f"bio.tools languages '{bt_languages_set}'")
         return bt_languages

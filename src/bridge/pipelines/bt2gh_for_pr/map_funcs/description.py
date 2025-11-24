@@ -2,6 +2,8 @@
 Mapping functions for description metadata.
 """
 
+# TODO: add logging
+
 
 def map_description(gh_description: str | None, bt_description: str | None) -> dict[str, str] | None:
     """
