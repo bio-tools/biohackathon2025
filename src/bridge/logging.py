@@ -11,6 +11,8 @@ from typing import Literal
 
 from bridge.config import settings
 
+USER_LOGGER_NAME = "bridge.user"
+
 CONFLICT_LEVEL = logging.INFO + 1
 EXACT_LEVEL = logging.INFO + 2
 ADDED_LEVEL = logging.INFO + 3
@@ -155,7 +157,7 @@ def setup_logging(mode: Literal["cli", "api", "package"] = "package"):
                     "handlers": ["default"],
                 },
                 "loggers": {
-                    "bridge.user": {
+                    f"{USER_LOGGER_NAME}": {
                         "level": log_level,
                         "handlers": ["user"],
                         "propagate": False,
@@ -175,7 +177,7 @@ def setup_logging(mode: Literal["cli", "api", "package"] = "package"):
         )
 
         # user-facing logger formatting for CLI
-        user_logger = logging.getLogger("bridge.user")
+        user_logger = logging.getLogger(USER_LOGGER_NAME)
         user_logger.setLevel(log_level)
         user_logger.propagate = False
         handler = logging.StreamHandler(sys.stdout)
@@ -198,7 +200,7 @@ def setup_logging(mode: Literal["cli", "api", "package"] = "package"):
         )
 
         # user-facing logger formatting for library use
-        user_logger = logging.getLogger("bridge.user")
+        user_logger = logging.getLogger(USER_LOGGER_NAME)
         user_logger.setLevel(log_level)
         user_logger.propagate = False
         handler = logging.StreamHandler(sys.stderr)
@@ -222,3 +224,15 @@ def setup_logging(mode: Literal["cli", "api", "package"] = "package"):
     logger = logging.getLogger(__name__)
     logger.propagate = True
     logger.debug(f"Logging initialized for mode={mode}, level={log_level}")
+
+
+def get_user_logger() -> logging.Logger:
+    """
+    Get the user-facing logger.
+
+    Returns
+    -------
+    logging.Logger
+        The user-facing logger.
+    """
+    return logging.getLogger(USER_LOGGER_NAME)
