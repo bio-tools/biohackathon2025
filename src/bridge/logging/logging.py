@@ -35,11 +35,12 @@ def setup_logging(mode: Literal["cli", "api", "package"] = "package"):
                 "formatters": {
                     "json": {
                         "format": (
-                            '{"time":"%(asctime)s",'
-                            '"level":"%(levelname)s",'
-                            '"name":"%(name)s",'
-                            '"message":"%(message)s"}'
+                            '{"time":"%(asctime)s","level":"%(levelname)s","name":"%(name)s","message":"%(message)s"}'
                         ),
+                        "datefmt": "%Y-%m-%dT%H:%M:%S",
+                    },
+                    "user_json": {
+                        "format": ('{"time":"%(asctime)s","event_type":"%(event_type)s","message":"%(message)s"}'),
                         "datefmt": "%Y-%m-%dT%H:%M:%S",
                     },
                 },
@@ -49,10 +50,22 @@ def setup_logging(mode: Literal["cli", "api", "package"] = "package"):
                         "stream": "ext://sys.stdout",
                         "formatter": "json",
                     },
+                    "user": {
+                        "class": "logging.StreamHandler",
+                        "stream": "ext://sys.stdout",
+                        "formatter": "user_json",
+                    },
                 },
                 "root": {
                     "level": log_level,
                     "handlers": ["default"],
+                },
+                "loggers": {
+                    "bridge.user": {
+                        "level": log_level,
+                        "handlers": ["user"],
+                        "propagate": False,
+                    },
                 },
             }
         )
@@ -67,6 +80,19 @@ def setup_logging(mode: Literal["cli", "api", "package"] = "package"):
             force=True,
         )
 
+        # user-facing logger formatting for CLI
+        user_logger = logging.getLogger("bridge.user")
+        user_logger.setLevel(log_level)
+        user_logger.propagate = False
+        handler = logging.StreamHandler(sys.stdout)
+        handler.setFormatter(
+            logging.Formatter(
+                "%(asctime)s [USER] %(levelname)s: %(message)s",
+                datefmt="%H:%M:%S",
+            )
+        )
+        user_logger.handlers = [handler]
+
     elif mode == "package":
         # respect existing loggers
         root = logging.getLogger()
@@ -76,6 +102,19 @@ def setup_logging(mode: Literal["cli", "api", "package"] = "package"):
             datefmt="%H:%M:%S",
             stream=sys.stderr,
         )
+
+        # user-facing logger formatting for library use
+        user_logger = logging.getLogger("bridge.user")
+        user_logger.setLevel(log_level)
+        user_logger.propagate = False
+        handler = logging.StreamHandler(sys.stderr)
+        handler.setFormatter(
+            logging.Formatter(
+                "%(asctime)s [USER] %(levelname)s: %(message)s",
+                datefmt="%H:%M:%S",
+            )
+        )
+        user_logger.handlers = [handler]
 
     else:
         raise ValueError(f"Unknown logging mode: {mode}")
