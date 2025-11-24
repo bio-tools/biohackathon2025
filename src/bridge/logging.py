@@ -16,11 +16,13 @@ USER_LOGGER_NAME = "bridge.user"
 CONFLICT_LEVEL = logging.INFO + 1
 EXACT_LEVEL = logging.INFO + 2
 ADDED_LEVEL = logging.INFO + 3
-NOTE_LEVEL = logging.INFO + 4
+UNCHANGED_LEVEL = logging.INFO + 4
+NOTE_LEVEL = logging.INFO + 5
 
 logging.addLevelName(CONFLICT_LEVEL, "CONFLICT")
 logging.addLevelName(EXACT_LEVEL, "EXACT")
 logging.addLevelName(ADDED_LEVEL, "ADDED")
+logging.addLevelName(UNCHANGED_LEVEL, "UNCHANGED")
 logging.addLevelName(NOTE_LEVEL, "NOTE")
 
 
@@ -85,6 +87,24 @@ class BridgeLogger(logging.Logger):
             extra = kwargs.setdefault("extra", {})
             extra.setdefault("event_type", "added")
             self._log(ADDED_LEVEL, msg, args, **kwargs)
+
+    def unchanged(self, msg, *args, **kwargs):
+        """
+        Log an "unchanged" event.
+
+        Parameters
+        ----------
+        msg : str
+            The log message.
+        *args
+            Positional arguments for the log message.
+        **kwargs
+            Keyword arguments for the log message.
+        """
+        if self.isEnabledFor(UNCHANGED_LEVEL):
+            extra = kwargs.setdefault("extra", {})
+            extra.setdefault("event_type", "unchanged")
+            self._log(UNCHANGED_LEVEL, msg, args, **kwargs)
 
     def note(self, msg, *args, **kwargs):
         """
