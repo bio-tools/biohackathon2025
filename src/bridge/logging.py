@@ -1,7 +1,8 @@
 """
 Project-wide logging setup.
 Provides plaintext logs for CLI, JSON lines for API, and conservative defaults for library use;
-also dials down noisy third-party loggers.
+dials down noisy third-party loggers.
+Defines a custom BridgeLogger with convenience methods for common event types.
 """
 
 import logging
@@ -32,6 +33,22 @@ class BridgeLogger(logging.Logger):
         .conflict(), .exact(), .added(), .note()
 
     Behaves like a normal logger (msg, *args, **kwargs).
+
+    Event types:
+    - CONFLICT (.conflict()):
+        Indicates a conflict between source and target metadata.
+        For example, when existing bio.tools metadata differs from GitHub metadata.
+    - EXACT (.exact()):
+        Indicates an exact match between source and target metadata.
+        For example, when existing bio.tools metadata matches GitHub metadata.
+    - ADDED (.added()):
+        Indicates that new metadata has been added from source to target.
+        For example, when GitHub metadata is used to populate missing bio.tools metadata.
+    - UNCHANGED (.unchanged()):
+        Indicates that existing metadata remains unchanged.
+        For example, when bio.tools metadata is retained as is.
+    - NOTE (.note()):
+        General informational messages that do not fit other categories.
     """
 
     def conflict(self, msg, *args, **kwargs):
