@@ -2,11 +2,10 @@
 Functions for mapping bio.tools function and topic EDAM annotation terms (topic, operation, input, output) to GitHub
 """
 
-import logging
-
 from bridge.core.biotools import FunctionItem
+from bridge.logging import get_user_logger
 
-logger = logging.getLogger(__name__)
+logger = get_user_logger()
 
 
 def _flatten_function(function: list[FunctionItem]) -> list[str]:
@@ -84,7 +83,7 @@ def map_edam2topics(gh_topics: list[str] | None, bt_edam: dict[str, any] | None)
     # adjust message based on singular/plural
     noun, verb, pronoun = ("term", "is", "it") if num_missing == 1 else ("terms", "are", "them")
 
-    logger.info(f"ADDED: {num_missing} EDAM {noun} to GitHub topics: {terms}")
+    logger.added(f"{num_missing} EDAM {noun} to GitHub topics: {terms}")
 
     return {
         "Add edam annotations from bio.tools metadata": (
