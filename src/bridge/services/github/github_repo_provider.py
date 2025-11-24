@@ -109,7 +109,40 @@ class GitHubRepoProvider(RepoProvider):
         logger.info(f"Reusing existing fork: {fork_info.full_name}")
         return fork_info
 
-    async def fork(self, owner: str, repo: str, wait_ready: bool = True, max_wait: int = 20) -> ForkInfo:
+    async def _delete_repo(self, owner: str, repo: str) -> None:
+        """
+        Delete a GitHub repository.
+        NOTE: This is destructive.
+
+        Parameters
+        ----------
+        owner : str
+            Owner of the repository.
+        repo : str
+            Name of the repository.
+        """
+        base = settings.github_api_base
+        url = f"{base}/repos/{owner}/{repo}"
+        headers = get_github_headers()
+
+        logger.warning(f"Deleting repo {owner}/{repo}")
+
+        async with httpx.AsyncClient(timeout=10) as client:
+            response = await client.delete(url, headers=headers)
+
+        # 204: deleted; 404: already gone -> both OK
+        if response.status_code not in (204, 404):
+            try:
+                response.raise_for_status()
+            except httpx.HTTPStatusError as e:
+                logger.error(f"Failed to delete repo {owner}/{repo}: {e}")
+                raise
+
+        logger.info(f"Repo {owner}/{repo} deleted or did not exist.")
+
+    async def fork(
+        self, owner: str, repo: str, replace_existing: bool = True, wait_ready: bool = True, max_wait: int = 20
+    ) -> ForkInfo:
         """
         Fork a GitHub repository (or return an existing fork).
 
@@ -119,6 +152,8 @@ class GitHubRepoProvider(RepoProvider):
             The owner of the repository to fork.
         repo : str
             The name of the repository to fork.
+        replace_existing : bool
+            Whether to delete an existing fork (if present) before creating a new one. Default is True.
         wait_ready : bool
             Whether to wait until the fork is fully ready. Default is True.
         max_wait : int
@@ -135,8 +170,12 @@ class GitHubRepoProvider(RepoProvider):
             If the fork operation fails.
         """
         existing_fork = await self._get_existing_fork(owner, repo)
-        if existing_fork is not None:
+
+        if not replace_existing and existing_fork is not None:
             return existing_fork
+
+        if replace_existing and existing_fork is not None:
+            await self._delete_repo(existing_fork.owner, existing_fork.repo)
 
         base = settings.github_api_base
         url = f"{base}/repos/{owner}/{repo}/forks"
