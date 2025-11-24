@@ -203,7 +203,7 @@ def setup_logging(mode: Literal["cli", "api", "package"] = "package"):
         handler = logging.StreamHandler(sys.stdout)
         handler.setFormatter(
             logging.Formatter(
-                "%(asctime)s [USER] %(levelname)s: %(message)s",
+                "%(asctime)s [USER]-[%(levelname)s] %(message)s",
                 datefmt="%H:%M:%S",
             )
         )
@@ -226,7 +226,7 @@ def setup_logging(mode: Literal["cli", "api", "package"] = "package"):
         handler = logging.StreamHandler(sys.stderr)
         handler.setFormatter(
             logging.Formatter(
-                "%(asctime)s [USER] %(levelname)s: %(message)s",
+                "%(asctime)s [USER]-[%(levelname)s] %(message)s",
                 datefmt="%H:%M:%S",
             )
         )
