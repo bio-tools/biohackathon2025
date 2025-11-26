@@ -21,5 +21,6 @@ def fill_template(template: str, placeholders: dict[str, str]) -> str:
     """
     result = template
     for key, value in placeholders.items():
-        result = result.replace(key, value)
+        temp_key = "{{" + key + "}}"
+        result = result.replace(temp_key, value)
     return result
