@@ -3,6 +3,31 @@ Utilities for handling templating in pipelines.
 """
 
 
+def remove_first_snippet_from_text(text: str | None, snippet: str | None) -> str:
+    """
+    Remove the first occurrence of `snippet` from `text`.
+    If snippet is None or not found, return text unchanged.
+
+    Parameters
+    ----------
+    text : str | None
+        The original text.
+    snippet : str | None
+        The snippet to remove.
+    """
+    if not text:
+        return ""
+
+    if not snippet:
+        return text
+
+    idx = text.find(snippet)
+    if idx == -1:
+        return text
+
+    return text[:idx] + text[idx + len(snippet) :]
+
+
 def fill_template(template: str, placeholders: dict[str, str]) -> str:
     """
     Fill in a template string with provided placeholder values.
