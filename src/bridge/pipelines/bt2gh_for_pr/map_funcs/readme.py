@@ -6,7 +6,7 @@ import re
 from collections.abc import Iterable
 from typing import Any
 
-from pydantic import BaseModel, HttpUrl
+from pydantic import BaseModel
 
 from bridge.pipelines.utils import canonicalize_url, fill_template, remove_first_snippet_from_text, svg_to_base64
 
@@ -53,7 +53,7 @@ class Badge(BaseModel):
     """
 
     alt_text: str
-    image_url: HttpUrl
+    image_url: str
     link_url: str | None = None
     full_match: str | None = None
 
