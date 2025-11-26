@@ -249,7 +249,7 @@ def _build_top_content(gh_readme: str | None) -> str:
 
     placeholders = {
         "TITLE": gh_readme if gh_readme is not None else "# Project Title",
-        "BADGES": " ".join(badge.as_markdown() for badge in badges) or "",
+        "BADGES": "\n".join(badge.as_markdown() for badge in badges) or "",
     }
 
     return fill_template(README_TOP_TEMPLATE, placeholders)
