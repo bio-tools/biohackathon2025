@@ -27,7 +27,7 @@ BADGE_PATTERN = re.compile(
 ATX_H1_PATTERN = re.compile(r"^\s*#(?!#)\s+(.*\S.*)$")
 SETEXT_UNDERLINE_PATTERN = re.compile(r"^[=-]{3,}\s*$")
 HTML_H1_PATTERN = re.compile(r"<h1\b[^>]*>(.*?)</h1>", re.IGNORECASE)
-README_TOP_TEMPLATE = """\
+README_TEMPLATE = """\
 {{ TITLE }}
 
 {{ BADGES }}
@@ -288,7 +288,7 @@ def _extract_project_title(gh_readme: str | None) -> str | None:
     return None
 
 
-def _build_top_content(gh_readme: str | None, bt_name: str) -> str:
+def _build_readme(gh_readme: str | None, bt_name: str) -> str:
 
     # handle badges
     bridge_badge = _compose_badge_with_svg(
@@ -320,21 +320,42 @@ def _build_top_content(gh_readme: str | None, bt_name: str) -> str:
         lines.pop(0)
     content = "\n".join(lines)
 
+    # compose final README
     placeholders = {
         "TITLE": title,
         "BADGES": "\n".join(badge.as_markdown() for badge in badges) or "",
         "CONTENT": content,
     }
 
-    readme_top = fill_template(README_TOP_TEMPLATE, placeholders)
+    readme_top = fill_template(README_TEMPLATE, placeholders)
     return readme_top
 
 
 def map_readme(gh_readme: str | None, bt_params: dict[str, Any]) -> dict[str, str]:
     """
-    Docstring for map_readme
+    Map and merge bio.tools metadata with GitHub README content.
+
+    Parameters
+    ----------
+    gh_readme : str | None
+        The content of the GitHub README.
+    bt_params : dict[str, Any]
+        The bio.tools tool relevant metadata as a dictionary.
+        Should contain:
+        - name - Name of the tool.
+
+    Returns
+    -------
+    dict[str, str]
+        A dictionary with the updated README content under the key "README.md".
+
+    Raises
+    ------
+    ValueError
+        If 'name' field is missing in bt_params.
     """
-    bt_params.get("name", "Project title")
-    if gh_readme is None:
-        pass  # TODO: generate a default README
-    return {"readme": gh_readme}
+    bt_name = bt_params.get("name", None)
+    if bt_name is None:
+        raise ValueError("bt_params must contain 'name' field.")
+    gh_readme = _build_readme(gh_readme, bt_name)
+    return {"README.md": gh_readme}
