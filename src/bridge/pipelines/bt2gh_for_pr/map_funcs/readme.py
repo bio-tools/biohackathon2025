@@ -24,6 +24,9 @@ BADGE_PATTERN = re.compile(
     """,
     re.VERBOSE,
 )
+ATX_H1_PATTERN = re.compile(r"^\s*#(?!#)\s+(.*\S.*)$")
+SETEXT_UNDERLINE_PATTERN = re.compile(r"^[=-]{3,}\s*$")
+HTML_H1_PATTERN = re.compile(r"<h1\b[^>]*>(.*?)</h1>", re.IGNORECASE)
 README_TOP_TEMPLATE = """\
 {{ TITLE }}
 
@@ -231,6 +234,58 @@ def _extract_existing_badges(gh_readme: str | None) -> list[Badge]:
     return badges
 
 
+def _extract_project_title(gh_readme: str | None) -> str | None:
+    """
+    Best-effort extraction of a project title from a README.
+
+    Order of preference:
+    1. First ATX H1 (# Title)
+    2. First Setext H1 (Title + =====)
+    3. First HTML <h1>...</h1>
+
+    Parameters
+    ----------
+    gh_readme : str | None
+        The content of the GitHub README.
+
+    Returns
+    -------
+    str | None
+        The joined lines extracted raw project title text, or None if not found.
+    """
+    if gh_readme is None:
+        return None
+
+    lines = (gh_readme or "").splitlines()
+
+    # "# Title"
+    for line in lines:
+        m = ATX_H1_PATTERN.match(line)
+        if m:
+            # return whatever comes after the leading "# " together with #
+            return m.group(0)
+
+    # "Title" + "====="
+    for i in range(len(lines) - 1):
+        title_line = lines[i]
+        underline = lines[i + 1]
+        if not title_line.strip():
+            continue
+        if SETEXT_UNDERLINE_PATTERN.match(underline):
+            # return the title line as-is together with underline
+            return title_line + "\n" + underline
+
+    # HTML <h1>Title</h1>
+    for line in lines:
+        m = HTML_H1_PATTERN.search(line)
+        if m:
+            # return the lines spanning the tags
+            return m.group(0)
+
+    # No title found
+    return None
+
+
 def _build_top_content(gh_readme: str | None) -> str:
 
     # handle badges
@@ -247,8 +302,10 @@ def _build_top_content(gh_readme: str | None) -> str:
     existing_badges = _extract_existing_badges(gh_readme)
     badges = _deduplicate_badges(new_badges + existing_badges)
 
+    title = _extract_project_title(gh_readme) or "# Project Title"
+
     placeholders = {
-        "TITLE": gh_readme if gh_readme is not None else "# Project Title",
+        "TITLE": title,
         "BADGES": "\n".join(badge.as_markdown() for badge in badges) or "",
     }
 
