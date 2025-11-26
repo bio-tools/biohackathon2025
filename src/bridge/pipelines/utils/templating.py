@@ -2,6 +2,8 @@
 Utilities for handling templating in pipelines.
 """
 
+import re
+
 
 def remove_first_snippet_from_text(text: str | None, snippet: str | None) -> str:
     """
@@ -46,6 +48,6 @@ def fill_template(template: str, placeholders: dict[str, str]) -> str:
     """
     result = template
     for key, value in placeholders.items():
-        temp_key = "{{" + key + "}}"
-        result = result.replace(temp_key, value)
+        pattern = re.compile(r"{{\s*" + re.escape(key) + r"\s*}}")
+        result = pattern.sub(value, result)
     return result
