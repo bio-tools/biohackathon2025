@@ -286,7 +286,7 @@ def _extract_project_title(gh_readme: str | None) -> str | None:
     return None
 
 
-def _build_top_content(gh_readme: str | None) -> str:
+def _build_top_content(gh_readme: str | None, bt_name: str) -> str:
 
     # handle badges
     bridge_badge = _compose_badge_with_svg(
@@ -302,7 +302,7 @@ def _build_top_content(gh_readme: str | None) -> str:
     existing_badges = _extract_existing_badges(gh_readme)
     badges = _deduplicate_badges(new_badges + existing_badges)
 
-    title = _extract_project_title(gh_readme) or "# Project Title"
+    title = _extract_project_title(gh_readme) or f"# {bt_name}"
 
     placeholders = {
         "TITLE": title,
@@ -316,6 +316,7 @@ def map_readme(gh_readme: str | None, bt_params: dict[str, Any]) -> dict[str, st
     """
     Docstring for map_readme
     """
+    bt_params.get("name", "Project Title")
     if gh_readme is None:
         pass  # TODO: generate a default README
     return {"readme": gh_readme}
