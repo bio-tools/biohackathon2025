@@ -94,7 +94,8 @@ class Badge(BaseModel):
 def _make_shields_badge_url(
     label: str,
     message: str,
-    color: str,
+    color: str,  # right side
+    label_color: str,  # left side
     logo_b64: str,
 ) -> str:
     """
@@ -108,6 +109,8 @@ def _make_shields_badge_url(
         The message text on the badge.
     color : str
         The color of the badge.
+    label_color : str
+        The color of the label side of the badge.
     logo_b64 : str
         The base64-encoded SVG logo to embed in the badge.
 
@@ -121,21 +124,20 @@ def _make_shields_badge_url(
     label_enc = quote(label, safe="")
     message_enc = quote(message, safe="")
     color_enc = quote(color, safe="")
+    label_color_enc = quote(label_color, safe="")
 
-    # Follow Shields docs exactly:
-    #   logo=data:image/svg%2bxml;base64,<BASE64>
     mime = "image/svg+xml"
-    mime_enc = mime.replace("+", "%2b")  # 'svg+xml' -> 'svg%2bxml'
-
+    mime_enc = mime.replace("+", "%2b")
     logo_param = f"data:{mime_enc};base64,{logo_b64}"
 
-    return f"{base}/{label_enc}-{message_enc}-{color_enc}.svg?logo={logo_param}"
+    return f"{base}/{label_enc}-{message_enc}-{color_enc}.svg?labelColor={label_color_enc}&logo={logo_param}"
 
 
 def _compose_badge_with_svg(
     label: str,
     message: str,
     color: str,
+    label_color: str,
     svg_path: str,
     alt_text: str,
     url: str,
@@ -151,6 +153,8 @@ def _compose_badge_with_svg(
         The message text on the badge.
     color : str
         The color of the badge.
+    label_color : str
+        The color of the label side of the badge.
     svg_path : str
         The file path to the SVG logo.
     alt_text : str
@@ -168,6 +172,7 @@ def _compose_badge_with_svg(
         label=label,
         message=message,
         color=color,
+        label_color=label_color,
         logo_b64=logo_b64,
     )
     badge = Badge(
@@ -306,7 +311,8 @@ def _build_readme(gh_readme: str | None, bt_name: str) -> str:
     bridge_badge = _compose_badge_with_svg(
         label="bridge",
         message="bio.tools → github",
-        color="orange",
+        color="blue",
+        label_color="orange",
         svg_path=BRIDGE_BADGE_LOGO_PATH,
         alt_text="Bridge",
         url="https://bio-tools.github.io/biohackathon2025/",
