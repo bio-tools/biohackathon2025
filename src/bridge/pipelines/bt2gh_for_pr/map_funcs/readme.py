@@ -4,6 +4,24 @@ Map bio.tools metadata to GitHub README, add badges.
 
 from typing import Any
 
+BRIDGE_BADGE_LOGO_PATH = "assets/logos/bridge.svg"
+
+
+def _readme_top_template() -> str:
+    """
+    Template for the top section of the README.
+
+    Returns
+    -------
+    str
+        The README top section template.
+    """
+    return """\
+{{ TITLE }}
+
+{{ BADGES }}
+"""
+
 
 def _make_shields_badge_url(
     label: str,
