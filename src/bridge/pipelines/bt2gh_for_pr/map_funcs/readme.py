@@ -5,6 +5,7 @@ Map bio.tools metadata to GitHub README, add badges.
 import re
 from collections.abc import Iterable
 from typing import Any
+from urllib.parse import quote
 
 from pydantic import BaseModel
 
@@ -116,7 +117,19 @@ def _make_shields_badge_url(
         The complete Shields.io badge URL.
     """
     base = "https://img.shields.io/badge"
-    return f"{base}/{label}-{message}-{color}?logo=data:image/svg+xml;base64,{logo_b64}"
+
+    label_enc = quote(label, safe="")
+    message_enc = quote(message, safe="")
+    color_enc = quote(color, safe="")
+
+    # Follow Shields docs exactly:
+    #   logo=data:image/svg%2bxml;base64,<BASE64>
+    mime = "image/svg+xml"
+    mime_enc = mime.replace("+", "%2b")  # 'svg+xml' -> 'svg%2bxml'
+
+    logo_param = f"data:{mime_enc};base64,{logo_b64}"
+
+    return f"{base}/{label_enc}-{message_enc}-{color_enc}.svg?logo={logo_param}"
 
 
 def _compose_badge_with_svg(
@@ -289,7 +302,6 @@ def _extract_project_title(gh_readme: str | None) -> str | None:
 
 
 def _build_readme(gh_readme: str | None, bt_name: str) -> str:
-
     # handle badges
     bridge_badge = _compose_badge_with_svg(
         label="bridge",

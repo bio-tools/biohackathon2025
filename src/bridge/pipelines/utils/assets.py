@@ -30,5 +30,5 @@ def svg_to_base64(svg_path: str) -> str:
         raise FileNotFoundError(f"SVG file not found: {svg_path}")
 
     svg_content = svg_path.read_bytes()
-    encoded_svg = base64.b64encode(svg_content).decode("ascii")
+    encoded_svg = base64.b64encode(svg_content).decode("ascii").replace("\n", "")
     return encoded_svg
