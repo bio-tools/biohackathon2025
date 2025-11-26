@@ -3,6 +3,7 @@ Utilities for handling asset files in pipelines.
 """
 
 import base64
+from pathlib import Path
 
 
 def svg_to_base64(svg_path: str) -> str:
@@ -24,10 +25,10 @@ def svg_to_base64(svg_path: str) -> str:
     FileNotFoundError
         If the SVG file does not exist.
     """
+    svg_path = Path(svg_path)
     if not svg_path.exists():
         raise FileNotFoundError(f"SVG file not found: {svg_path}")
 
-    with open(svg_path, "rb") as svg_file:
-        svg_content = svg_file.read_bytes()
+    svg_content = svg_path.read_bytes()
     encoded_svg = base64.b64encode(svg_content).decode("ascii")
     return encoded_svg
