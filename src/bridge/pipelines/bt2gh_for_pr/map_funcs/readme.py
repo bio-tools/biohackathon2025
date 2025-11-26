@@ -8,7 +8,7 @@ from typing import Any
 
 from pydantic import BaseModel, HttpUrl
 
-from bridge.pipelines.utils import canonicalize_url, fill_template, svg_to_base64
+from bridge.pipelines.utils import canonicalize_url, fill_template, remove_first_snippet_from_text, svg_to_base64
 
 BRIDGE_BADGE_LOGO_PATH = "assets/logos/bridge.svg"
 BADGE_PATTERN = re.compile(
@@ -31,6 +31,8 @@ README_TOP_TEMPLATE = """\
 {{ TITLE }}
 
 {{ BADGES }}
+
+{{ CONTENT }}
 """
 
 
@@ -302,21 +304,37 @@ def _build_top_content(gh_readme: str | None, bt_name: str) -> str:
     existing_badges = _extract_existing_badges(gh_readme)
     badges = _deduplicate_badges(new_badges + existing_badges)
 
-    title = _extract_project_title(gh_readme) or f"# {bt_name}"
+    # handle title
+    existing_title = _extract_project_title(gh_readme)
+    title = existing_title or f"# {bt_name}"
+
+    # extract remaining content after title & badges
+    content = gh_readme or ""
+    if existing_title is not None:
+        content = remove_first_snippet_from_text(gh_readme, existing_title)
+    for badge in existing_badges:
+        if badge.full_match is not None:
+            content = remove_first_snippet_from_text(content, badge.full_match)
+    lines = content.splitlines()
+    while lines and not lines[0].strip():
+        lines.pop(0)
+    content = "\n".join(lines)
 
     placeholders = {
         "TITLE": title,
         "BADGES": "\n".join(badge.as_markdown() for badge in badges) or "",
+        "CONTENT": content,
     }
 
-    return fill_template(README_TOP_TEMPLATE, placeholders)
+    readme_top = fill_template(README_TOP_TEMPLATE, placeholders)
+    return readme_top
 
 
 def map_readme(gh_readme: str | None, bt_params: dict[str, Any]) -> dict[str, str]:
     """
     Docstring for map_readme
     """
-    bt_params.get("name", "Project Title")
+    bt_params.get("name", "Project title")
     if gh_readme is None:
         pass  # TODO: generate a default README
     return {"readme": gh_readme}
