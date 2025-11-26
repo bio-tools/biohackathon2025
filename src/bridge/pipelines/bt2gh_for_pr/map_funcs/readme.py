@@ -3,11 +3,12 @@ Map bio.tools metadata to GitHub README, add badges.
 """
 
 import re
+from collections.abc import Iterable
 from typing import Any
 
 from pydantic import BaseModel, HttpUrl
 
-from bridge.pipelines.utils import fill_template, svg_to_base64
+from bridge.pipelines.utils import canonicalize_url, fill_template, svg_to_base64
 
 BRIDGE_BADGE_LOGO_PATH = "assets/logos/bridge.svg"
 BADGE_PATTERN = re.compile(
@@ -66,6 +67,22 @@ class Badge(BaseModel):
             return f"[![{self.alt_text}]({self.image_url})]({self.link_url})"
         else:
             return f"![{self.alt_text}]({self.image_url})"
+
+    def _signature(self) -> tuple[str, str | None]:
+        """
+        Canonical semantic identity of the badge.
+        """
+        img = canonicalize_url(str(self.image_url))
+        link = canonicalize_url(self.link_url) if self.link_url is not None else None
+        return img, link
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, Badge):
+            return NotImplemented
+        return self._signature() == other._signature()
+
+    def __hash__(self) -> int:
+        return hash(self._signature())
 
 
 def _make_shields_badge_url(
@@ -144,7 +161,48 @@ def _compose_badge_with_svg(
     return badge
 
 
+def _deduplicate_badges(badges: Iterable[Badge]) -> list[Badge]:
+    """
+    Deduplicate badges while:
+    - preserving original order
+    - preferring earliest occurrence
+
+    Parameters
+    ----------
+    badges : Iterable[Badge]
+        An iterable of Badge objects.
+
+    Returns
+    -------
+    list[Badge]
+        A list of unique Badge objects in their original order.
+    """
+    seen: set[Badge] = set()
+    result: list[Badge] = []
+
+    for badge in badges:
+        if badge in seen:
+            continue
+        seen.add(badge)
+        result.append(badge)
+
+    return result
+
+
 def _extract_existing_badges(gh_readme: str | None) -> list[Badge]:
+    """
+    Extract existing badges from a GitHub README.
+
+    Parameters
+    ----------
+    gh_readme : str | None
+        The content of the GitHub README.
+
+    Returns
+    -------
+    list[Badge]
+        A list of extracted Badge objects.
+    """
     badges: list[Badge] = []
 
     for match in BADGE_PATTERN.finditer(gh_readme or ""):
@@ -174,6 +232,8 @@ def _extract_existing_badges(gh_readme: str | None) -> list[Badge]:
 
 
 def _build_top_content(gh_readme: str | None) -> str:
+
+    # handle badges
     bridge_badge = _compose_badge_with_svg(
         label="bridge",
         message="bio.tools → github",
@@ -183,11 +243,13 @@ def _build_top_content(gh_readme: str | None) -> str:
         url="https://bio-tools.github.io/biohackathon2025/",
     )
 
-    _extract_existing_badges(gh_readme)
+    new_badges = [bridge_badge]
+    existing_badges = _extract_existing_badges(gh_readme)
+    badges = _deduplicate_badges(new_badges + existing_badges)
 
     placeholders = {
         "TITLE": gh_readme if gh_readme is not None else "# Project Title",
-        "BADGES": bridge_badge,
+        "BADGES": " ".join(badge.as_markdown() for badge in badges) or "",
     }
 
     return fill_template(README_TOP_TEMPLATE, placeholders)
