@@ -97,16 +97,16 @@ def _make_shields_badge_url(
     return f"{base}/{label}-{message}-{color}?logo=data:image/svg+xml;base64,{logo_b64}"
 
 
-def _compore_markdown_badge(
+def _compose_badge_with_svg(
     label: str,
     message: str,
     color: str,
     svg_path: str,
     alt_text: str,
     url: str,
-):
+) -> Badge:
     """
-    Create a Markdown badge with an embedded SVG logo.
+    Create a badge with an embedded SVG logo.
 
     Parameters
     ----------
@@ -125,8 +125,8 @@ def _compore_markdown_badge(
 
     Returns
     -------
-    str
-        The Markdown-formatted badge string.
+    Badge
+        The constructed Badge object.
     """
     logo_b64 = svg_to_base64(svg_path)
     badge_url = _make_shields_badge_url(
@@ -140,7 +140,8 @@ def _compore_markdown_badge(
         image_url=badge_url,
         link_url=url,
     )
-    return badge.as_markdown()
+    badge.full_match = badge.as_markdown()
+    return badge
 
 
 def _extract_existing_badges(gh_readme: str | None) -> list[Badge]:
@@ -173,7 +174,7 @@ def _extract_existing_badges(gh_readme: str | None) -> list[Badge]:
 
 
 def _build_top_content(gh_readme: str | None) -> str:
-    bridge_badge = _compore_markdown_badge(
+    bridge_badge = _compose_badge_with_svg(
         label="bridge",
         message="bio.tools → github",
         color="orange",
