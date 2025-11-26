@@ -2,27 +2,70 @@
 Map bio.tools metadata to GitHub README, add badges.
 """
 
+import re
 from typing import Any
+
+from pydantic import BaseModel, HttpUrl
 
 from bridge.pipelines.utils import fill_template, svg_to_base64
 
 BRIDGE_BADGE_LOGO_PATH = "assets/logos/bridge.svg"
-
-
-def _readme_top_template() -> str:
-    """
-    Template for the top section of the README.
-
-    Returns
-    -------
-    str
-        The README top section template.
-    """
-    return """\
+BADGE_PATTERN = re.compile(
+    r"""
+    \[
+        !\[(?P<alt1>[^\]]*)\]
+        \((?P<img1>[^)]+)\)
+    \]
+    \((?P<link1>[^)]+)\)
+    |
+    !\[(?P<alt2>[^\]]*)\]
+    \((?P<img2>[^)]+)\)
+    """,
+    re.VERBOSE,
+)
+README_TOP_TEMPLATE = """\
 {{ TITLE }}
 
 {{ BADGES }}
 """
+
+
+class Badge(BaseModel):
+    """
+    Representation of a badge in the README.
+
+    Parameters
+    ----------
+    alt_text : str
+        The alternative text for the badge image.
+    image_url : HttpUrl
+        The URL of the badge image.
+    link_url : str | None
+        The URL to link to when the badge is clicked.
+    full_match : str
+        The full Markdown string representing the badge.
+    """
+
+    alt_text: str
+    image_url: HttpUrl
+    link_url: str | None = None
+    full_match: str | None = None
+
+    def as_markdown(self) -> str:
+        """
+        Return the badge as a Markdown-formatted string.
+
+        Returns
+        -------
+        str
+            The Markdown representation of the badge.
+        """
+        if self.full_match is not None:
+            return self.full_match
+        if self.link_url is not None:
+            return f"[![{self.alt_text}]({self.image_url})]({self.link_url})"
+        else:
+            return f"![{self.alt_text}]({self.image_url})"
 
 
 def _make_shields_badge_url(
@@ -52,25 +95,6 @@ def _make_shields_badge_url(
     """
     base = "https://img.shields.io/badge"
     return f"{base}/{label}-{message}-{color}?logo=data:image/svg+xml;base64,{logo_b64}"
-
-
-def _make_markdown_badge(alt_text: str, badge_url: str, url: str) -> str:
-    """
-    Wrap a badge URL in Markdown image syntax.
-
-    Parameters
-    ----------
-    alt_text : str
-        The alternative text for the badge image.
-    badge_url : str
-        The URL of the badge image.
-
-    Returns
-    -------
-    str
-        The Markdown-formatted badge string.
-    """
-    return f"[![{alt_text}]({badge_url})]({url})"
 
 
 def _compore_markdown_badge(
@@ -111,11 +135,41 @@ def _compore_markdown_badge(
         color=color,
         logo_b64=logo_b64,
     )
-    return _make_markdown_badge(
+    badge = Badge(
         alt_text=alt_text,
-        badge_url=badge_url,
-        url=url,
+        image_url=badge_url,
+        link_url=url,
     )
+    return badge.as_markdown()
+
+
+def _extract_existing_badges(gh_readme: str | None) -> list[Badge]:
+    badges: list[Badge] = []
+
+    for match in BADGE_PATTERN.finditer(gh_readme or ""):
+        if match.group("alt1") is not None:
+            alt = match.group("alt1").strip()
+            img = match.group("img1").strip()
+            link = match.group("link1").strip()
+        else:
+            alt = match.group("alt2").strip()
+            img = match.group("img2").strip()
+            link = None
+
+        try:
+            badge = Badge(
+                alt_text=alt,
+                image_url=img,
+                link_url=link,
+                full_match=match.group(0),
+            )
+        except Exception:
+            # invalid URL or malformed badge, skip
+            continue
+
+        badges.append(badge)
+
+    return badges
 
 
 def _build_top_content(gh_readme: str | None) -> str:
@@ -128,12 +182,14 @@ def _build_top_content(gh_readme: str | None) -> str:
         url="https://bio-tools.github.io/biohackathon2025/",
     )
 
+    _extract_existing_badges(gh_readme)
+
     placeholders = {
         "TITLE": gh_readme if gh_readme is not None else "# Project Title",
         "BADGES": bridge_badge,
     }
 
-    return fill_template(_readme_top_template(), placeholders)
+    return fill_template(README_TOP_TEMPLATE, placeholders)
 
 
 def map_readme(gh_readme: str | None, bt_params: dict[str, Any]) -> dict[str, str]:
