@@ -187,23 +187,28 @@ def _compose_citation(
     dict[str, Any]
         A dictionary with the CITATION.cff content.
     """
+
+    def key_func(r):
+        if isinstance(r, Publication):
+            return (r.year or 0, r.title or "")
+        return (r.get("year", 0) or 0, r.get("title", "") or "")
+
     if not references:
         base_cff["message"] = "If you use this software, please cite it using this CITATION.cff."
         logger.added("No publications found in bio.tools. Creating CITATION.cff with minimal metadata.")
     else:
         selection_list_for_preferred = primary_references if primary_references else references
-        preferred = max(selection_list_for_preferred, key=lambda r: (r.year or 0, r.title or ""))
+        preferred = max(selection_list_for_preferred, key=key_func)
         base_cff.update(
             {
                 "message": ("If you use this software, please cite it and the Primary publications below."),
-                "preferred-citation": preferred,
-                "references": references,
+                "preferred-citation": object_to_primitive(preferred),
+                "references": object_to_primitive(references),
             }
         )
         logger.added(f"Added {len(references)} publication(s) to CITATION.cff.")
 
-    primitive_cff = object_to_primitive(base_cff)
-    return primitive_cff
+    return base_cff
 
 
 async def map_citation(gh_citation_cff: dict[str, Any], bt_params: dict[str, Any]) -> dict[str, str]:
