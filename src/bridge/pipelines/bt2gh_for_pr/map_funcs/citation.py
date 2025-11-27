@@ -29,7 +29,7 @@ logger = get_user_logger()
 TIMEOUT = 20
 
 
-def _ref_key(ref: Publication | Mapping[str, Any]) -> Hashable:
+def _ref_ids(ref: Publication | Mapping[str, Any]) -> Hashable:
     """
     Extract all usable identifiers from a Publication as a normalized set.
 
@@ -94,7 +94,7 @@ def _deduplicate_references(references: list[Publication | Mapping[str, Any]]) -
     deduplicated: list[Publication | Mapping[str, Any]] = []
 
     for ref in references:
-        current_ids = _ref_key(ref)
+        current_ids = _ref_ids(ref)
 
         # if we have no identifiers at all, treat as unique
         if not current_ids:
@@ -116,6 +116,39 @@ def _deduplicate_references(references: list[Publication | Mapping[str, Any]]) -
         deduplicated.append(ref)
 
     return deduplicated
+
+
+def _key_func(r):
+    """
+    Key function to select the most recent publication based on year and title.
+    """
+    if isinstance(r, Publication):
+        return (r.year or 0, r.title or "")
+    return (r.get("year", 0) or 0, r.get("title", "") or "")
+
+
+def _choose_preferred_citation(
+    references: list[Publication | dict[str, Any]],
+    primary_references: list[Publication | dict[str, Any]],
+) -> Publication | dict[str, Any]:
+    """
+    Choose the preferred citation from the list of references.
+
+    Parameters
+    ----------
+    references : list[Publication | dict[str, Any]]
+        List of all publications.
+    primary_references : list[Publication | dict[str, Any]]
+        List of publications marked as primary.
+
+    Returns
+    -------
+    Publication | dict[str, Any]
+        The selected preferred citation.
+    """
+    selection_list = primary_references if primary_references else references
+    preferred = max(selection_list, key=_key_func)
+    return preferred
 
 
 def _compose_base_cff(bt_params: dict[str, Any]) -> dict[str, Any]:
@@ -162,10 +195,52 @@ def _compose_base_cff(bt_params: dict[str, Any]) -> dict[str, Any]:
     return base_cff
 
 
+def _extract_gh_references(
+    gh_citation_cff: dict[str, Any] | None,
+) -> tuple[list[dict[str, Any]], dict[str, Any] | None]:
+    """
+    Extract references and preferred-citation from an existing CITATION.cff dict.
+
+    Parameters
+    ----------
+    gh_citation_cff : dict[str, Any] | None
+        The existing CITATION.cff content from the GitHub repository.
+
+    Returns
+    -------
+    tuple[list[dict[str, Any]], dict[str, Any] | None]
+        A tuple containing:
+        - A list of references extracted from the CITATION.cff.
+        - The preferred-citation extracted from the CITATION.cff, or None if not present
+    """
+    if not gh_citation_cff:
+        return [], None
+
+    gh_citation_cff = normalize_dict_strings(gh_citation_cff)
+
+    gh_references = gh_citation_cff.get("references") or []
+    gh_references = [r for r in gh_references if isinstance(r, Mapping)]
+
+    gh_preferred = gh_citation_cff.get("preferred-citation")
+    if isinstance(gh_preferred, Mapping):
+        gh_preferred = dict(gh_preferred)  # shallow copy
+    else:
+        gh_preferred = None
+
+    # ensure preferred-citation is included in references if present
+    if gh_preferred is not None:
+        pref_ids = _ref_ids(gh_preferred)
+        in_refs = any(_ref_ids(r) & pref_ids for r in gh_references)
+        if not in_refs:
+            gh_references.append(gh_preferred)
+
+    return gh_references, gh_preferred
+
+
 def _compose_citation(
     base_cff: dict[str, Any],
     references: list[Publication | dict[str, Any]],
-    primary_references: list[Publication | dict[str, Any]],
+    preferred: Publication | dict[str, Any],
 ) -> dict[str, Any]:
     """
     Generate a CITATION.cff dict from bio.tools metadata and references.
@@ -179,26 +254,18 @@ def _compose_citation(
         The base CITATION.cff content.
     references : list[Publication | dict[str, Any]]
         List of all publications to be included in CITATION.cff.
-    primary_references : list[Publication | dict[str, Any]]
-        List of publications marked as primary to be included in CITATION.cff.
+    preferred : Publication | dict[str, Any]
+        The selected preferred citation to be included in CITATION.cff.
 
     Returns
     -------
     dict[str, Any]
         A dictionary with the CITATION.cff content.
     """
-
-    def key_func(r):
-        if isinstance(r, Publication):
-            return (r.year or 0, r.title or "")
-        return (r.get("year", 0) or 0, r.get("title", "") or "")
-
     if not references:
         base_cff["message"] = "If you use this software, please cite it using this CITATION.cff."
         logger.added("No publications found in bio.tools. Creating CITATION.cff with minimal metadata.")
     else:
-        selection_list_for_preferred = primary_references if primary_references else references
-        preferred = max(selection_list_for_preferred, key=key_func)
         base_cff.update(
             {
                 "message": ("If you use this software, please cite it and the Primary publications below."),
@@ -246,7 +313,7 @@ async def map_citation(gh_citation_cff: dict[str, Any], bt_params: dict[str, Any
     bt_references: list[Publication] = []
     bt_primary_references: list[Publication] = []
 
-    gh_references: list[dict[str, Any]] = 1  # TODO using gh_citation_cff
+    gh_references, gh_preferred = _extract_gh_references(gh_citation_cff)
 
     for pub in bt_publication or []:
         try:
@@ -262,9 +329,14 @@ async def map_citation(gh_citation_cff: dict[str, Any], bt_params: dict[str, Any
         except Exception as e:
             logger.note(f"Could not resolve publication {pub}: {e}")
 
-    _deduplicate_references(bt_references + gh_references)
+    references = _deduplicate_references(bt_references + gh_references)
+
+    preferred_reference = _choose_preferred_citation(  # TODO: update this function
+        references=references,
+        primary_references=bt_primary_references,
+    )
 
     base_cff = _compose_base_cff(bt_params=bt_params)
-    cff = _compose_citation(base_cff=base_cff, references=bt_references, primary_references=bt_primary_references)
+    cff = _compose_citation(base_cff=base_cff, references=references, preferred=preferred_reference)
 
     return {"CITATION.cff": yaml.dump(cff, sort_keys=False, allow_unicode=True)}
