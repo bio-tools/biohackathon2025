@@ -2,6 +2,8 @@
 Utilities for cleaning and canonicalizing objects.
 """
 
+import html
+import re
 from urllib.parse import parse_qsl, quote, urlencode, urlparse, urlsplit, urlunparse, urlunsplit
 
 
@@ -98,3 +100,34 @@ def normalize_color(value: str) -> str:
     if value.startswith("#"):
         value = value[1:]
     return quote(value, safe="")
+
+
+def normalize_text(value: str | None) -> str | None:
+    """
+    Decode HTML entities, strip tags, and normalise odd characters.
+
+    Parameters
+    ----------
+    value : str | None
+        The text to normalize.
+
+    Returns
+    -------
+    str | None
+        The normalized text, or None if input was None.
+    """
+    if value is None:
+        return None
+
+    # decode HTML entities: &lt;i&gt; → <i>, &amp; → &, etc.
+    text = html.unescape(value)
+
+    # strip any remaining HTML tags: <i>name</i> -> name
+    tag_re = re.compile(r"<[^>]+>")
+    text = tag_re.sub("", text)
+
+    # replace box-drawing dash with a normal ASCII dash
+    text = text.replace("\u2500", " - ")
+
+    # strip outer whitespace
+    return text.strip()

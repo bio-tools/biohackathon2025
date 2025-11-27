@@ -3,7 +3,7 @@ Utilities for pipelines.
 """
 
 from .badges import Badge, compose_badge
-from .cleaning import canonicalize_shields_url, canonicalize_url, escape_shields_part, normalize_color
+from .cleaning import canonicalize_shields_url, canonicalize_url, escape_shields_part, normalize_color, normalize_text
 from .conversions import object_to_primitive, svg_to_base64
 from .decorators import prepare_match_items
 from .file_checks import check_file_with_extension_exists
@@ -18,6 +18,7 @@ __all__ = [
     "canonicalize_url",
     "escape_shields_part",
     "normalize_color",
+    "normalize_text",
     "fill_template",
     "remove_first_snippet_from_text",
     "svg_to_base64",
