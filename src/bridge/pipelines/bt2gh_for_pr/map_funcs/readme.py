@@ -5,10 +5,17 @@ Map bio.tools metadata to GitHub README, add badges.
 import re
 from collections.abc import Iterable
 from typing import Any
+from urllib.parse import quote
 
 from pydantic import BaseModel
 
-from bridge.pipelines.utils import canonicalize_url, fill_template, remove_first_snippet_from_text, svg_to_base64
+from bridge.pipelines.utils import (
+    canonicalize_shields_url,
+    canonicalize_url,
+    fill_template,
+    remove_first_snippet_from_text,
+    svg_to_base64,
+)
 
 BRIDGE_BADGE_LOGO_PATH = "assets/logos/bridge.svg"
 BIOTOOLS_BADGE_LOGO_PATH = "assets/logos/biotools.svg"
@@ -78,7 +85,7 @@ class Badge(BaseModel):
         """
         Canonical semantic identity of the badge.
         """
-        img = canonicalize_url(str(self.image_url))
+        img = canonicalize_shields_url(str(self.image_url))
         link = canonicalize_url(self.link_url) if self.link_url is not None else None
         return img, link
 
@@ -121,8 +128,8 @@ def _make_shields_badge_url(
     """
     base = "https://img.shields.io/badge"
 
-    # label_enc = quote(label, safe="")
-    # message_enc = quote(message, safe="")
+    label_enc = quote(label, safe="")
+    message_enc = quote(message, safe="")
     # color_enc = quote(color, safe="")
     # label_color_enc = quote(label_color, safe="")
 
@@ -130,7 +137,7 @@ def _make_shields_badge_url(
     mime_enc = mime.replace("+", "%2b")
     logo_param = f"data:{mime_enc};base64,{logo_b64}"
 
-    return f"{base}/{label}-{message}-{color}.svg?labelColor={label_color}&logo={logo_param}"
+    return f"{base}/{label_enc}-{message_enc}-{color}.svg?labelColor={label_color}&logo={logo_param}"
 
 
 def _compose_badge_with_svg(
@@ -322,7 +329,7 @@ def _build_readme(gh_readme: str | None, bt_name: str, bt_id: str) -> str:
         label="bio.tools",
         message=bt_id,
         color="blue",
-        label_color="brightgreen",
+        label_color="gray",
         svg_path=BIOTOOLS_BADGE_LOGO_PATH,
         alt_text="bio.tools",
         url=f"https://bio.tools/{bt_id}",
