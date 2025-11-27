@@ -93,15 +93,15 @@ def _compose_citation(
     return {"CITATION.cff": yaml.dump(primitive_cff, sort_keys=False, allow_unicode=True)}
 
 
-async def map_citation(gh_citation_cff_exists: bool, bt_params: dict[str, Any]) -> dict[str, str]:
+async def map_citation(gh_citation_cff: str | None, bt_params: dict[str, Any]) -> dict[str, str]:
     """
     Generate CITATION.cff content from the publications of a bio.tools tool.
     It uses Europe PMC to resolve publication metadata.
 
     Parameters
     ----------
-    gh_citation_cff_exists : bool
-        Whether a CITATION.cff file already exists in the GitHub repository.
+    gh_citation_cff : str | None
+        The content of an existing CITATION.cff file in the GitHub repository or None if it does not exist.
     bt_params : dict[str, Any]
         The bio.tools tool relevant metadata as a dictionary.
         Should contain:
@@ -123,8 +123,8 @@ async def map_citation(gh_citation_cff_exists: bool, bt_params: dict[str, Any]) 
     SystemExit
         If no primary publications could be resolved.
     """
-    if gh_citation_cff_exists:
-        logger.note("CITATION.cff already exists in the repository. Overwriting.")
+    if gh_citation_cff:
+        logger.note("CITATION.cff already exists in the repository. Merging.")
         # TODO: consider merging instead of overwriting
 
     bt_publication = bt_params.get("publication", None)

@@ -30,13 +30,13 @@ def check_file_with_extension_exists(in_folder_path: str, file_extension: str) -
     return False
 
 
-def get_file_content(file_path: str) -> str | None:
+def get_file_content(file_path: str | Path) -> str | None:
     """
     Read and return the content of a file.
 
     Parameters
     ----------
-    file_path : str
+    file_path : str | Path
         The path to the file.
 
     Returns
