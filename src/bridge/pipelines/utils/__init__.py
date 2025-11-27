@@ -3,6 +3,7 @@ Utilities for pipelines.
 """
 
 from .badges import Badge, compose_badge
+from .conversions import to_primitive
 from .decorators import prepare_match_items
 from .file_checks import check_file_with_extension_exists
 from .templating import fill_template, remove_first_snippet_from_text
@@ -14,4 +15,5 @@ __all__ = [
     "compose_badge",
     "fill_template",
     "remove_first_snippet_from_text",
+    "to_primitive",
 ]
