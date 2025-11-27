@@ -8,7 +8,7 @@ The output is a valid `CITATION.cff` file that can be committed to a GitHub
 repository to enable software citation.
 """
 
-from collections.abc import Hashable
+from collections.abc import Hashable, Mapping
 from typing import Any
 
 from bridge.builders import compose_europe_pmc_metadata
@@ -27,54 +27,69 @@ logger = get_user_logger()
 TIMEOUT = 20
 
 
-def _ref_key(ref: Publication) -> Hashable:
+def _ref_key(ref: Publication | Mapping[str, Any]) -> Hashable:
     """
     Extract all usable identifiers from a Publication as a normalized set.
 
     Parameters
     ----------
-    ref : Publication
-        The Publication object.
+    ref : Publication | Mapping[str, Any]
+        The Publication object or dictionary representing a publication.
 
     Returns
     -------
     set[str]
         A set of normalized identifier strings.
+
+    Raises
+    ------
+    TypeError
+        If ref is neither a Publication nor a Mapping.
     """
+    if isinstance(ref, Mapping):
+        doi = ref.get("doi", None)
+        pmid = ref.get("pmid", None)
+        pmcid = ref.get("pmcid", None)
+        title = ref.get("title", None)
+    elif isinstance(ref, Publication):
+        doi = getattr(ref, "doi", None)
+        pmid = getattr(ref, "pmid", None)
+        pmcid = getattr(ref, "pmcid", None)
+        title = getattr(ref, "title", None)
+    else:
+        raise TypeError("ref must be a Publication or a Mapping")
+
     ids: set[str] = set()
 
-    if ref.doi:
-        ids.add(f"doi:{normalize_text(ref.doi)}")
-
-    if ref.pmid:
-        ids.add(f"pmid:{ref.pmid}")
-
-    if ref.pmcid:
-        ids.add(f"pmcid:{ref.pmcid}")
-
-    if ref.title:
-        ids.add(f"title:{normalize_text(ref.title)}")
+    if doi:
+        ids.add(f"doi:{normalize_text(str(doi))}")
+    if pmid:
+        ids.add(f"pmid:{str(pmid).strip()}")
+    if pmcid:
+        ids.add(f"pmcid:{str(pmcid).strip()}")
+    if title:
+        ids.add(f"title:{normalize_text(str(title))}")
 
     return ids
 
 
-def _deduplicate_references(references: list[Publication]) -> list[Publication]:
+def _deduplicate_references(references: list[Publication | Mapping[str, Any]]) -> list[Publication | Mapping[str, Any]]:
     """
     Deduplicate Publication objects: if ANY identifier overlaps, they are treated
     as the same reference. First occurrence wins.
 
     Parameters
     ----------
-    references : list[Publication]
-        List of Publication objects to deduplicate.
+    references : list[Publication | Mapping[str, Any]]
+        List of references to deduplicate.
 
     Returns
     -------
-    list[Publication]
-        Deduplicated list of Publication objects.
+    list[Publication | Mapping[str, Any]]
+        Deduplicated list of references.
     """
     seen_identifier_sets: list[set[str]] = []
-    deduplicated: list[Publication] = []
+    deduplicated: list[Publication | Mapping[str, Any]] = []
 
     for ref in references:
         current_ids = _ref_key(ref)
