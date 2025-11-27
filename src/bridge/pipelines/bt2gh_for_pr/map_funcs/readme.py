@@ -9,6 +9,7 @@ from urllib.parse import quote
 
 from pydantic import BaseModel
 
+from bridge.core.biotools import ToolTypeEnum
 from bridge.pipelines.utils import (
     canonicalize_shields_url,
     canonicalize_url,
@@ -103,7 +104,7 @@ def _make_shields_badge_url(
     message: str,
     color: str,  # right side
     label_color: str,  # left side
-    logo_b64: str,
+    logo_b64: str | None = None,
 ) -> str:
     """
     Construct a Shields.io badge URL with an embedded base64 SVG logo.
@@ -135,19 +136,22 @@ def _make_shields_badge_url(
 
     mime = "image/svg+xml"
     mime_enc = mime.replace("+", "%2b")
-    logo_param = f"data:{mime_enc};base64,{logo_b64}"
+    logo_param = f"data:{mime_enc};base64,{logo_b64}" if logo_b64 is not None else None
+
+    if logo_param is None:
+        return f"{base}/{label_enc}-{message_enc}-{color}.svg?labelColor={label_color}"
 
     return f"{base}/{label_enc}-{message_enc}-{color}.svg?labelColor={label_color}&logo={logo_param}"
 
 
-def _compose_badge_with_svg(
+def _compose_badge(
     label: str,
     message: str,
     color: str,
     label_color: str,
-    svg_path: str,
     alt_text: str,
     url: str,
+    svg_path: str | None = None,
 ) -> Badge:
     """
     Create a badge with an embedded SVG logo.
@@ -162,19 +166,19 @@ def _compose_badge_with_svg(
         The color of the badge.
     label_color : str
         The color of the label side of the badge.
-    svg_path : str
-        The file path to the SVG logo.
     alt_text : str
         The alternative text for the badge image.
     url : str
         The URL to link to when the badge is clicked.
+    svg_path : str | None
+        Path to the SVG file to embed as the logo.
 
     Returns
     -------
     Badge
         The constructed Badge object.
     """
-    logo_b64 = svg_to_base64(svg_path)
+    logo_b64 = svg_to_base64(svg_path) if svg_path is not None else None
     badge_url = _make_shields_badge_url(
         label=label,
         message=message,
@@ -313,29 +317,43 @@ def _extract_project_title(gh_readme: str | None) -> str | None:
     return None
 
 
-def _build_readme(gh_readme: str | None, bt_name: str, bt_id: str) -> str:
+def _build_readme(gh_readme: str | None, bt_name: str, bt_id: str, bt_tool_types: list[ToolTypeEnum] | None) -> str:
     # handle badges
-    bridge_badge = _compose_badge_with_svg(
+    new_badges = []
+
+    bridge_badge = _compose_badge(
         label="bridge",
         message="bio.tools → github",
         color="blue",
         label_color="orange",
-        svg_path=BRIDGE_BADGE_LOGO_PATH,
         alt_text="Bridge",
         url="https://bio-tools.github.io/biohackathon2025/",
+        svg_path=BRIDGE_BADGE_LOGO_PATH,
     )
+    new_badges.append(bridge_badge)
 
-    biotools_badge = _compose_badge_with_svg(
+    biotools_badge = _compose_badge(
         label="bio.tools",
         message=bt_id,
         color="blue",
         label_color="gray",
-        svg_path=BIOTOOLS_BADGE_LOGO_PATH,
         alt_text="bio.tools",
         url=f"https://bio.tools/{bt_id}",
+        svg_path=BIOTOOLS_BADGE_LOGO_PATH,
     )
+    new_badges.append(biotools_badge)
 
-    new_badges = [bridge_badge, biotools_badge]
+    if bt_tool_types is not None:
+        tool_types_badge = _compose_badge(
+            label="tool type",
+            message=" | ".join(sorted(tt.value for tt in bt_tool_types)),
+            color="blue",
+            label_color="gray",
+            alt_text="Tool Type",
+            url=f"https://bio.tools/{bt_id}#tool-types",
+        )
+        new_badges.append(tool_types_badge)
+
     existing_badges = _extract_existing_badges(gh_readme)
     badges = _deduplicate_badges(new_badges + existing_badges)
 
@@ -392,9 +410,12 @@ def map_readme(gh_readme: str | None, bt_params: dict[str, Any]) -> dict[str, st
     """
     bt_name = bt_params.get("name", None)
     bt_id = bt_params.get("biotoolsID", None)
+    bt_tool_types = bt_params.get("toolType", None)
     if bt_name is None:
         raise ValueError("bt_params must contain 'name' field.")
     if bt_id is None:
         raise ValueError("bt_params must contain 'biotoolsID' field.")
+    if bt_tool_types is None or not isinstance(bt_tool_types, list) or not bt_tool_types:
+        bt_tool_types = None
     gh_readme = _build_readme(gh_readme, bt_name, bt_id)
     return {"README.md": gh_readme}
