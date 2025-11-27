@@ -26,8 +26,6 @@ from bridge.pipelines.utils import (
 
 logger = get_user_logger()
 
-TIMEOUT = 20
-
 
 def _ref_ids(ref: Publication | Mapping[str, Any]) -> set[str]:
     """
@@ -148,7 +146,6 @@ def _choose_preferred_citation(
     If not, but there are primary references in bio.tools, the most recent one is selected as the preferred citation.
     Otherwise, the most recent reference of any other type is chosen.
 
-
     Parameters
     ----------
     references : list[Publication | dict[str, Any]]
@@ -214,6 +211,54 @@ def _compose_base_cff(bt_params: dict[str, Any]) -> dict[str, Any]:
         }
     )
     return base_cff
+
+
+def _merge_top_level_metadata(
+    existing_cff: dict[str, Any] | None,
+    base_cff: dict[str, Any],
+) -> dict[str, Any]:
+    """
+    Merge top-level CFF metadata.
+
+    Policy:
+    - If no existing CITATION.cff, return base_cff as is.
+    - Otherwise, start from existing CITATION.cff.
+    - For known top-level keys we manage:
+      - If existing has a non-empty value, keep it.
+      - If existing is missing/empty, fill from base_cff.
+    - Never touch 'references' or 'preferred-citation' here; they are handled separately.
+
+    Parameters
+    ----------
+    existing_cff : dict[str, Any] | None
+        The existing CITATION.cff content from the GitHub repository.
+    base_cff : dict[str, Any]
+        The base CITATION.cff content generated from bio.tools metadata.
+
+    Returns
+    -------
+    dict[str, Any]
+        The merged CITATION.cff content.
+    """
+    if existing_cff is None:
+        return base_cff
+
+    merged = dict(existing_cff)
+
+    # handle preferred and references separately
+    merged.pop("references", None)
+    merged.pop("preferred-citation", None)
+
+    # add bio.tools metadata where missing
+    for key, val in base_cff.items():
+        if val is None:
+            continue
+
+        existing_val = merged.get(key, None)
+        if existing_val in (None, "", []):
+            merged[key] = val
+
+    return merged
 
 
 def _extract_gh_references(
@@ -362,6 +407,7 @@ async def map_citation(gh_citation_cff: dict[str, Any], bt_params: dict[str, Any
     )
 
     base_cff = _compose_base_cff(bt_params=bt_params)
+    base_cff = _merge_top_level_metadata(existing_cff=gh_citation_cff, base_cff=base_cff)
     cff = _compose_citation(base_cff=base_cff, references=references, preferred=preferred_reference)
 
     return {"CITATION.cff": yaml.dump(cff, sort_keys=False, allow_unicode=True)}
