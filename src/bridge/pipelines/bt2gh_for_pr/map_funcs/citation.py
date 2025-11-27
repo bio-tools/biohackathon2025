@@ -8,7 +8,7 @@ The output is a valid `CITATION.cff` file that can be committed to a GitHub
 repository to enable software citation.
 """
 
-from collections.abc import Hashable, Mapping
+from collections.abc import Mapping
 from typing import Any
 
 import yaml
@@ -29,7 +29,7 @@ logger = get_user_logger()
 TIMEOUT = 20
 
 
-def _ref_ids(ref: Publication | Mapping[str, Any]) -> Hashable:
+def _ref_ids(ref: Publication | Mapping[str, Any]) -> set[str]:
     """
     Extract all usable identifiers from a Publication as a normalized set.
 
@@ -153,7 +153,7 @@ def _choose_preferred_citation(
     ----------
     references : list[Publication | dict[str, Any]]
         List of all publications.
-    bt_primary_references: list[Publication],
+    bt_primary_references: list[Publication]
         List of publications in bio.tools marked as primary.
     gh_preferred_reference : dict[str, Any] | None, optional
         The preferred citation from GitHub CITATION.cff, if any.
@@ -255,7 +255,12 @@ def _extract_gh_references(
         if not in_refs:
             gh_references.append(gh_preferred)
 
-    logger.note(f"CITATION.cff is not empty. Found {len(gh_references)} reference(s) to merge with bio.tools metadata.")
+    if gh_references:
+        logger.note(
+            f"CITATION.cff is not empty. Found {len(gh_references)} reference(s) to merge with bio.tools metadata."
+        )
+    else:
+        logger.note("CITATION.cff exists but contains no references. Using only bio.tools metadata.")
 
     return gh_references, gh_preferred
 
@@ -285,7 +290,9 @@ def _compose_citation(
     """
     if not references:
         base_cff["message"] = "If you use this software, please cite it using this CITATION.cff."
-        logger.added("No publications found in bio.tools. Creating CITATION.cff with minimal metadata.")
+        logger.added(
+            "No publications found in bio.tools or existing CITATION.cff. Creating CITATION.cff with minimal metadata."
+        )
     else:
         update_data = {
             "message": ("If you use this software, please cite it and the Primary publications below."),
@@ -324,11 +331,6 @@ async def map_citation(gh_citation_cff: dict[str, Any], bt_params: dict[str, Any
     -------
     dict[str, str]
         A dictionary with the filename as key and the CITATION.cff content as value.
-
-    Raises
-    ------
-    SystemExit
-        If no primary publications could be resolved.
     """
     bt_publication = bt_params.get("publication", None)
 
@@ -351,9 +353,9 @@ async def map_citation(gh_citation_cff: dict[str, Any], bt_params: dict[str, Any
         except Exception as e:
             logger.note(f"Could not resolve publication {pub}: {e}")
 
-    references = _deduplicate_references(bt_references + gh_references)
+    references = _deduplicate_references(gh_references + bt_references)
 
-    preferred_reference = _choose_preferred_citation(  # TODO: update this function
+    preferred_reference = _choose_preferred_citation(
         references=references,
         bt_primary_references=bt_primary_references,
         gh_preferred_reference=gh_preferred,
