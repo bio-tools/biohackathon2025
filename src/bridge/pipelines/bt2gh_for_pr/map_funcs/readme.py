@@ -7,12 +7,15 @@ from collections.abc import Iterable
 from typing import Any
 
 from bridge.core.biotools import ToolTypeEnum
+from bridge.logging import get_user_logger
 from bridge.pipelines.utils import (
     Badge,
     compose_badge,
     fill_template,
     remove_first_snippet_from_text,
 )
+
+logger = get_user_logger()
 
 BRIDGE_BADGE_LOGO_PATH = "assets/logos/bridge.svg"
 BIOTOOLS_BADGE_LOGO_PATH = "assets/logos/biotools.svg"
@@ -62,6 +65,7 @@ def _deduplicate_badges(badges: Iterable[Badge]) -> list[Badge]:
 
     for badge in badges:
         if badge in seen:
+            logger.unchanged(f"Badge already exists: {badge.alt_text}")
             continue
         seen.add(badge)
         result.append(badge)
@@ -164,6 +168,25 @@ def _extract_project_title(gh_readme: str | None) -> str | None:
 
 
 def _build_readme(gh_readme: str | None, bt_name: str, bt_id: str, bt_tool_types: list[ToolTypeEnum] | None) -> str:
+    """
+    Build the updated README content by merging bio.tools metadata and badges.
+
+    Parameters
+    ----------
+    gh_readme : str | None
+        The content of the GitHub README.
+    bt_name : str
+        The name of the bio.tools tool.
+    bt_id : str
+        The bio.tools ID of the tool.
+    bt_tool_types : list[ToolTypeEnum] | None
+        The list of tool types of the bio.tools tool.
+
+    Returns
+    -------
+    str
+        The updated README content.
+    """
     # handle badges
     new_badges = []
 
@@ -257,11 +280,19 @@ def map_readme(gh_readme: str | None, bt_params: dict[str, Any]) -> dict[str, st
     bt_name = bt_params.get("name", None)
     bt_id = bt_params.get("biotoolsID", None)
     bt_tool_types = bt_params.get("toolType", None)
+
     if bt_name is None:
         raise ValueError("bt_params must contain 'name' field.")
     if bt_id is None:
         raise ValueError("bt_params must contain 'biotoolsID' field.")
     if bt_tool_types is None or not isinstance(bt_tool_types, list) or not bt_tool_types:
         bt_tool_types = None
-    gh_readme = _build_readme(gh_readme, bt_name, bt_id, bt_tool_types)
-    return {"README.md": gh_readme}
+
+    gh_readme_updated = _build_readme(gh_readme, bt_name, bt_id, bt_tool_types)
+
+    if gh_readme == gh_readme_updated:
+        logger.unchanged("README.md remains unchanged.")
+    else:
+        logger.added("Updated README.md with bio.tools metadata and badges.")
+
+    return {"README.md": gh_readme_updated}
