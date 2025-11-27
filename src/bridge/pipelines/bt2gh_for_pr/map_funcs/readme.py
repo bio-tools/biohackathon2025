@@ -99,6 +99,51 @@ class Badge(BaseModel):
         return hash(self._signature())
 
 
+def _escape_shields_part(value: str) -> str:
+    """
+    Prepare label/message for the Shields path segment.
+
+    Rules:
+    - Double hyphens so literal '-' doesn't conflict with segment separators.
+    - Then percent-encode everything unsafe.
+
+    Parameters
+    ----------
+    value : str
+        The label or message to escape.
+
+    Returns
+    -------
+    str
+        The escaped label or message.
+    """
+    value = str(value)
+    value = value.replace("-", "--")
+    return quote(value, safe="")
+
+
+def _normalize_color(value: str) -> str:
+    """
+    Normalize a color for Shields:
+    - Strip leading '#' if present.
+    - Percent-encode anything weird.
+
+    Parameters
+    ----------
+    value : str
+        The color value to normalize.
+
+    Returns
+    -------
+    str
+        The normalized color string.
+    """
+    value = str(value).strip()
+    if value.startswith("#"):
+        value = value[1:]
+    return quote(value, safe="")
+
+
 def _make_shields_badge_url(
     label: str,
     message: str,
@@ -129,19 +174,22 @@ def _make_shields_badge_url(
     """
     base = "https://img.shields.io/badge"
 
-    label_enc = quote(label, safe="")
-    message_enc = quote(message, safe="")
-    # color_enc = quote(color, safe="")
-    # label_color_enc = quote(label_color, safe="")
+    label_enc = _escape_shields_part(label)
+    message_enc = _escape_shields_part(message)
+    color_enc = _normalize_color(color)
 
-    mime = "image/svg+xml"
-    mime_enc = mime.replace("+", "%2b")
-    logo_param = f"data:{mime_enc};base64,{logo_b64}" if logo_b64 is not None else None
+    label_color_enc = _normalize_color(label_color)
+    query = f"labelColor={label_color_enc}"
 
-    if logo_param is None:
-        return f"{base}/{label_enc}-{message_enc}-{color}.svg?labelColor={label_color}"
+    if logo_b64 is not None:
+        # Shields docs: data:image/svg%2bxml;base64,<BASE64>
+        mime_enc = "image/svg%2bxml"
+        logo_raw = f"data:{mime_enc};base64,{logo_b64}"
+        # keep : and , literal, encode everything else
+        logo_enc = quote(logo_raw, safe=":,")
+        query += f"&logo={logo_enc}"
 
-    return f"{base}/{label_enc}-{message_enc}-{color}.svg?labelColor={label_color}&logo={logo_param}"
+    return f"{base}/{label_enc}-{message_enc}-{color_enc}.svg?{query}"
 
 
 def _compose_badge(
@@ -397,6 +445,7 @@ def map_readme(gh_readme: str | None, bt_params: dict[str, Any]) -> dict[str, st
         Should contain:
         - name - Name of the tool.
         - biotoolsID - The bio.tools ID of the tool.
+        - toolType - List of tool types (ToolTypeEnum).
 
     Returns
     -------
@@ -417,5 +466,5 @@ def map_readme(gh_readme: str | None, bt_params: dict[str, Any]) -> dict[str, st
         raise ValueError("bt_params must contain 'biotoolsID' field.")
     if bt_tool_types is None or not isinstance(bt_tool_types, list) or not bt_tool_types:
         bt_tool_types = None
-    gh_readme = _build_readme(gh_readme, bt_name, bt_id)
+    gh_readme = _build_readme(gh_readme, bt_name, bt_id, bt_tool_types)
     return {"README.md": gh_readme}
