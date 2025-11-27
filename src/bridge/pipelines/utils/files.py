@@ -3,6 +3,9 @@ Utility functions for files.
 """
 
 from pathlib import Path
+from typing import Any
+
+import yaml
 
 
 def check_file_with_extension_exists(in_folder_path: str, file_extension: str) -> bool:
@@ -49,3 +52,29 @@ def get_file_content(file_path: str | Path) -> str | None:
         return None
 
     return path.read_text(encoding="utf-8")
+
+
+def load_dict_from_yaml_file(file_path: str | Path) -> dict[str, Any]:
+    """
+    Load a YAML file and return its content as a dictionary.
+
+    Parameters
+    ----------
+    file_path : str | Path
+        The path to the YAML file.
+
+    Returns
+    -------
+    dict[str, Any]
+        The content of the YAML file as a dictionary.
+    """
+    content = get_file_content(file_path)
+    if content is None:
+        return {}
+
+    try:
+        data = yaml.safe_load(content)
+        return data or {}
+    except yaml.YAMLError:
+        # parsing error
+        return {}
