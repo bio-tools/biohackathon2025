@@ -1,8 +1,8 @@
 """
 Generate a CITATION.cff file from bio.tools publication metadata.
 
-This module retrieves metadata for a given bio.tools entry, identifies its
-Primary publications, resolves them via the Europe PMC REST API, and converts
+This module retrieves publications from a bio.tools entry,
+resolves them via the Europe PMC REST API, and converts
 the resulting bibliographic information into the Citation File Format (CFF).
 The output is a valid `CITATION.cff` file that can be committed to a GitHub
 repository to enable software citation.
