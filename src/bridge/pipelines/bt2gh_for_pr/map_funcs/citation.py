@@ -16,7 +16,7 @@ import yaml
 from bridge.builders import compose_europe_pmc_metadata
 from bridge.core import Publication
 from bridge.core.biotools import PublicationItem, TypeEnum2
-from bridge.pipelines.utils import to_primitive
+from bridge.pipelines.utils import object_to_primitive
 
 # TODO: add logging
 
@@ -83,7 +83,7 @@ def _compose_citation(bt_params: dict[str, Any], references: list[Publication]):
             }
         )
 
-    primitive_cff = to_primitive(base_cff)
+    primitive_cff = object_to_primitive(base_cff)
     return {"CITATION.cff": yaml.dump(primitive_cff, sort_keys=False)}
 
 

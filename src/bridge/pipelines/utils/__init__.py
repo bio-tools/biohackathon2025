@@ -3,7 +3,8 @@ Utilities for pipelines.
 """
 
 from .badges import Badge, compose_badge
-from .conversions import to_primitive
+from .cleaning import canonicalize_shields_url, canonicalize_url, escape_shields_part, normalize_color
+from .conversions import object_to_primitive, svg_to_base64
 from .decorators import prepare_match_items
 from .file_checks import check_file_with_extension_exists
 from .templating import fill_template, remove_first_snippet_from_text
@@ -13,7 +14,12 @@ __all__ = [
     "check_file_with_extension_exists",
     "Badge",
     "compose_badge",
+    "canonicalize_shields_url",
+    "canonicalize_url",
+    "escape_shields_part",
+    "normalize_color",
     "fill_template",
     "remove_first_snippet_from_text",
-    "to_primitive",
+    "svg_to_base64",
+    "object_to_primitive",
 ]
