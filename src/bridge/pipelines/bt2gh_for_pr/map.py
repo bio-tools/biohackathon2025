@@ -86,6 +86,7 @@ class MapBioTools2GitHub(ModelsMap):
             "readme": MapItem(
                 schema_entry={
                     "name": self.metadata.name,
+                    "biotoolsID": self.metadata.biotoolsID,
                 },
                 repo_entry=self.repo.readme,
                 method=Method.FUZZY,

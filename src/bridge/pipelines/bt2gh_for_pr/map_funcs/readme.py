@@ -5,13 +5,13 @@ Map bio.tools metadata to GitHub README, add badges.
 import re
 from collections.abc import Iterable
 from typing import Any
-from urllib.parse import quote
 
 from pydantic import BaseModel
 
 from bridge.pipelines.utils import canonicalize_url, fill_template, remove_first_snippet_from_text, svg_to_base64
 
 BRIDGE_BADGE_LOGO_PATH = "assets/logos/bridge.svg"
+BIOTOOLS_BADGE_LOGO_PATH = "assets/logos/biotools.svg"
 BADGE_PATTERN = re.compile(
     r"""
     \[
@@ -121,16 +121,16 @@ def _make_shields_badge_url(
     """
     base = "https://img.shields.io/badge"
 
-    label_enc = quote(label, safe="")
-    message_enc = quote(message, safe="")
-    color_enc = quote(color, safe="")
-    label_color_enc = quote(label_color, safe="")
+    # label_enc = quote(label, safe="")
+    # message_enc = quote(message, safe="")
+    # color_enc = quote(color, safe="")
+    # label_color_enc = quote(label_color, safe="")
 
     mime = "image/svg+xml"
     mime_enc = mime.replace("+", "%2b")
     logo_param = f"data:{mime_enc};base64,{logo_b64}"
 
-    return f"{base}/{label_enc}-{message_enc}-{color_enc}.svg?labelColor={label_color_enc}&logo={logo_param}"
+    return f"{base}/{label}-{message}-{color}.svg?labelColor={label_color}&logo={logo_param}"
 
 
 def _compose_badge_with_svg(
@@ -306,7 +306,7 @@ def _extract_project_title(gh_readme: str | None) -> str | None:
     return None
 
 
-def _build_readme(gh_readme: str | None, bt_name: str) -> str:
+def _build_readme(gh_readme: str | None, bt_name: str, bt_id: str) -> str:
     # handle badges
     bridge_badge = _compose_badge_with_svg(
         label="bridge",
@@ -318,7 +318,17 @@ def _build_readme(gh_readme: str | None, bt_name: str) -> str:
         url="https://bio-tools.github.io/biohackathon2025/",
     )
 
-    new_badges = [bridge_badge]
+    biotools_badge = _compose_badge_with_svg(
+        label="bio.tools",
+        message=bt_id,
+        color="blue",
+        label_color="brightgreen",
+        svg_path=BIOTOOLS_BADGE_LOGO_PATH,
+        alt_text="bio.tools",
+        url=f"https://bio.tools/{bt_id}",
+    )
+
+    new_badges = [bridge_badge, biotools_badge]
     existing_badges = _extract_existing_badges(gh_readme)
     badges = _deduplicate_badges(new_badges + existing_badges)
 
@@ -361,6 +371,7 @@ def map_readme(gh_readme: str | None, bt_params: dict[str, Any]) -> dict[str, st
         The bio.tools tool relevant metadata as a dictionary.
         Should contain:
         - name - Name of the tool.
+        - biotoolsID - The bio.tools ID of the tool.
 
     Returns
     -------
@@ -370,10 +381,13 @@ def map_readme(gh_readme: str | None, bt_params: dict[str, Any]) -> dict[str, st
     Raises
     ------
     ValueError
-        If 'name' field is missing in bt_params.
+        If required fields are missing in bt_params.
     """
     bt_name = bt_params.get("name", None)
+    bt_id = bt_params.get("biotoolsID", None)
     if bt_name is None:
         raise ValueError("bt_params must contain 'name' field.")
-    gh_readme = _build_readme(gh_readme, bt_name)
+    if bt_id is None:
+        raise ValueError("bt_params must contain 'biotoolsID' field.")
+    gh_readme = _build_readme(gh_readme, bt_name, bt_id)
     return {"README.md": gh_readme}
