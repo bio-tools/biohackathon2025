@@ -124,7 +124,8 @@ async def map_citation(gh_citation_cff_exists: bool, bt_params: dict[str, Any]) 
         If no primary publications could be resolved.
     """
     if gh_citation_cff_exists:
-        raise SystemExit("CITATION.cff already exists in the GitHub repository; skipping creation.")
+        logger.note("CITATION.cff already exists in the repository. Overwriting.")
+        # TODO: consider merging instead of overwriting
 
     bt_publication = bt_params.get("publication", None)
 
