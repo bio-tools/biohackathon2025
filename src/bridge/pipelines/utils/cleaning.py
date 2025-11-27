@@ -103,7 +103,7 @@ def normalize_color(value: str) -> str:
     return quote(value, safe="")
 
 
-def normalize_text(value: str | None) -> str | None:
+def normalize_text(value: str | None, normalize_multiline: bool = True) -> str | None:
     """
     Decode HTML entities, strip tags, and normalise odd characters.
 
@@ -111,6 +111,8 @@ def normalize_text(value: str | None) -> str | None:
     ----------
     value : str | None
         The text to normalize.
+    normalize_multiline : bool, optional
+        Whether to normalize multiple lines by replacing newlines with spaces, by default True.
 
     Returns
     -------
@@ -128,7 +130,14 @@ def normalize_text(value: str | None) -> str | None:
     text = tag_re.sub("", text)
 
     # replace box-drawing dash with a normal ASCII dash
-    text = text.replace("\u2500", " - ")
+    text = text.replace("\u2500", "-")
+
+    # drop non-printable characters
+    text = "".join(c for c in text if c.isprintable())
+
+    if normalize_multiline:
+        # replace newlines and multiple spaces with a single space
+        text = re.sub(r"\s+", " ", text)
 
     # strip outer whitespace
     return text.strip()
