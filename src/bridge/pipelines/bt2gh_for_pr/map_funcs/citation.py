@@ -124,7 +124,7 @@ def _key_func(r):
     """
     if isinstance(r, Publication):
         return (r.year or 0, r.title or "")
-    return (r.get("year", 0) or 0, r.get("title", "") or "")
+    return (int(r.get("year", 0) or 0), r.get("title", "") or "")
 
 
 def _choose_preferred_citation(
