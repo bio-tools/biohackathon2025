@@ -187,15 +187,15 @@ def _compose_citation(
     # return {"CITATION.cff": yaml.dump(primitive_cff, sort_keys=False, allow_unicode=True)}
 
 
-async def map_citation(gh_citation_cff: str | None, bt_params: dict[str, Any]) -> dict[str, str]:
+async def map_citation(gh_citation_cff: dict[str, Any], bt_params: dict[str, Any]) -> dict[str, str]:
     """
     Generate CITATION.cff content from the publications of a bio.tools tool.
     It uses Europe PMC to resolve publication metadata.
 
     Parameters
     ----------
-    gh_citation_cff : str | None
-        The content of an existing CITATION.cff file in the GitHub repository or None if it does not exist.
+    gh_citation_cff : dict[str, Any]
+        The existing CITATION.cff content from the GitHub repository.
     bt_params : dict[str, Any]
         The bio.tools tool relevant metadata as a dictionary.
         Should contain:

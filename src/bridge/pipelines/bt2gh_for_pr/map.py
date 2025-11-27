@@ -5,7 +5,7 @@ Mapping classes for bio.tools to GitHub.
 from pydantic import BaseModel
 
 from bridge.pipelines.protocols import MapItem, Method, ModelsMap
-from bridge.pipelines.utils import get_file_content
+from bridge.pipelines.utils import load_dict_from_yaml_file
 
 from .map_funcs import map_citation, map_description, map_edam2topics, map_homepage, map_readme
 
@@ -63,7 +63,7 @@ class MapBioTools2GitHub(ModelsMap):
                     "topic": self.metadata.topic,
                     "description": self.metadata.description,
                 },
-                repo_entry=get_file_content(self.repo_path / "CITATION.cff"),
+                repo_entry=load_dict_from_yaml_file(self.repo_path / "CITATION.cff"),
                 method=Method.FUZZY,
                 fn=map_citation,
             ),
