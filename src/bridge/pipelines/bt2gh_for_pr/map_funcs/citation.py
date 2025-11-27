@@ -118,9 +118,19 @@ def _deduplicate_references(references: list[Publication | Mapping[str, Any]]) -
     return deduplicated
 
 
-def _key_func(r):
+def _key_func(r: Publication | dict[str, Any]) -> tuple[int, str]:
     """
     Key function to select the most recent publication based on year and title.
+
+    Parameters
+    ----------
+    r : Publication | dict[str, Any]
+        The publication to evaluate.
+
+    Returns
+    -------
+    tuple[int, str]
+        A tuple containing the year (as int) and title (as str) for comparison.
     """
     if isinstance(r, Publication):
         return (r.year or 0, r.title or "")
@@ -131,7 +141,7 @@ def _choose_preferred_citation(
     references: list[Publication | dict[str, Any]],
     bt_primary_references: list[Publication],
     gh_preferred_reference: dict[str, Any] | None = None,
-) -> Publication | dict[str, Any]:
+) -> Publication | dict[str, Any] | None:
     """
     Choose the preferred citation from the list of references.
     If there is a preferred citation from the existing GitHub CITATION.cff file, it is used.
@@ -150,12 +160,14 @@ def _choose_preferred_citation(
 
     Returns
     -------
-    Publication | dict[str, Any]
-        The selected preferred citation.
+    Publication | dict[str, Any] | None
+        The selected preferred citation, or None if no references are available.
     """
     if gh_preferred_reference is not None:
         return gh_preferred_reference
     selection_list = bt_primary_references if bt_primary_references else references
+    if not selection_list:
+        return None
     preferred = max(selection_list, key=_key_func)
     return preferred
 
@@ -242,6 +254,8 @@ def _extract_gh_references(
         in_refs = any(_ref_ids(r) & pref_ids for r in gh_references)
         if not in_refs:
             gh_references.append(gh_preferred)
+
+    logger.note(f"CITATION.cff is not empty. Found {len(gh_references)} reference(s) to merge with bio.tools metadata.")
 
     return gh_references, gh_preferred
 
