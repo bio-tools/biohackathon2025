@@ -249,7 +249,7 @@ def _extract_gh_references(
 def _compose_citation(
     base_cff: dict[str, Any],
     references: list[Publication | dict[str, Any]],
-    preferred: Publication | dict[str, Any],
+    preferred: Publication | dict[str, Any] | None,
 ) -> dict[str, Any]:
     """
     Generate a CITATION.cff dict from bio.tools metadata and references.
@@ -261,8 +261,8 @@ def _compose_citation(
         The base CITATION.cff content.
     references : list[Publication | dict[str, Any]]
         List of all publications to be included in CITATION.cff.
-    preferred : Publication | dict[str, Any]
-        The selected preferred citation to be included in CITATION.cff.
+    preferred : Publication | dict[str, Any] | None
+        The selected preferred citation to be included in CITATION.cff, if any.
 
     Returns
     -------
@@ -273,13 +273,14 @@ def _compose_citation(
         base_cff["message"] = "If you use this software, please cite it using this CITATION.cff."
         logger.added("No publications found in bio.tools. Creating CITATION.cff with minimal metadata.")
     else:
-        base_cff.update(
-            {
-                "message": ("If you use this software, please cite it and the Primary publications below."),
-                "preferred-citation": object_to_primitive(preferred),
-                "references": object_to_primitive(references),
-            }
-        )
+        update_data = {
+            "message": ("If you use this software, please cite it and the Primary publications below."),
+            "references": object_to_primitive(references),
+        }
+        if preferred is not None:
+            update_data["preferred-citation"] = object_to_primitive(preferred)
+
+        base_cff.update(normalize_dict_strings(update_data))
         logger.added(f"Added {len(references)} publication(s) to CITATION.cff.")
 
     return base_cff
