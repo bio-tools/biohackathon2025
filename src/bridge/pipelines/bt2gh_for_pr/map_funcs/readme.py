@@ -103,23 +103,16 @@ def _escape_shields_part(value: str) -> str:
     """
     Prepare label/message for the Shields path segment.
 
-    Rules:
-    - Double hyphens so literal '-' doesn't conflict with segment separators.
-    - Then percent-encode everything unsafe.
-
-    Parameters
-    ----------
-    value : str
-        The label or message to escape.
-
-    Returns
-    -------
-    str
-        The escaped label or message.
+    Shields semantics:
+    - `-`  = separator
+    - `--` = literal `-`
+    - `_`  = space
+    - `__` = literal `_`
     """
     value = str(value)
     value = value.replace("-", "--")
-    return quote(value, safe="")
+    value = value.replace("_", "__")
+    return quote(value, safe="_")
 
 
 def _normalize_color(value: str) -> str:
@@ -179,17 +172,15 @@ def _make_shields_badge_url(
     color_enc = _normalize_color(color)
 
     label_color_enc = _normalize_color(label_color)
-    query = f"labelColor={label_color_enc}"
+    url = f"{base}/{label_enc}-{message_enc}-{color_enc}.svg?labelColor={label_color_enc}"
 
     if logo_b64 is not None:
         # Shields docs: data:image/svg%2bxml;base64,<BASE64>
         mime_enc = "image/svg%2bxml"
-        logo_raw = f"data:{mime_enc};base64,{logo_b64}"
-        # keep : and , literal, encode everything else
-        logo_enc = quote(logo_raw, safe=":,")
-        query += f"&logo={logo_enc}"
+        logo_param = f"data:{mime_enc};base64,{logo_b64}"
+        url += f"&logo={logo_param}"
 
-    return f"{base}/{label_enc}-{message_enc}-{color_enc}.svg?{query}"
+    return url
 
 
 def _compose_badge(
