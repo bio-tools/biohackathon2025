@@ -76,7 +76,7 @@ def _compose_citation(
 
     if not references:
         base_cff["message"] = "If you use this software, please cite it using this CITATION.cff."
-        logger.added("No publications found in bio.tools. Creating CITATION.cff without publications.")
+        logger.added("No publications found in bio.tools. Creating CITATION.cff with minimal metadata.")
     else:
         selection_list_for_preferred = primary_references if primary_references else references
         preferred = max(selection_list_for_preferred, key=lambda r: (r.year or 0, r.title or ""))
