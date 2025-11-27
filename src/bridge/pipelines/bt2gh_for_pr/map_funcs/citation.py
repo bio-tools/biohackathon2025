@@ -11,6 +11,8 @@ repository to enable software citation.
 from collections.abc import Hashable, Mapping
 from typing import Any
 
+import yaml
+
 from bridge.builders import compose_europe_pmc_metadata
 from bridge.core import Publication
 from bridge.core.biotools import TypeEnum2
@@ -116,14 +118,9 @@ def _deduplicate_references(references: list[Publication | Mapping[str, Any]]) -
     return deduplicated
 
 
-def _compose_citation(
-    bt_params: dict[str, Any], references: list[Publication], primary_references: list[Publication]
-) -> dict[str, Any]:
+def _compose_base_cff(bt_params: dict[str, Any]) -> dict[str, Any]:
     """
-    Generate a CITATION.cff dict from bio.tools metadata and references.
-    If there are no references, a minimal CITATION.cff is created.
-    If there are primary references, most recent one of them is selected as preferred citation.
-    Otherwise, the most recent reference is selected.
+    Generate a base CITATION.cff dict from bio.tools metadata.
 
     Parameters
     ----------
@@ -136,15 +133,11 @@ def _compose_citation(
         - license - License of the tool.
         - topic - List of topics associated with the tool.
         - description - Description of the tool.
-    references : list[Publication]
-        List of all resolved Publication objects for the tool.
-    primary_references : list[Publication]
-        List of resolved Publication objects marked as Primary for the tool.
 
     Returns
     -------
     dict[str, Any]
-        A dictionary with the CITATION.cff content.
+        A dictionary with the CITATION.cff base content.
     """
     name = bt_params.get("name", None)
     biotools_id = bt_params.get("biotoolsID", None)
@@ -166,7 +159,34 @@ def _compose_citation(
             "abstract": description,
         }
     )
+    return base_cff
 
+
+def _compose_citation(
+    base_cff: dict[str, Any],
+    references: list[Publication | dict[str, Any]],
+    primary_references: list[Publication | dict[str, Any]],
+) -> dict[str, Any]:
+    """
+    Generate a CITATION.cff dict from bio.tools metadata and references.
+    If there are no references, a minimal CITATION.cff is created.
+    If there are primary references, most recent one of them is selected as preferred citation.
+    Otherwise, the most recent reference is selected.
+
+    Parameters
+    ----------
+    base_cff : dict[str, Any]
+        The base CITATION.cff content.
+    references : list[Publication | dict[str, Any]]
+        List of all publications to be included in CITATION.cff.
+    primary_references : list[Publication | dict[str, Any]]
+        List of publications marked as primary to be included in CITATION.cff.
+
+    Returns
+    -------
+    dict[str, Any]
+        A dictionary with the CITATION.cff content.
+    """
     if not references:
         base_cff["message"] = "If you use this software, please cite it using this CITATION.cff."
         logger.added("No publications found in bio.tools. Creating CITATION.cff with minimal metadata.")
@@ -184,7 +204,6 @@ def _compose_citation(
 
     primitive_cff = object_to_primitive(base_cff)
     return primitive_cff
-    # return {"CITATION.cff": yaml.dump(primitive_cff, sort_keys=False, allow_unicode=True)}
 
 
 async def map_citation(gh_citation_cff: dict[str, Any], bt_params: dict[str, Any]) -> dict[str, str]:
@@ -217,14 +236,12 @@ async def map_citation(gh_citation_cff: dict[str, Any], bt_params: dict[str, Any
     SystemExit
         If no primary publications could be resolved.
     """
-    if gh_citation_cff:
-        logger.note("CITATION.cff already exists in the repository. Merging.")
-        # TODO: consider merging instead of overwriting
-
     bt_publication = bt_params.get("publication", None)
 
-    references: list[Publication] = []
-    primary_references: list[Publication] = []
+    bt_references: list[Publication] = []
+    bt_primary_references: list[Publication] = []
+
+    gh_references: list[dict[str, Any]] = 1  # TODO using gh_citation_cff
 
     for pub in bt_publication or []:
         try:
@@ -234,12 +251,15 @@ async def map_citation(gh_citation_cff: dict[str, Any], bt_params: dict[str, Any
                 doi=pub.doi,
             )
             empc_publication_norm = normalize_pydantic_model_strings(epmc_publication)
-            references.append(empc_publication_norm)
+            bt_references.append(empc_publication_norm)
             if pub.type and TypeEnum2.Primary in pub.type:
-                primary_references.append(empc_publication_norm)
+                bt_primary_references.append(empc_publication_norm)
         except Exception as e:
             logger.note(f"Could not resolve publication {pub}: {e}")
 
-    cff = _compose_citation(bt_params=bt_params, references=references, primary_references=primary_references)
+    _deduplicate_references(bt_references + gh_references)
 
-    return cff
+    base_cff = _compose_base_cff(bt_params=bt_params)
+    cff = _compose_citation(base_cff=base_cff, references=bt_references, primary_references=bt_primary_references)
+
+    return {"CITATION.cff": yaml.dump(cff, sort_keys=False, allow_unicode=True)}
