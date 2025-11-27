@@ -16,7 +16,7 @@ import yaml
 from bridge.builders import compose_europe_pmc_metadata
 from bridge.core import Publication
 from bridge.core.biotools import PublicationItem, TypeEnum2
-from bridge.pipelines.utils import object_to_primitive
+from bridge.pipelines.utils import normalize_dict_strings, normalize_pydantic_model_strings, object_to_primitive
 
 # TODO: add logging
 
@@ -58,17 +58,19 @@ def _compose_citation(bt_params: dict[str, Any], references: list[Publication]):
     topic = bt_params.get("topic", None)
     description = bt_params.get("description", None)
 
-    base_cff = {
-        "cff-version": "1.2.0",
-        "title": name or biotools_id,
-        "version": None,
-        "type": "software",
-        "repository": homepage,
-        "identifiers": [{"type": "other", "value": biotools_id, "description": "bio.tools"}],
-        "license": license,
-        "keywords": topic,
-        "abstract": description,
-    }
+    base_cff = normalize_dict_strings(
+        {
+            "cff-version": "1.2.0",
+            "title": name or biotools_id,
+            "version": None,
+            "type": "software",
+            "repository": homepage,
+            "identifiers": [{"type": "other", "value": biotools_id, "description": "bio.tools"}],
+            "license": license,
+            "keywords": topic,
+            "abstract": description,
+        }
+    )
 
     if not references:
         base_cff["message"] = "If you use this software, please cite it using this CITATION.cff."
@@ -132,7 +134,8 @@ async def map_citation(gh_citation_cff_exists: bool, bt_params: dict[str, Any]) 
                 pmcid=primary_pub.pmcid,
                 doi=primary_pub.doi,
             )
-            references.append(epmc_publication)
+            empc_publication_norm = normalize_pydantic_model_strings(epmc_publication)
+            references.append(empc_publication_norm)
         except Exception as e:
             print(f"Warning: could not resolve {primary_pub}: {e}", file=sys.stderr)
 

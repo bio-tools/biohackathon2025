@@ -4,6 +4,7 @@ Utilities for cleaning and canonicalizing objects.
 
 import html
 import re
+from typing import Any
 from urllib.parse import parse_qsl, quote, urlencode, urlparse, urlsplit, urlunparse, urlunsplit
 
 
@@ -131,3 +132,52 @@ def normalize_text(value: str | None) -> str | None:
 
     # strip outer whitespace
     return text.strip()
+
+
+def normalize_dict_strings(d: dict[str, Any]) -> dict[str, Any]:
+    """
+    Normalize all string values in a dictionary using `normalize_text`.
+
+    Parameters
+    ----------
+    d : dict[str, Any]
+        The dictionary to normalize.
+
+    Returns
+    -------
+    dict[str, Any]
+        The dictionary with normalized string values.
+    """
+    normalized = {}
+    for k, v in d.items():
+        if isinstance(v, str) or v is None:
+            normalized[k] = normalize_text(v)
+        else:
+            normalized[k] = v
+    return normalized
+
+
+def normalize_pydantic_model_strings(model: Any) -> Any:
+    """
+    Normalize all string fields in a Pydantic model using `normalize_text`.
+
+    Parameters
+    ----------
+    model : Any
+        The Pydantic model to normalize.
+
+    Returns
+    -------
+    Any
+        The Pydantic model with normalized string fields.
+    """
+    if not hasattr(model, "__fields__"):
+        return model
+
+    for field_name, _field in model.__fields__.items():
+        value = getattr(model, field_name)
+        if isinstance(value, str) or value is None:
+            normalized_value = normalize_text(value)
+            setattr(model, field_name, normalized_value)
+
+    return model
