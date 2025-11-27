@@ -129,24 +129,33 @@ def _key_func(r):
 
 def _choose_preferred_citation(
     references: list[Publication | dict[str, Any]],
-    primary_references: list[Publication | dict[str, Any]],
+    bt_primary_references: list[Publication],
+    gh_preferred_reference: dict[str, Any] | None = None,
 ) -> Publication | dict[str, Any]:
     """
     Choose the preferred citation from the list of references.
+    If there is a preferred citation from the existing GitHub CITATION.cff file, it is used.
+    If not, but there are primary references in bio.tools, the most recent one is selected as the preferred citation.
+    Otherwise, the most recent reference of any other type is chosen.
+
 
     Parameters
     ----------
     references : list[Publication | dict[str, Any]]
         List of all publications.
-    primary_references : list[Publication | dict[str, Any]]
-        List of publications marked as primary.
+    bt_primary_references: list[Publication],
+        List of publications in bio.tools marked as primary.
+    gh_preferred_reference : dict[str, Any] | None, optional
+        The preferred citation from GitHub CITATION.cff, if any.
 
     Returns
     -------
     Publication | dict[str, Any]
         The selected preferred citation.
     """
-    selection_list = primary_references if primary_references else references
+    if gh_preferred_reference is not None:
+        return gh_preferred_reference
+    selection_list = bt_primary_references if bt_primary_references else references
     preferred = max(selection_list, key=_key_func)
     return preferred
 
@@ -245,8 +254,6 @@ def _compose_citation(
     """
     Generate a CITATION.cff dict from bio.tools metadata and references.
     If there are no references, a minimal CITATION.cff is created.
-    If there are primary references, most recent one of them is selected as preferred citation.
-    Otherwise, the most recent reference is selected.
 
     Parameters
     ----------
@@ -333,7 +340,8 @@ async def map_citation(gh_citation_cff: dict[str, Any], bt_params: dict[str, Any
 
     preferred_reference = _choose_preferred_citation(  # TODO: update this function
         references=references,
-        primary_references=bt_primary_references,
+        bt_primary_references=bt_primary_references,
+        gh_preferred_reference=gh_preferred,
     )
 
     base_cff = _compose_base_cff(bt_params=bt_params)
