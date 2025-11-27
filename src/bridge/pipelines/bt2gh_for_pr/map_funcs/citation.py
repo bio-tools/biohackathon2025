@@ -8,24 +8,102 @@ The output is a valid `CITATION.cff` file that can be committed to a GitHub
 repository to enable software citation.
 """
 
+from collections.abc import Hashable
 from typing import Any
-
-import yaml
 
 from bridge.builders import compose_europe_pmc_metadata
 from bridge.core import Publication
 from bridge.core.biotools import TypeEnum2
 from bridge.logging import get_user_logger
-from bridge.pipelines.utils import normalize_dict_strings, normalize_pydantic_model_strings, object_to_primitive
+from bridge.pipelines.utils import (
+    normalize_dict_strings,
+    normalize_pydantic_model_strings,
+    normalize_text,
+    object_to_primitive,
+)
 
 logger = get_user_logger()
 
 TIMEOUT = 20
 
 
+def _ref_key(ref: Publication) -> Hashable:
+    """
+    Extract all usable identifiers from a Publication as a normalized set.
+
+    Parameters
+    ----------
+    ref : Publication
+        The Publication object.
+
+    Returns
+    -------
+    set[str]
+        A set of normalized identifier strings.
+    """
+    ids: set[str] = set()
+
+    if ref.doi:
+        ids.add(f"doi:{normalize_text(ref.doi)}")
+
+    if ref.pmid:
+        ids.add(f"pmid:{ref.pmid}")
+
+    if ref.pmcid:
+        ids.add(f"pmcid:{ref.pmcid}")
+
+    if ref.title:
+        ids.add(f"title:{normalize_text(ref.title)}")
+
+    return ids
+
+
+def _deduplicate_references(references: list[Publication]) -> list[Publication]:
+    """
+    Deduplicate Publication objects: if ANY identifier overlaps, they are treated
+    as the same reference. First occurrence wins.
+
+    Parameters
+    ----------
+    references : list[Publication]
+        List of Publication objects to deduplicate.
+
+    Returns
+    -------
+    list[Publication]
+        Deduplicated list of Publication objects.
+    """
+    seen_identifier_sets: list[set[str]] = []
+    deduplicated: list[Publication] = []
+
+    for ref in references:
+        current_ids = _ref_key(ref)
+
+        # if we have no identifiers at all, treat as unique
+        if not current_ids:
+            deduplicated.append(ref)
+            continue
+
+        duplicate = False
+        for seen_ids in seen_identifier_sets:
+            if current_ids & seen_ids:  # intersection
+                duplicate = True
+                # merge identifier sets to strengthen future matching
+                seen_ids.update(current_ids)
+                break
+
+        if duplicate:
+            continue
+
+        seen_identifier_sets.append(set(current_ids))
+        deduplicated.append(ref)
+
+    return deduplicated
+
+
 def _compose_citation(
     bt_params: dict[str, Any], references: list[Publication], primary_references: list[Publication]
-) -> dict[str, str]:
+) -> dict[str, Any]:
     """
     Generate a CITATION.cff dict from bio.tools metadata and references.
     If there are no references, a minimal CITATION.cff is created.
@@ -50,8 +128,8 @@ def _compose_citation(
 
     Returns
     -------
-    dict[str, str]
-        A dictionary with the filename as key and the CITATION.cff content as value.
+    dict[str, Any]
+        A dictionary with the CITATION.cff content.
     """
     name = bt_params.get("name", None)
     biotools_id = bt_params.get("biotoolsID", None)
@@ -90,7 +168,8 @@ def _compose_citation(
         logger.added(f"Added {len(references)} publication(s) to CITATION.cff.")
 
     primitive_cff = object_to_primitive(base_cff)
-    return {"CITATION.cff": yaml.dump(primitive_cff, sort_keys=False, allow_unicode=True)}
+    return primitive_cff
+    # return {"CITATION.cff": yaml.dump(primitive_cff, sort_keys=False, allow_unicode=True)}
 
 
 async def map_citation(gh_citation_cff: str | None, bt_params: dict[str, Any]) -> dict[str, str]:
