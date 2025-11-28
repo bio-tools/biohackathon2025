@@ -11,12 +11,25 @@ discrepancies are found.
 from bridge.core.biotools import LanguageEnum
 from bridge.core.github_languages import Language
 from bridge.logging import get_user_logger
+from bridge.pipelines.policies.gh2bt import reconcile_gh_over_bt
 from bridge.pipelines.utils import find_matching_enum_member
 
 logger = get_user_logger()
 
 
-def _cast_to_biotools_languages(languages: set[str]) -> list[LanguageEnum]:
+def _to_lang_set_gh(gh_languages: Language | None) -> set[str] | None:
+    if gh_languages is None or not gh_languages.root:
+        return None
+    return {lang.lower() for lang in gh_languages.root.keys()}
+
+
+def _to_lang_set_bt(bt_languages: list[LanguageEnum] | None) -> set[str] | None:
+    if not bt_languages:
+        return None
+    return {lang.value.lower() for lang in bt_languages}
+
+
+def _cast_to_biotools_languages(languages: set[str]) -> list[LanguageEnum] | None:
     """
     Convert a set of GitHub language names to a list of bio.tools language enums.
 
@@ -32,11 +45,12 @@ def _cast_to_biotools_languages(languages: set[str]) -> list[LanguageEnum]:
 
     Returns
     -------
-    list[LanguageEnum]
+    list[LanguageEnum] | None
         List of successfully mapped languages as `LanguageEnum` members.
         The order corresponds to the iteration order of the input set.
+        Returns ``None`` if no languages could be mapped.
     """
-    bt_languages = []
+    bt_languages: list[LanguageEnum] = []
     for lang in languages:
         # matched_lang = _find_matching_bt_language(lang)
         matched_lang = find_matching_enum_member(lang, LanguageEnum)
@@ -44,7 +58,7 @@ def _cast_to_biotools_languages(languages: set[str]) -> list[LanguageEnum]:
             bt_languages.append(matched_lang)
         else:
             logger.note(f"Unknown language '{lang}' not found in bio.tools LanguageEnum.")
-    return bt_languages
+    return bt_languages or None
 
 
 def map_language(gh_languages: Language | None, bt_languages: list[LanguageEnum] | None) -> list[LanguageEnum] | None:
@@ -86,29 +100,19 @@ def map_language(gh_languages: Language | None, bt_languages: list[LanguageEnum]
         The reconciled list of bio.tools language enums following the policy.
         May be ``None`` if both inputs are ``None``.
     """
-    if gh_languages is not None and gh_languages.root:
-        gh_languages_dict = gh_languages.root
-        gh_languages_set = set(gh_languages_dict.keys())
-    else:
-        gh_languages_set = set()
+    gh_norm = _to_lang_set_gh(gh_languages)
+    bt_norm = _to_lang_set_bt(bt_languages)
 
-    if not gh_languages_set:
+    # if GitHub has nothing, keep existing
+    if gh_norm is None or len(gh_norm) == 0:
         logger.unchanged("No GitHub languages found, nothing to map.")
         return bt_languages
 
-    gh_languages_set_lower = {lang.lower() for lang in gh_languages_set} if gh_languages_set else set()
-
-    bt_languages_set = {lang.value for lang in bt_languages} if bt_languages else set()
-    bt_languages_set_lower = {lang.lower() for lang in bt_languages_set} if bt_languages_set else set()
-
-    if gh_languages_set_lower == bt_languages_set_lower:
-        logger.exact("GitHub languages match bio.tools languages.")
-        return bt_languages
-
-    if bt_languages is not None and (gh_languages_set_lower != bt_languages_set_lower):
-        logger.conflict(
-            f"Existing GitHub languages '{gh_languages_set}'" f" differ from bio.tools languages '{bt_languages_set}'"
-        )
-
-    logger.added(f"GitHub languages '{gh_languages_set}'")
-    return _cast_to_biotools_languages(gh_languages_set)
+    # use the generic reconciler on the *set* representation
+    return reconcile_gh_over_bt(
+        gh_norm=gh_norm,
+        bt_norm=bt_norm,
+        bt_value=bt_languages,
+        build_bt_from_gh=_cast_to_biotools_languages,
+        log_label="languages",
+    )
