@@ -23,10 +23,11 @@ def map_maturity(gh_schema: dict | None, bt_maturity: Maturity | None) -> Maturi
     """
     Map GitHub maturity metrics to bio.tools maturity metadata.
     """
-    gh_archived = gh_schema.get("archived")
-    if gh_archived is None:
-        logger.unchanged("No GitHub archived status found, nothing to map.")
+    if gh_schema is None:
+        logger.unchanged("No GitHub schema provided, nothing to map.")
         return bt_maturity
+
+    gh_archived = gh_schema.get("archived", False)
 
     has_bt_maturity = False
     if bt_maturity is not None:
