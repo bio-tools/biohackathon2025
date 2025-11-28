@@ -1,5 +1,14 @@
 """
-Map bio.tools metadata to GitHub README, add badges.
+Map bio.tools metadata onto a GitHub README and inject badges.
+
+This module takes an existing README.md (if any) and bio.tools metadata
+for a tool and produces an updated README that:
+
+- preserves an existing project title when possible,
+- preserves existing badges,
+- adds "bridge" and "bio.tools" badges,
+- adds a "tool type" badge based on bio.tools metadata (if available),
+- keeps the rest of the README content intact (below the title and badges).
 """
 
 import re
@@ -46,19 +55,22 @@ README_TEMPLATE = """\
 
 def _deduplicate_badges(badges: Iterable[Badge]) -> list[Badge]:
     """
-    Deduplicate badges while:
-    - preserving original order
-    - preferring earliest occurrence
+    Deduplicate a sequence of badges while preserving order.
+
+    Two badges are considered duplicates if their `Badge` instances compare
+    equal. The first occurrence is kept; all later duplicates
+    are discarded.
 
     Parameters
     ----------
     badges : Iterable[Badge]
-        An iterable of Badge objects.
+        An iterable of `Badge` objects, typically combining newly generated
+        and already existing badges.
 
     Returns
     -------
     list[Badge]
-        A list of unique Badge objects in their original order.
+        A list of unique badges in their original order of first appearance.
     """
     seen: set[Badge] = set()
     result: list[Badge] = []
@@ -75,17 +87,27 @@ def _deduplicate_badges(badges: Iterable[Badge]) -> list[Badge]:
 
 def _extract_existing_badges(gh_readme: str | None) -> list[Badge]:
     """
-    Extract existing badges from a GitHub README.
+    Parse and extract badge definitions from a README.
+
+    This function scans the README content for Markdown-style badges, both
+    with and without links:
+
+    - `[![alt](img)](link)` (badge wrapped in a link)
+    - `![alt](img)` (image-only badge)
+
+    For each match, a `Badge` object is created. Invalid or malformed badges
+    (e.g. bad URLs) are skipped.
 
     Parameters
     ----------
     gh_readme : str | None
-        The content of the GitHub README.
+        The README content as a string, or ``None`` if no README exists.
 
     Returns
     -------
     list[Badge]
-        A list of extracted Badge objects.
+        A list of `Badge` objects representing all parseable badges found
+        in the README. The list may be empty.
     """
     badges: list[Badge] = []
 
@@ -117,22 +139,30 @@ def _extract_existing_badges(gh_readme: str | None) -> list[Badge]:
 
 def _extract_project_title(gh_readme: str | None) -> str | None:
     """
-    Best-effort extraction of a project title from a README.
+    Attempt to extract the project's top-level title from the README.
 
-    Order of preference:
-    1. First ATX H1 (# Title)
-    2. First Setext H1 (Title + =====)
-    3. First HTML <h1>...</h1>
+    This is a best-effort heuristic that tries three common heading styles,
+    in order of preference:
+
+    1. ATX H1:    '# Title'
+    2. Setext H1: 'Title' on one line, followed by '=====' or '-----'
+    3. HTML H1:   '<h1>Title</h1>'
+
+    The function returns the exact snippet representing the title block:
+    - For ATX: the full line including '#'.
+    - For Setext: the title line plus its underline, separated by a newline.
+    - For HTML: the full `<h1>...</h1>` element.
 
     Parameters
     ----------
     gh_readme : str | None
-        The content of the GitHub README.
+        The README content as a string, or ``None`` if no README exists.
 
     Returns
     -------
     str | None
-        The joined lines extracted raw project title text, or None if not found.
+        The raw title snippet as it appears in the README, or ``None`` if no
+        title-like structure is found.
     """
     if gh_readme is None:
         return None
@@ -143,7 +173,6 @@ def _extract_project_title(gh_readme: str | None) -> str | None:
     for line in lines:
         m = ATX_H1_PATTERN.match(line)
         if m:
-            # return whatever comes after the leading "# " together with #
             return m.group(0)
 
     # "Title" + "====="
@@ -153,14 +182,12 @@ def _extract_project_title(gh_readme: str | None) -> str | None:
         if not title_line.strip():
             continue
         if SETEXT_UNDERLINE_PATTERN.match(underline):
-            # return the title line as-is together with underline
             return title_line + "\n" + underline
 
     # HTML <h1>Title</h1>
     for line in lines:
         m = HTML_H1_PATTERN.search(line)
         if m:
-            # return the lines spanning the tags
             return m.group(0)
 
     # No title found
@@ -169,23 +196,42 @@ def _extract_project_title(gh_readme: str | None) -> str | None:
 
 def _build_readme(gh_readme: str | None, bt_name: str, bt_id: str, bt_tool_types: list[ToolTypeEnum] | None) -> str:
     """
-    Build the updated README content by merging bio.tools metadata and badges.
+    Construct an updated README from existing content and bio.tools metadata.
+
+    This function:
+
+    1. Builds a set of new badges:
+       - A 'bridge' badge indicating the README was generated/updated by
+         the bridge pipeline.
+       - A 'bio.tools' badge linking to the corresponding bio.tools entry.
+       - A 'tool type' badge summarizing the `toolType` values (if available).
+    2. Extracts existing badges from the README.
+    3. Merges new and existing badges, deduplicating so that existing badges
+       are not duplicated.
+    4. Extracts a project title from the README if possible; otherwise, uses
+       '# <bt_name>' as the title.
+    5. Strips the original title and badges from the README to obtain the
+       remaining content body.
+    6. Renders a new README using a simple template that places the title, badges,
+       and remaining content in order.
 
     Parameters
     ----------
     gh_readme : str | None
-        The content of the GitHub README.
+        The current README content, or ``None`` for an empty README.
     bt_name : str
-        The name of the bio.tools tool.
+        The `name` of the tool from bio.tools metadata.
     bt_id : str
-        The bio.tools ID of the tool.
+        The `biotoolsID` of the tool from bio.tools metadata.
     bt_tool_types : list[ToolTypeEnum] | None
-        The list of tool types of the bio.tools tool.
+        A list of tool types (`toolType` field from bio.tools), or ``None``
+        if not available or not valid.
 
     Returns
     -------
     str
-        The updated README content.
+        The updated README content including title, badges, and the remaining
+        original content.
     """
     # handle badges
     new_badges = []
@@ -254,28 +300,38 @@ def _build_readme(gh_readme: str | None, bt_name: str, bt_id: str, bt_tool_types
 
 def map_readme(gh_readme: str | None, bt_params: dict[str, Any]) -> dict[str, str]:
     """
-    Map and merge bio.tools metadata with GitHub README content.
+    Map bio.tools metadata onto a GitHub README and return updated content.
+
+    Steps performed:
+    1. Validates and interprets the required fields are present in `bt_params`.
+    2. Calls `_build_readme` to construct a new README that includes:
+       - an existing title (if any), or a new one based on `bt_params['name']`,
+       - merged badges (new bridge/bio.tools/tool type + existing badges),
+       - the remaining original README content.
+    3. Returns the updated README under the key `"README.md"`.
 
     Parameters
     ----------
     gh_readme : str | None
-        The content of the GitHub README.
+        The current README content from GitHub, or ``None`` if the file does
+        not exist yet.
     bt_params : dict[str, Any]
-        The bio.tools tool relevant metadata as a dictionary.
-        Should contain:
-        - name - Name of the tool.
-        - biotoolsID - The bio.tools ID of the tool.
-        - toolType - List of tool types (ToolTypeEnum).
+        The bio.tools tool metadata as a dictionary.
+        Expected fields:
+        - 'name'       : Name of the tool.
+        - 'biotoolsID' : bio.tools identifier of the tool.
+        - 'toolType'   : Optional list of tool types (typically `ToolTypeEnum`).
 
     Returns
     -------
     dict[str, str]
-        A dictionary with the updated README content under the key "README.md".
+        A dictionary with the filename `"README.md"` as key,
+        and the updated README content as value.
 
     Raises
     ------
     ValueError
-        If required fields are missing in bt_params.
+        If required fields are missing from `bt_params`.
     """
     bt_name = bt_params.get("name", None)
     bt_id = bt_params.get("biotoolsID", None)

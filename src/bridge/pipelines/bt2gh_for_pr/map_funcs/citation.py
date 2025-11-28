@@ -447,7 +447,7 @@ async def map_citation(gh_citation_cff: dict[str, Any], bt_params: dict[str, Any
     -------
     dict[str, str]
         A dictionary with the filename `"CITATION.cff"` as key,
-        and the YAML-formatted CFF content content as value.
+        and the YAML-formatted CFF content as value.
     """
     bt_publication = bt_params.get("publication", None)
 
