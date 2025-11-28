@@ -198,18 +198,18 @@ def map_version(gh_latest_version_tag: str | None, bt_versions: list[VersionType
         logger.added(f"version '{gh_latest_version_tag}'")
         return [latest_version_tag_as_bt]
 
-    # if gh version not in bt versions
-    if not any(v.root == latest_version_tag_as_bt.root for v in bt_versions):
-        if _any_bt_newer_than_gh(latest_version_tag_as_bt, bt_versions):
-            # if any version in bt_version is newer than gh_version, consider conflict
-            logger.conflict(
-                f"bio.tools version(s) '{bt_versions}' is/are newer than"
-                f" GitHub latest version '{gh_latest_version_tag}'"
-            )
-            return [latest_version_tag_as_bt]
-        # if both versions exist, but GitHub version not in bio.tools, add it
-        logger.added(f"version '{gh_latest_version_tag}' to existing bio.tools versions '{bt_versions}'")
-        return bt_versions + [latest_version_tag_as_bt]
+    # if GitHub version already present, nothing to do
+    if any(v.root == latest_version_tag_as_bt.root for v in bt_versions):
+        logger.exact(f"latest version '{gh_latest_version_tag}' already in bio.tools")
+        return bt_versions
 
-    logger.exact(f"latest version '{gh_latest_version_tag}' already in bio.tools")
-    return bt_versions
+    # if any bt version appears newer than gh latest, log conflict and reset to gh only
+    if _any_bt_newer_than_gh(latest_version_tag_as_bt, bt_versions):
+        logger.conflict(
+            f"bio.tools version(s) '{bt_versions}' appear newer than GitHub latest version '{gh_latest_version_tag}'"
+        )
+        return [latest_version_tag_as_bt]
+
+    # otherwise, append gh latest
+    logger.added(f"version '{gh_latest_version_tag}' to existing bio.tools versions '{bt_versions}'")
+    return bt_versions + [latest_version_tag_as_bt]
