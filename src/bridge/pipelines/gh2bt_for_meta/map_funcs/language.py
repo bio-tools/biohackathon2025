@@ -37,13 +37,16 @@ def map_language(gh_languages: Language | None, bt_languages: list[LanguageEnum]
     """
     Map languages from GitHub to bio.tools.
     """
-    if gh_languages is None:
-        logger.note("No GitHub languages found, nothing to map.")
-        return None
+    if gh_languages is not None and gh_languages.root:
+        gh_languages_dict = gh_languages.root
+        gh_languages_set = set(gh_languages_dict.keys())
+    else:
+        gh_languages_set = set()
 
-    gh_languages_dict = gh_languages.root
+    if not gh_languages_set:
+        logger.unchanged("No GitHub languages found, nothing to map.")
+        return bt_languages
 
-    gh_languages_set = set(gh_languages_dict.keys()) if gh_languages_dict else set()
     gh_languages_set_lower = {lang.lower() for lang in gh_languages_set} if gh_languages_set else set()
 
     bt_languages_set = {lang.value for lang in bt_languages} if bt_languages else set()
@@ -53,18 +56,10 @@ def map_language(gh_languages: Language | None, bt_languages: list[LanguageEnum]
         logger.exact("GitHub languages match bio.tools languages.")
         return bt_languages
 
-    if gh_languages is not None and bt_languages is not None:
-        if gh_languages_set_lower != bt_languages_set_lower:
-            logger.conflict(
-                f"Existing GitHub languages '{gh_languages_set}'"
-                f" differ from bio.tools languages '{bt_languages_set}'"
-            )
-        return _cast_to_biotools_languages(gh_languages_set)
+    if bt_languages is not None and (gh_languages_set_lower != bt_languages_set_lower):
+        logger.conflict(
+            f"Existing GitHub languages '{gh_languages_set}'" f" differ from bio.tools languages '{bt_languages_set}'"
+        )
 
-    if gh_languages is not None:
-        logger.added(f"GitHub languages '{gh_languages_set}'")
-        return _cast_to_biotools_languages(gh_languages_set)
-
-    if bt_languages is not None:
-        logger.unchanged(f"bio.tools languages '{bt_languages_set}'")
-        return bt_languages
+    logger.added(f"GitHub languages '{gh_languages_set}'")
+    return _cast_to_biotools_languages(gh_languages_set)
