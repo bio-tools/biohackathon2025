@@ -44,9 +44,14 @@ class ParsedVersion:
     Parameters
     ----------
     kind : VersionKind
-        The kind of version parsed.
+        The kind of version parsed (SEMVER, DATE, INT, RANGE, RAW).
     value : Any
-        The parsed value, type depends on `kind`.
+        The parsed value:
+        - SEMVER: packaging.version.Version
+        - DATE  : datetime.date
+        - INT   : int
+        - RANGE : (ParsedVersion, ParsedVersion)  # [low, high]
+        - RAW   : str
     raw : str
         The original version string.
     """
@@ -54,6 +59,60 @@ class ParsedVersion:
     kind: VersionKind
     value: Any  # Version | date | int | (ParsedVersion, ParsedVersion) | str
     raw: str
+
+    def _normalized_for_comparison(self) -> tuple[VersionKind, Any] | None:
+        """
+        Reduce self to a (kind, value) pair suitable for ordering, or None
+        if it cannot be safely ordered.
+
+        Returns
+        -------
+        tuple[VersionKind, Any] | None
+            A (kind, value) pair for comparison, or ``None`` if not comparable.
+        """
+        if self.kind == VersionKind.RANGE:
+            lo, hi = self.value
+            # represent range by upper bound
+            return hi._normalized_for_comparison()
+
+        if self.kind in {VersionKind.SEMVER, VersionKind.DATE, VersionKind.INT}:
+            return (self.kind, self.value)
+
+        # raw and anything else: not safely comparable
+        return None
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, ParsedVersion):
+            return False
+
+        # same normalized (kind, value) if possible,
+        # otherwise fall back to raw string equality.
+        self_norm = self._normalized_for_comparison()
+        other_norm = other._normalized_for_comparison()
+
+        if self_norm is not None and other_norm is not None:
+            return self_norm == other_norm
+
+        return self.raw == other.raw
+
+    def __lt__(self, other: object) -> bool:
+        if not isinstance(other, ParsedVersion):
+            return False
+
+        self_norm = self._normalized_for_comparison()
+        other_norm = other._normalized_for_comparison()
+
+        # if either cannot be normalized or kinds differ, treat as incomparable
+        if self_norm is None or other_norm is None:
+            return False
+
+        kind_a, val_a = self_norm
+        kind_b, val_b = other_norm
+
+        if kind_a != kind_b:
+            return False
+
+        return val_a < val_b
 
 
 def _parse_version_label(label: str) -> ParsedVersion:
@@ -101,6 +160,28 @@ def _parse_version_label(label: str) -> ParsedVersion:
     return ParsedVersion(VersionKind.RAW, s, s)
 
 
+def _any_bt_newer_than_gh(
+    gh_latest: VersionType,
+    bt_versions: list[VersionType],
+) -> bool:
+    """
+    Return True if any bio.tools version appears newer than the
+    GitHub latest tag, based on ParsedVersion ordering.
+    """
+    gh_parsed = _parse_version_label(gh_latest.root)
+
+    for bt in bt_versions:
+        bt_parsed = _parse_version_label(bt.root)
+        try:
+            if bt_parsed > gh_parsed:
+                return True
+        except TypeError:
+            # incomparable (different kind / raw) -> ignore
+            continue
+
+    return False
+
+
 def map_version(gh_latest_version_tag: str | None, bt_versions: list[VersionType] | None) -> list[VersionType] | None:
     """
     Map GitHub releases smetadata to bio.tools version metadata.
@@ -119,7 +200,7 @@ def map_version(gh_latest_version_tag: str | None, bt_versions: list[VersionType
 
     # if gh version not in bt versions
     if not any(v.root == latest_version_tag_as_bt.root for v in bt_versions):
-        if any(bt > latest_version_tag_as_bt for bt in bt_versions):
+        if _any_bt_newer_than_gh(latest_version_tag_as_bt, bt_versions):
             # if any version in bt_version is newer than gh_version, consider conflict
             logger.conflict(
                 f"bio.tools version(s) '{bt_versions}' is/are newer than"
