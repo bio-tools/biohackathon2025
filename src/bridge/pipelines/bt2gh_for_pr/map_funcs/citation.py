@@ -399,10 +399,10 @@ def _compose_citation(
     else:
         update_data = {
             "message": ("If you use this software, please cite it and the Primary publications below."),
-            "references": object_to_primitive(references),
+            "references": references,
         }
         if preferred is not None:
-            update_data["preferred-citation"] = object_to_primitive(preferred)
+            update_data["preferred-citation"] = preferred
 
         base_cff.update(normalize_dict_strings(update_data))
         logger.added(f"Added {len(references)} publication(s) to CITATION.cff.")
@@ -481,5 +481,6 @@ async def map_citation(gh_citation_cff: dict[str, Any], bt_params: dict[str, Any
     base_cff = _compose_base_cff(bt_params=bt_params)
     base_cff = _merge_top_level_metadata(existing_cff=gh_citation_cff, base_cff=base_cff)
     cff = _compose_citation(base_cff=base_cff, references=references, preferred=preferred_reference)
+    primitive_cff = object_to_primitive(cff)
 
-    return {"CITATION.cff": yaml.dump(cff, sort_keys=False, allow_unicode=True)}
+    return {"CITATION.cff": yaml.dump(primitive_cff, sort_keys=False, allow_unicode=True)}
