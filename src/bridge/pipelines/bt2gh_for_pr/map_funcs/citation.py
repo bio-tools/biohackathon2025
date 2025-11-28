@@ -1,11 +1,16 @@
 """
 Generate a CITATION.cff file from bio.tools publication metadata.
 
-This module retrieves publications from a bio.tools entry,
-resolves them via the Europe PMC REST API, and converts
-the resulting bibliographic information into the Citation File Format (CFF).
-The output is a valid `CITATION.cff` file that can be committed to a GitHub
-repository to enable software citation.
+This module retrieves publications from a bio.tools entry, resolves them via the
+Europe PMC REST API, and converts the resulting bibliographic information into
+the Citation File Format (CFF).
+
+If a CITATION.cff already exists in the GitHub repository, its non-publication
+metadata is preserved where present, and its publication list is merged with
+publications discovered via bio.tools / Europe PMC. References are
+deduplicated, and a preferred citation is chosen with a clear precedence:
+existing preferred-citation (if any) > bio.tools primary publications > other
+publications.
 """
 
 from collections.abc import Mapping
@@ -29,7 +34,15 @@ logger = get_user_logger()
 
 def _ref_ids(ref: Publication | Mapping[str, Any]) -> set[str]:
     """
-    Extract all usable identifiers from a Publication as a normalized set.
+    Extract a normalized set of identifiers for a publication-like object.
+    This function collects all available identifiers and returns
+    them as normalized strings, which can then be used for deduplication.
+
+    Normalized identifiers include (when present):
+    - DOI
+    - PMID
+    - PMCID
+    - title
 
     Parameters
     ----------
@@ -40,11 +53,12 @@ def _ref_ids(ref: Publication | Mapping[str, Any]) -> set[str]:
     -------
     set[str]
         A set of normalized identifier strings.
+        The set may be empty if no identifiers are present.
 
     Raises
     ------
     TypeError
-        If ref is neither a Publication nor a Mapping.
+        If `ref` is neither a `Publication` instance nor a mapping.
     """
     if isinstance(ref, Mapping):
         doi = ref.get("doi", None)
@@ -75,18 +89,22 @@ def _ref_ids(ref: Publication | Mapping[str, Any]) -> set[str]:
 
 def _deduplicate_references(references: list[Publication | Mapping[str, Any]]) -> list[Publication | Mapping[str, Any]]:
     """
-    Deduplicate Publication objects: if ANY identifier overlaps, they are treated
-    as the same reference. First occurrence wins.
+    Deduplicate a list of publication-like objects based on shared identifiers.
+
+    Two references are considered duplicates if they share at least one
+    normalized identifier (DOI, PMID, PMCID, or title). The first occurrence
+    in the input list is retained; all later duplicates are dropped.
 
     Parameters
     ----------
     references : list[Publication | Mapping[str, Any]]
-        List of references to deduplicate.
+        List of references (models or dicts) to deduplicate.
 
     Returns
     -------
     list[Publication | Mapping[str, Any]]
-        Deduplicated list of references.
+        Deduplicated list of references, preserving original order for
+        the first occurrence of each logical publication.
     """
     seen_identifier_sets: list[set[str]] = []
     deduplicated: list[Publication | Mapping[str, Any]] = []
@@ -118,17 +136,23 @@ def _deduplicate_references(references: list[Publication | Mapping[str, Any]]) -
 
 def _key_func(r: Publication | dict[str, Any]) -> tuple[int, str]:
     """
-    Key function to select the most recent publication based on year and title.
+    Key function for ordering publications by recency and title.
+
+    Publications are ordered primarily by year (descending when used with `max`)
+    and secondarily by title (lexicographically). This is used to select a
+    "most recent" publication when choosing a preferred citation.
 
     Parameters
     ----------
     r : Publication | dict[str, Any]
-        The publication to evaluate.
+        The publication to evaluate, as either a `Publication` instance or a
+        reference dictionary.
 
     Returns
     -------
     tuple[int, str]
-        A tuple containing the year (as int) and title (as str) for comparison.
+        A tuple `(year, title)` suitable for use as a sort key.
+        Missing years are treated as 0; missing titles as an empty string.
     """
     if isinstance(r, Publication):
         return (r.year or 0, r.title or "")
@@ -141,24 +165,30 @@ def _choose_preferred_citation(
     gh_preferred_reference: dict[str, Any] | None = None,
 ) -> Publication | dict[str, Any] | None:
     """
-    Choose the preferred citation from the list of references.
-    If there is a preferred citation from the existing GitHub CITATION.cff file, it is used.
-    If not, but there are primary references in bio.tools, the most recent one is selected as the preferred citation.
-    Otherwise, the most recent reference of any other type is chosen.
+    Select the preferred citation among all available references.
+
+    Precedence rules:
+    1. If the existing GitHub CITATION.cff contains a `preferred-citation`,
+       it is preserved and returned unchanged.
+    2. Otherwise, if there are primary publications in the bio.tools metadata,
+       the most recent primary publication is selected.
+    3. Otherwise, the most recent publication from the full reference list
+       is selected.
+    4. If no references are available, returns ``None``.
 
     Parameters
     ----------
     references : list[Publication | dict[str, Any]]
-        List of all publications.
+        List of all resolved references.
     bt_primary_references: list[Publication]
-        List of publications in bio.tools marked as primary.
+        List (subset) of bio.tools publications that are marked as primary.
     gh_preferred_reference : dict[str, Any] | None, optional
-        The preferred citation from GitHub CITATION.cff, if any.
+        Existing `preferred-citation` from a CITATION.cff file, if any.
 
     Returns
     -------
     Publication | dict[str, Any] | None
-        The selected preferred citation, or None if no references are available.
+        The selected preferred citation, or ``None`` if no references exist.
     """
     if gh_preferred_reference is not None:
         return gh_preferred_reference
@@ -171,24 +201,29 @@ def _choose_preferred_citation(
 
 def _compose_base_cff(bt_params: dict[str, Any]) -> dict[str, Any]:
     """
-    Generate a base CITATION.cff dict from bio.tools metadata.
+    Build a base CITATION.cff structure from bio.tools tool metadata.
+
+    This function creates a minimal, publication-agnostic CFF dictionary based
+    on the fields exposed in the bio.tools API. It does not include any
+    references or preferred-citation; those are added later.
 
     Parameters
     ----------
     bt_params : dict[str, Any]
-        The bio.tools tool relevant metadata as a dictionary.
-        Should contain:
-        - name - Name of the tool.
-        - biotoolsID - bio.tools identifier of the tool.
-        - homepage - Homepage URL of the tool.
-        - license - License of the tool.
-        - topic - List of topics associated with the tool.
-        - description - Description of the tool.
+        The bio.tools tool metadata as a dictionary.
+        Expected keys include:
+        - 'name'       : Name of the tool.
+        - 'biotoolsID' : bio.tools identifier of the tool.
+        - 'homepage'   : Homepage or repository URL of the tool.
+        - 'license'    : License identifier.
+        - 'topic'      : List of topics associated with the tool.
+        - 'description': Textual description of the tool.
 
     Returns
     -------
     dict[str, Any]
-        A dictionary with the CITATION.cff base content.
+        A base CFF dictionary containing core tool metadata
+        and a `cff-version` of 1.2.0.
     """
     name = bt_params.get("name", None)
     biotools_id = bt_params.get("biotoolsID", None)
@@ -218,27 +253,31 @@ def _merge_top_level_metadata(
     base_cff: dict[str, Any],
 ) -> dict[str, Any]:
     """
-    Merge top-level CFF metadata.
+    Merge top-level metadata from an existing CITATION.cff with bio.tools metadata.
 
     Policy:
-    - If no existing CITATION.cff, return base_cff as is.
-    - Otherwise, start from existing CITATION.cff.
-    - For known top-level keys we manage:
-      - If existing has a non-empty value, keep it.
-      - If existing is missing/empty, fill from base_cff.
-    - Never touch 'references' or 'preferred-citation' here; they are handled separately.
+    - If no existing CITATION.cff is provided, `base_cff` is returned as-is.
+    - Otherwise, start from the existing CFF.
+    - For keys present in `base_cff`:
+      - If the existing CFF has a non-empty value, it is kept.
+      - If the existing value is missing or empty (None, "", []), the value
+        from `base_cff` is used.
+    - The keys 'references' and 'preferred-citation' are removed here and are
+      handled separately by publication-specific logic.
 
     Parameters
     ----------
     existing_cff : dict[str, Any] | None
-        The existing CITATION.cff content from the GitHub repository.
+        The parsed content of an existing CITATION.cff file,
+        or ``None`` if no file exists.
     base_cff : dict[str, Any]
-        The base CITATION.cff content generated from bio.tools metadata.
+        The base CFF content derived from bio.tools metadata.
 
     Returns
     -------
     dict[str, Any]
-        The merged CITATION.cff content.
+        A merged CFF dictionary containing top-level metadata from both
+        sources, with existing values preserved where present.
     """
     if existing_cff is None:
         return base_cff
@@ -265,19 +304,27 @@ def _extract_gh_references(
     gh_citation_cff: dict[str, Any] | None,
 ) -> tuple[list[dict[str, Any]], dict[str, Any] | None]:
     """
-    Extract references and preferred-citation from an existing CITATION.cff dict.
+    Extract publication information from an existing CITATION.cff dictionary.
+
+    This helper parses an existing CFF structure and returns:
+    - the list of reference entries, and
+    - the preferred-citation entry, if present.
+
+    The preferred citation is ensured to be part of the references list:
+    if it is not already present, it is appended.
 
     Parameters
     ----------
     gh_citation_cff : dict[str, Any] | None
-        The existing CITATION.cff content from the GitHub repository.
+        TParsed content of an existing CITATION.cff file,
+        or ``None`` if no file exists.
 
     Returns
     -------
     tuple[list[dict[str, Any]], dict[str, Any] | None]
-        A tuple containing:
-        - A list of references extracted from the CITATION.cff.
-        - The preferred-citation extracted from the CITATION.cff, or None if not present
+        A tuple of:
+        - A list of reference dictionaries extracted from the CFF.
+        - The preferred-citation dictionary, or ``None`` if not present.
     """
     if not gh_citation_cff:
         return [], None
@@ -316,22 +363,33 @@ def _compose_citation(
     preferred: Publication | dict[str, Any] | None,
 ) -> dict[str, Any]:
     """
-    Generate a CITATION.cff dict from bio.tools metadata and references.
-    If there are no references, a minimal CITATION.cff is created.
+    Combine top-level metadata and publication information into a CFF structure.
+
+    This function takes a base CFF dictionary (already merged with any
+    existing CITATION.cff metadata), a list of references, and an optional
+    preferred-citation, and produces the final CFF dictionary that will be
+    written to `CITATION.cff`.
+
+    Behaviour:
+    - If no references are provided, a minimal CFF file is created with a
+      generic citation message.
+    - If references exist, they are added as a `references` list, and a
+      `preferred-citation` entry is included if one was selected.
 
     Parameters
     ----------
     base_cff : dict[str, Any]
-        The base CITATION.cff content.
+        The top-level CFF metadata.
     references : list[Publication | dict[str, Any]]
-        List of all publications to be included in CITATION.cff.
+        All references to include in the CFF file.
     preferred : Publication | dict[str, Any] | None
-        The selected preferred citation to be included in CITATION.cff, if any.
+        The preferred citation to include, or ``None`` if no preferred
+        citation should be set.
 
     Returns
     -------
     dict[str, Any]
-        A dictionary with the CITATION.cff content.
+        The complete CFF dictionary.
     """
     if not references:
         base_cff["message"] = "If you use this software, please cite it using this CITATION.cff."
@@ -354,28 +412,42 @@ def _compose_citation(
 
 async def map_citation(gh_citation_cff: dict[str, Any], bt_params: dict[str, Any]) -> dict[str, str]:
     """
-    Generate CITATION.cff content from the publications of a bio.tools tool.
-    It uses Europe PMC to resolve publication metadata.
+    Generate or update a CITATION.cff file based on bio.tools and Europe PMC metadata.
+
+    Steps performed:
+    1. Reads publication metadata from a bio.tools tool entry.
+    2. Resolves each publication via the Europe PMC API to obtain
+       bibliographic metadata.
+    3. Optionally parses an existing CITATION.cff (if provided) and extracts
+       existing references and a preferred-citation.
+    4. Merges existing references and new references, deduplicating based on
+       DOI/PMID/PMCID/title.
+    5. Chooses a preferred citation following the configured precedence rules.
+    6. Merges top-level metadata from the existing CFF and bio.tools.
+    7. Returns a dictionary mapping `"CITATION.cff"` to the YAML-serialized
+       CFF content.
 
     Parameters
     ----------
     gh_citation_cff : dict[str, Any]
-        The existing CITATION.cff content from the GitHub repository.
+        Parsed content of an existing CITATION.cff file from the GitHub
+        repository, or ``None`` if no file exists.
     bt_params : dict[str, Any]
-        The bio.tools tool relevant metadata as a dictionary.
-        Should contain:
-        - publication - List of publication items from bio.tools metadata.
-        - name - Name of the tool.
-        - biotoolsID - bio.tools identifier of the tool.
-        - homepage - Homepage URL of the tool.
-        - license - License of the tool.
-        - topic - List of topics associated with the tool.
-        - description - Description of the tool.
+        The bio.tools tool metadata as a dictionary.
+        Expected keys include:
+        - 'publication' : list of publication items from bio.tools metadata.
+        - 'name'        : name of the tool.
+        - 'biotoolsID'  : bio.tools identifier.
+        - 'homepage'    : homepage or repository URL.
+        - 'license'     : license identifier.
+        - 'topic'       : list of topics.
+        - 'description' : description of the tool.
 
     Returns
     -------
     dict[str, str]
-        A dictionary with the filename as key and the CITATION.cff content as value.
+        A dictionary with the filename `"CITATION.cff"` as key,
+        and the YAML-formatted CFF content content as value.
     """
     bt_publication = bt_params.get("publication", None)
 
