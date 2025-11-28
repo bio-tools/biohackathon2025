@@ -23,8 +23,7 @@ def map_homepage(gh_schema: dict[AnyUrl | str | None], bt_homepage: UrlftpType |
     sense to open an issue suggesting the addition of the bio.tools homepage
     to the repository settings.
 
-    Decision logic
-    --------------
+    Decision logic:
     1. If `bt_homepage` (bio.tools homepage) is missing, nothing to do.
     2. If `bt_homepage` is the same as the repository's HTML URL
        (e.g. https://github.com/org/repo), nothing to do.

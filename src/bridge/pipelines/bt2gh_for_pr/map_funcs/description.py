@@ -20,8 +20,7 @@ def map_description(gh_description: str | None, bt_description: str | None) -> d
     sense to open an issue suggesting that the bio.tools description be added
     to the repository.
 
-    Decision logic
-    --------------
+    Decision logic:
     1. If `bt_description` (bio.tools description) is missing, nothing to do.
     2. If `bt_description` is identical to the GitHub description, nothing to do.
     3. If the repository already has a description that differs from

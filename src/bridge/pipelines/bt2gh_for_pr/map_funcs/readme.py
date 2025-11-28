@@ -91,7 +91,6 @@ def _extract_existing_badges(gh_readme: str | None) -> list[Badge]:
 
     This function scans the README content for Markdown-style badges, both
     with and without links:
-
     - `[![alt](img)](link)` (badge wrapped in a link)
     - `![alt](img)` (image-only badge)
 
@@ -143,7 +142,6 @@ def _extract_project_title(gh_readme: str | None) -> str | None:
 
     This is a best-effort heuristic that tries three common heading styles,
     in order of preference:
-
     1. ATX H1:    '# Title'
     2. Setext H1: 'Title' on one line, followed by '=====' or '-----'
     3. HTML H1:   '<h1>Title</h1>'
@@ -198,8 +196,7 @@ def _build_readme(gh_readme: str | None, bt_name: str, bt_id: str, bt_tool_types
     """
     Construct an updated README from existing content and bio.tools metadata.
 
-    This function:
-
+    Steps performed:
     1. Builds a set of new badges:
        - A 'bridge' badge indicating the README was generated/updated by
          the bridge pipeline.
