@@ -4,16 +4,29 @@ Mapping functions for maturity metrics.
 
 import numpy as np
 
+from bridge.core.biotools import Maturity
 from bridge.logging import get_user_logger
 
 logger = get_user_logger()
 
 
-def map_maturity(gh_schema: dict | None, bt_maturity: str | None) -> str | None:
+def _safe_metric(gh_schema: dict, key: str) -> float:
+    value = gh_schema.get(key, 0)
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        logger.note(f"Non-numeric GitHub metric {key}={value!r}, treating as 0.")
+        return 0.0
+
+
+def map_maturity(gh_schema: dict | None, bt_maturity: Maturity | None) -> Maturity | None:
     """
     Map GitHub maturity metrics to bio.tools maturity metadata.
     """
-    gh_archived = gh_schema["archived"]
+    gh_archived = gh_schema.get("archived")
+    if gh_archived is None:
+        logger.unchanged("No GitHub archived status found, nothing to map.")
+        return bt_maturity
 
     has_bt_maturity = False
     if bt_maturity is not None:
@@ -29,10 +42,10 @@ def map_maturity(gh_schema: dict | None, bt_maturity: str | None) -> str | None:
             logger.added("Using GitHub archived status to set bio.tools maturity to 'Legacy'.")
         return "Legacy"
 
-    gh_stargazers = gh_schema["stargazers_count"]
-    gh_forks = gh_schema["forks_count"]
-    gh_watchers = gh_schema["watchers_count"]
-    gh_subscribers = gh_schema["subscribers_count"]
+    gh_stargazers = _safe_metric(gh_schema, "stargazers_count")
+    gh_forks = _safe_metric(gh_schema, "forks_count")
+    gh_watchers = _safe_metric(gh_schema, "watchers_count")
+    gh_subscribers = _safe_metric(gh_schema, "subscribers_count")
 
     # Crude differentiation scheme based on PCA analysis
     score = np.log1p(gh_stargazers) + np.log1p(gh_forks) + np.log1p(gh_watchers) + np.log1p(gh_subscribers)
