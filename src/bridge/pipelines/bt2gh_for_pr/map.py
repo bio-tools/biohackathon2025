@@ -2,6 +2,8 @@
 Mapping classes for bio.tools to GitHub.
 """
 
+from pathlib import Path
+
 from pydantic import BaseModel
 
 from bridge.pipelines.protocols import MapItem, Method, ModelsMap
@@ -33,7 +35,7 @@ class MapBioTools2GitHub(ModelsMap):
 
     def __init__(self, repo, metadata, repo_path: str):
         super().__init__(repo=repo, metadata=metadata)
-        self.repo_path = repo_path
+        self.repo_path = Path(repo_path)
 
     @property
     def map(self) -> dict[str, MapItem]:
