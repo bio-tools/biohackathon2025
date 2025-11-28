@@ -33,14 +33,14 @@ def map_maturity(gh_schema: dict | None, bt_maturity: Maturity | None) -> Maturi
         has_bt_maturity = True
 
     if gh_archived:
-        if has_bt_maturity and bt_maturity == "Legacy":
+        if has_bt_maturity and bt_maturity == Maturity.Legacy:
             logger.exact("GitHub archived status matches existing bio.tools maturity 'Legacy'.")
             return bt_maturity
         elif has_bt_maturity:
             logger.conflict("GitHub archived status conflicts with existing bio.tools maturity.")
         else:
             logger.added("Using GitHub archived status to set bio.tools maturity to 'Legacy'.")
-        return "Legacy"
+        return Maturity.Legacy
 
     gh_stargazers = _safe_metric(gh_schema, "stargazers_count")
     gh_forks = _safe_metric(gh_schema, "forks_count")
@@ -52,21 +52,20 @@ def map_maturity(gh_schema: dict | None, bt_maturity: Maturity | None) -> Maturi
 
     # Separate tools into two maturity levels based on score threshold
     if score > 3:
-        if has_bt_maturity and bt_maturity == "Mature":
+        if has_bt_maturity and bt_maturity == Maturity.Mature:
             logger.exact("GitHub maturity score matches existing bio.tools maturity 'Mature'.")
             return bt_maturity
         elif has_bt_maturity:
             logger.conflict("GitHub maturity score conflicts with existing bio.tools maturity. Will overwrite.")
         else:
             logger.added("Using GitHub maturity score to set bio.tools maturity to 'Mature'.")
-        return "Mature"
+        return Maturity.Mature
     else:
-        if has_bt_maturity and bt_maturity == "Emerging":
+        if has_bt_maturity and bt_maturity == Maturity.Emerging:
             logger.exact("GitHub maturity score matches existing bio.tools maturity 'Emerging'.")
             return bt_maturity
         elif has_bt_maturity:
             logger.conflict("GitHub maturity score conflicts with existing bio.tools maturity. Will overwrite.")
         else:
             logger.added("Using GitHub maturity score to set bio.tools maturity to 'Emerging'.")
-        return "Emerging"
-    return None
+        return Maturity.Emerging
