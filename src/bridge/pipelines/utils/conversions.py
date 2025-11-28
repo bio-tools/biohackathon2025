@@ -9,9 +9,55 @@ import base64
 import re
 from enum import Enum
 from pathlib import Path
-from typing import Any
+from typing import Any, TypeVar
 
 from pydantic import BaseModel
+
+E = TypeVar("E", bound=Enum)
+
+
+def find_matching_enum_member[E: Enum](
+    value: str,
+    enum_cls: type[E],
+) -> E | None:
+    """
+    Resolve a free-text string to a member of a given Enum via
+    case-insensitive matching on both member `.value` and `.name`.
+
+    The input is matched against:
+      1. `str(member.value)` (primary match target)
+      2. `member.name` (fallback match target)
+
+    Matching is performed in a case-insensitive manner. No fuzzy matching,
+    partial matching, or alias expansion is applied.
+
+    Parameters
+    ----------
+    value : str
+        Free-text input to be normalized.
+    enum_cls : type[E]
+        The Enum class to match against.
+
+    Returns
+    -------
+    E | None
+        The matching Enum member if an exact case-insensitive match is found
+        against either `.value` or `.name`; otherwise ``None``.
+
+    Notes
+    -----
+    - This function assumes Enum values are string-like or safely castable
+      to `str`.
+    - If multiple Enum members share the same normalized value, the first
+      match in definition order is returned.
+    """
+    value_lower = value.lower()
+
+    for member in enum_cls:
+        if str(member.value).lower() == value_lower or member.name.lower() == value_lower:
+            return member
+
+    return None
 
 
 def svg_to_base64(svg_path: str) -> str:
