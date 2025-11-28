@@ -10,7 +10,7 @@ from bridge.logging import get_user_logger
 logger = get_user_logger()
 
 
-def map_homepage(gh_schema: dict[AnyUrl | str | None], bt_homepage: UrlftpType | None) -> UrlftpType | None:
+def map_homepage(gh_schema: dict[str, AnyUrl | str | None], bt_homepage: UrlftpType | None) -> UrlftpType | None:
     """
     Map GitHub homepage metadata to bio.tools homepage metadata.
     """
