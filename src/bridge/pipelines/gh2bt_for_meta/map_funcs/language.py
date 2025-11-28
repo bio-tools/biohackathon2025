@@ -11,34 +11,9 @@ discrepancies are found.
 from bridge.core.biotools import LanguageEnum
 from bridge.core.github_languages import Language
 from bridge.logging import get_user_logger
+from bridge.pipelines.utils import find_matching_enum_member
 
 logger = get_user_logger()
-
-
-def _find_matching_bt_language(str_lang: str) -> LanguageEnum | None:
-    """
-    Resolve a free-text language name to a bio.tools language enumeration value.
-
-    This function performs a case-insensitive match between the given string and
-    the `.value` of each member of `LanguageEnum`. It is intended as a small
-    normalization layer between GitHub language names (which are strings) and
-    the controlled vocabulary used in bio.tools.
-
-    Parameters
-    ----------
-    str_lang : str
-        Language name as reported by GitHub (e.g. "Python", "javascript").
-
-    Returns
-    -------
-    LanguageEnum | None
-        The matching `LanguageEnum` member if a case-insensitive match is
-        found, otherwise ``None``.
-    """
-    for lang in LanguageEnum:
-        if lang.value.lower() == str_lang.lower():
-            return lang
-    return None
 
 
 def _cast_to_biotools_languages(languages: set[str]) -> list[LanguageEnum]:
@@ -63,7 +38,8 @@ def _cast_to_biotools_languages(languages: set[str]) -> list[LanguageEnum]:
     """
     bt_languages = []
     for lang in languages:
-        matched_lang = _find_matching_bt_language(lang)
+        # matched_lang = _find_matching_bt_language(lang)
+        matched_lang = find_matching_enum_member(lang, LanguageEnum)
         if matched_lang:
             bt_languages.append(matched_lang)
         else:
