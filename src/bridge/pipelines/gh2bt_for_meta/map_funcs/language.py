@@ -37,6 +37,10 @@ def map_language(gh_languages: Language | None, bt_languages: list[LanguageEnum]
     """
     Map languages from GitHub to bio.tools.
     """
+    if gh_languages is None:
+        logger.note("No GitHub languages found, nothing to map.")
+        return None
+
     gh_languages_dict = gh_languages.root
 
     gh_languages_set = set(gh_languages_dict.keys()) if gh_languages_dict else set()
