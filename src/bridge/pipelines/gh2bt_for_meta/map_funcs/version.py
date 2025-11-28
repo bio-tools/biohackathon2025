@@ -83,7 +83,7 @@ class ParsedVersion:
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, ParsedVersion):
-            return False
+            return NotImplemented
 
         # same normalized (kind, value) if possible,
         # otherwise fall back to raw string equality.
@@ -97,20 +97,20 @@ class ParsedVersion:
 
     def __lt__(self, other: object) -> bool:
         if not isinstance(other, ParsedVersion):
-            return False
+            return NotImplemented
 
         self_norm = self._normalized_for_comparison()
         other_norm = other._normalized_for_comparison()
 
         # if either cannot be normalized or kinds differ, treat as incomparable
         if self_norm is None or other_norm is None:
-            return False
+            return NotImplemented
 
         kind_a, val_a = self_norm
         kind_b, val_b = other_norm
 
         if kind_a != kind_b:
-            return False
+            return NotImplemented
 
         return val_a < val_b
 
