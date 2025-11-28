@@ -1,5 +1,5 @@
 """
-Utility functions for files.
+Utility functions for basic file handling.
 """
 
 from pathlib import Path
@@ -10,19 +10,21 @@ import yaml
 
 def check_file_with_extension_exists(in_folder_path: str, file_extension: str) -> bool:
     """
-    Check if there is at least one file with the given extension in the specified folder.
+    Check whether a folder contains at least one file with a given extension.
 
     Parameters
     ----------
     in_folder_path : str
-        The path to the folder to check.
+        Path to the folder that should be searched.
     file_extension : str
-        The file extension to look for (e.g., '.md', '.json').
+        File extension to look for, including the leading dot
+        (e.g. ``".md"``, ``".json"``).
 
     Returns
     -------
     bool
-        True if at least one file with the specified extension exists in the folder, False otherwise.
+        ``True`` if at least one file with the specified extension is found
+        anywhere under ``in_folder_path``; ``False`` otherwise.
     """
     import os
 
@@ -35,17 +37,17 @@ def check_file_with_extension_exists(in_folder_path: str, file_extension: str) -
 
 def get_file_content(file_path: str | Path) -> str | None:
     """
-    Read and return the content of a file.
+    Read the contents of a text file as UTF-8.
 
     Parameters
     ----------
     file_path : str | Path
-        The path to the file.
+        Path to the file whose contents should be read.
 
     Returns
     -------
     str | None
-        The content of the file. None if the file does not exist.
+        The file contents as a string if the file exists, otherwise ``None``.
     """
     path = Path(file_path)
     if not path.exists():
@@ -61,12 +63,13 @@ def load_dict_from_yaml_file(file_path: str | Path) -> dict[str, Any]:
     Parameters
     ----------
     file_path : str | Path
-        The path to the YAML file.
+        Path to the YAML file to load.
 
     Returns
     -------
     dict[str, Any]
-        The content of the YAML file as a dictionary.
+        The parsed YAML content as a dictionary, or an empty dictionary
+        if the file is missing, empty, invalid, or cannot be parsed.
     """
     content = get_file_content(file_path)
     if content is None:
