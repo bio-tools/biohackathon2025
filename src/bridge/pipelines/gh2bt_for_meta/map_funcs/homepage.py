@@ -12,6 +12,7 @@ from pydantic import AnyUrl
 
 from bridge.core.biotools import UrlftpType
 from bridge.logging import get_user_logger
+from bridge.pipelines.policies.gh2bt import reconcile_gh_over_bt
 from bridge.pipelines.utils import canonicalize_url
 
 logger = get_user_logger()
@@ -57,26 +58,29 @@ def map_homepage(gh_schema: dict[str, AnyUrl | str | None], bt_homepage: UrlftpT
         The resolved homepage as a `UrlftpType` instance, or ``None`` if no
         homepage could be determined (only possible if `gh_schema` is malformed).
     """
-    gh_homepage = gh_schema.get("homepage", None)
-    gh_url = gh_schema.get("html_url", None)
+    gh_homepage = gh_schema.get("homepage")
+    gh_url = gh_schema.get("html_url")
 
-    if gh_homepage is not None:
-        if bt_homepage is not None:
-            gh_norm = canonicalize_url(str(gh_homepage))
-            bt_norm = canonicalize_url(str(bt_homepage.root))
+    gh_norm = canonicalize_url(str(gh_homepage)) if gh_homepage is not None else None
+    bt_norm = canonicalize_url(str(bt_homepage.root)) if bt_homepage is not None else None
 
-            if gh_norm == bt_norm:
-                logger.exact(f"GitHub homepage '{gh_norm}' matches bio.tools homepage.")
-                return bt_homepage
-
-            logger.conflict(f"existing GitHub homepage '{gh_norm}'" f" differs from bio.tools homepage '{bt_norm}'")
-
-        logger.added(f"homepage '{gh_homepage}' from GitHub")
-        return UrlftpType(root=str(gh_homepage))
-
-    if gh_homepage is None and bt_homepage is None:
+    if gh_norm is None and bt_homepage is None:
+        # special-case fallback: repo URL
+        if gh_url is None:
+            logger.unchanged("No GitHub homepage or repo url found, nothing to map.")
+            return None
         logger.added(f"homepage as GitHub repo url '{gh_url}'")
         return UrlftpType(root=str(gh_url))
 
-    logger.unchanged("No GitHub homepage found, nothing to map.")
-    return bt_homepage
+    if gh_norm is None:
+        logger.unchanged("No GitHub homepage found, nothing to map.")
+        return bt_homepage
+
+    # reconciliation between GitHub homepage and bio.tools homepage
+    return reconcile_gh_over_bt(
+        gh_norm=gh_norm,
+        bt_norm=bt_norm,
+        bt_value=bt_homepage,
+        build_bt_from_gh=lambda url: UrlftpType(root=url),
+        log_label="homepage",
+    )
