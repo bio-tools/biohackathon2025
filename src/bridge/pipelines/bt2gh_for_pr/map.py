@@ -2,10 +2,12 @@
 Mapping classes for bio.tools to GitHub.
 """
 
+from pathlib import Path
+
 from pydantic import BaseModel
 
 from bridge.pipelines.protocols import MapItem, Method, ModelsMap
-from bridge.pipelines.utils import check_file_with_extension_exists
+from bridge.pipelines.utils import load_dict_from_yaml_file
 
 from .map_funcs import map_citation, map_description, map_edam2topics, map_homepage, map_readme
 
@@ -33,7 +35,7 @@ class MapBioTools2GitHub(ModelsMap):
 
     def __init__(self, repo, metadata, repo_path: str):
         super().__init__(repo=repo, metadata=metadata)
-        self.repo_path = repo_path
+        self.repo_path = Path(repo_path)
 
     @property
     def map(self) -> dict[str, MapItem]:
@@ -63,10 +65,7 @@ class MapBioTools2GitHub(ModelsMap):
                     "topic": self.metadata.topic,
                     "description": self.metadata.description,
                 },
-                repo_entry=check_file_with_extension_exists(
-                    in_folder_path=self.repo_path,
-                    file_extension=".cff",
-                ),
+                repo_entry=load_dict_from_yaml_file(self.repo_path / "CITATION.cff"),
                 method=Method.FUZZY,
                 fn=map_citation,
             ),
