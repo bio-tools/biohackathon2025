@@ -1,5 +1,8 @@
 """
-Utility functions for converting object types.
+Utility functions for converting object types and preparing them for serialization.
+
+This module provides small, focused helpers that are useful when generating
+artifacts such as YAML, JSON, or Markdown documents from richer Python objects.
 """
 
 import base64
@@ -13,22 +16,31 @@ from pydantic import BaseModel
 
 def svg_to_base64(svg_path: str) -> str:
     """
-    Convert an SVG file to a base64-encoded string.
+    Convert an SVG file into a cleaned, base64-encoded string.
+
+    This helper is intended for scenarios where an SVG needs to be embedded
+    directly into another format (e.g. HTML `img` tags with data URIs,
+    Markdown, or JSON/YAML configuration files) rather than referenced by
+    filesystem path.
 
     Parameters
     ----------
     svg_path : str
-        Path to the SVG file.
+        Path to the SVG file on disk.
 
     Returns
     -------
     str
-        Base64-encoded string of the SVG content.
+        A base64-encoded string representing the cleaned SVG content. The
+        resulting string contains only ASCII characters and no newlines, and
+        can be safely used in data URIs such as::
+
+            f"data:image/svg+xml;base64,{svg_to_base64('icon.svg')}"
 
     Raises
     ------
     FileNotFoundError
-        If the SVG file does not exist.
+        If the SVG file does not exist at the given path.
     """
     svg_path = Path(svg_path)
     if not svg_path.exists():
@@ -51,24 +63,56 @@ def svg_to_base64(svg_path: str) -> str:
 
 def object_to_primitive(obj: Any) -> Any:
     """
-    Recursively convert Pydantic models and other custom types to plain Python types.
+    Recursively convert complex objects into plain Python types.
+
+    This function walks an arbitrary Python object and produces a structure
+    composed only of "primitive" container-friendly types:
+
+    - ``dict`` with primitive values
+    - ``list`` of primitive values
+    - ``str``, ``int``, ``float``, ``bool``, or ``None``
+
+    It is useful before serializing data to JSON, YAML, or other
+    text-based formats where custom classes (e.g. Pydantic models, enums)
+    would otherwise introduce unwanted artifacts or non-serializable types.
+
+    Conversion rules
+    ----------------
+    - **Pydantic models**:
+      - For v2 models, ``model_dump(mode="python", exclude_none=True)`` is used.
+      - For v1 models, ``dict(exclude_none=True)`` is used.
+      - The resulting dict is then processed recursively.
+
+    - **Enum instances**:
+      - Replaced with their ``.value``.
+
+    - **Mappings / dicts**:
+      - Keys are left as-is, values are passed through ``object_to_primitive``
+        recursively.
+
+    - **Iterables (list, tuple, set)**:
+      - Converted to a ``list`` with each element converted recursively.
+
+    - **Anything else**:
+      - Returned unchanged, under the assumption that it is already a primitive
+        type or is otherwise safely serializable.
 
     Parameters
     ----------
     obj : Any
-        The object to convert.
+        The object (or nested structure of objects) to convert.
 
     Returns
     -------
     Any
-        The converted object with only primitive types (dicts, lists, strings, numbers, booleans, None).
+        A recursively converted object that only contains primitive types and
+        containers thereof.
     """
     # Pydantic models
     if isinstance(obj, BaseModel):
-        # v2
         if hasattr(obj, "model_dump"):
             data = obj.model_dump(mode="python", exclude_none=True)
-        else:  # v1 fallback
+        else:
             data = obj.dict(exclude_none=True)
         return object_to_primitive(data)
 
