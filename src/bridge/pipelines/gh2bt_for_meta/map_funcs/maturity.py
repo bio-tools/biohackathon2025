@@ -1,6 +1,13 @@
 """
 Mapping functions for maturity metrics.
+
+This module derives bio.tools maturity metadata from GitHub repository
+signals. GitHub archived status is treated as authoritative, while a
+simple popularity-based heuristic is used to distinguish between
+emerging and mature tools when the repository is active.
 """
+
+from typing import Any
 
 import numpy as np
 
@@ -10,7 +17,25 @@ from bridge.logging import get_user_logger
 logger = get_user_logger()
 
 
-def _safe_metric(gh_schema: dict, key: str) -> float:
+def _safe_metric(gh_schema: dict[str, Any], key: str) -> float:
+    """
+    Safely extract a numeric GitHub metric from a repository schema.
+
+    Missing, null, or non-numeric values are converted to ``0.0`` and
+    logged at note level.
+
+    Parameters
+    ----------
+    gh_schema : dict[str, Any]
+        GitHub repository metadata dictionary.
+    key : str
+        Name of the metric field to extract.
+
+    Returns
+    -------
+    float
+        Numeric value of the metric, or ``0.0`` if unavailable or invalid.
+    """
     value = gh_schema.get(key, 0)
     try:
         return float(value)
@@ -21,7 +46,32 @@ def _safe_metric(gh_schema: dict, key: str) -> float:
 
 def map_maturity(gh_schema: dict | None, bt_maturity: Maturity | None) -> Maturity | None:
     """
-    Map GitHub maturity metrics to bio.tools maturity metadata.
+    Map GitHub repository signals to bio.tools maturity metadata.
+
+    Policy:
+    1. If the GitHub repository is archived, maturity is always set to
+       ``Maturity.Legacy``, regardless of existing bio.tools values.
+    2. Otherwise, a popularity score based on stars, forks,
+       watchers, and subscribers is computed.
+    3. Scores above a fixed threshold are classified as
+       ``Maturity.Mature``; lower scores as ``Maturity.Emerging``.
+    4. Existing bio.tools maturity is preserved only when it matches the
+       GitHub-derived classification.
+    5. Conflicting values are overwritten in favor of GitHub-derived
+       maturity and logged as conflicts.
+
+    Parameters
+    ----------
+    gh_schema : dict[str, Any] | None
+        GitHub repository metadata dictionary, or ``None`` if unavailable.
+    bt_maturity : Maturity | None
+        Existing bio.tools maturity annotation, or ``None`` if unset.
+
+    Returns
+    -------
+    Maturity | None
+        The reconciled bio.tools maturity classification, or the existing
+        value if no GitHub-derived maturity could be computed.
     """
     if gh_schema is None:
         logger.unchanged("No GitHub schema provided, nothing to map.")
