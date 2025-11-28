@@ -71,7 +71,7 @@ def map_license(gh_license: str | None, bt_license: License | None) -> License |
         logger.added(f"license '{gh_license}'")
         return gh_matched_license
 
-    if bt_license != gh_license:
+    if bt_license != gh_matched_license:
         # if both licenses exist, but they are not the same, return GitHub License
         logger.conflict(f"Overwrite existing bio.tools license '{bt_license}' with GitHub license '{gh_license}'")
         return gh_matched_license
