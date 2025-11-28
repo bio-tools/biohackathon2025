@@ -10,6 +10,7 @@ bio.tools values when GitHub is silent or ambiguous.
 
 from bridge.core.biotools import License
 from bridge.logging import get_user_logger
+from bridge.pipelines.policies.gh2bt import reconcile_gh_over_bt
 from bridge.pipelines.utils import find_matching_enum_member
 
 logger = get_user_logger()
@@ -66,16 +67,13 @@ def map_license(gh_license: str | None, bt_license: License | None) -> License |
         logger.note(f"GitHub license '{gh_license}' not recognized in bio.tools License enum, nothing to map")
         return bt_license
 
-    if bt_license is None:
-        # if no bio.tools license, return GitHub license
-        logger.added(f"license '{gh_license}'")
-        return gh_matched_license
+    gh_norm = gh_matched_license  # normalized as License enum
+    bt_norm = bt_license  # already a License enum
 
-    if bt_license != gh_matched_license:
-        # if both licenses exist, but they are not the same, return GitHub License
-        logger.conflict(f"Overwrite existing bio.tools license '{bt_license}' with GitHub license '{gh_license}'")
-        return gh_matched_license
-
-    # both licenses exist and are the same
-    logger.exact(f"license '{bt_license}'")
-    return bt_license
+    return reconcile_gh_over_bt(
+        gh_norm=gh_norm,
+        bt_norm=bt_norm,
+        bt_value=bt_license,
+        build_bt_from_gh=lambda x: x,
+        log_label="license",
+    )
