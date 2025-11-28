@@ -18,12 +18,40 @@ logger = get_user_logger()
 
 
 def _to_lang_set_gh(gh_languages: Language | None) -> set[str] | None:
+    """
+    Normalize the GitHub language set to a lowercased string set.
+
+    Parameters
+    ----------
+    gh_languages : Language | None
+        GitHub languages object, or ``None`` if no language data is present.
+
+    Returns
+    -------
+    set[str] | None
+        A set of lowercased language names as reported by GitHub, or ``None``
+        if GitHub provides no language data.
+    """
     if gh_languages is None or not gh_languages.root:
         return None
     return {lang.lower() for lang in gh_languages.root.keys()}
 
 
 def _to_lang_set_bt(bt_languages: list[LanguageEnum] | None) -> set[str] | None:
+    """
+    Normalize the bio.tools language list to a lowercased string set.
+
+    Parameters
+    ----------
+    bt_languages : list[LanguageEnum] | None
+        Existing bio.tools language annotations, or ``None`` if unset.
+
+    Returns
+    -------
+    set[str] | None
+        A set of lowercased language names derived from the ``LanguageEnum``
+        values, or ``None`` if no languages are recorded.
+    """
     if not bt_languages:
         return None
     return {lang.value.lower() for lang in bt_languages}
@@ -63,28 +91,13 @@ def _cast_to_biotools_languages(languages: set[str]) -> list[LanguageEnum] | Non
 
 def map_language(gh_languages: Language | None, bt_languages: list[LanguageEnum] | None) -> list[LanguageEnum] | None:
     """
-    Map and reconcile language metadata from GitHub and bio.tools.
+    Map and reconcile GitHub and bio.tools programming languages using the generic
+    GitHub-over-bio.tools policy.
 
-    This function compares the set of languages reported by GitHub for a
-    repository (`gh_languages`) with the existing language annotations in
-    bio.tools (`bt_languages`).
-
-    Policy:
-    1. GitHub is considered the authoritative source when present.
-       If GitHub provides a non-empty set of languages, that set is mapped to
-       `LanguageEnum` values and returned (unknown values are skipped with a log
-       message).
-    2. bio.tools is preserved only when GitHub provides no language data.
-       If GitHub reports no languages (missing or empty), the existing
-       bio.tools language annotations are returned unchanged.
-    3. Exact matches are treated as no-ops.
-       If the GitHub language set (case-insensitive) exactly matches the
-       bio.tools language set, the existing bio.tools values are returned
-       unchanged and an exact-match log message is emitted.
-    4. Conflicts are logged and resolved in favor of GitHub.
-       If both GitHub and bio.tools provide languages but they differ, a
-       conflict is logged and the GitHub-derived mapping replaces the
-       bio.tools values.
+    GitHub language keys and bio.tools ``LanguageEnum`` values are normalized to
+    lowercased string sets for comparison. When GitHub is authoritative, the
+    GitHub set is mapped back to ``LanguageEnum`` values; unknown languages are
+    skipped with a log entry.
 
     Parameters
     ----------

@@ -20,26 +20,12 @@ logger = get_user_logger()
 
 def map_homepage(gh_schema: dict[str, AnyUrl | str | None], bt_homepage: UrlftpType | None) -> UrlftpType | None:
     """
-    Map and reconcile homepage metadata from GitHub and bio.tools.
+    Map and reconcile GitHub and bio.tools homepage URLs using the generic
+    GitHub-over-bio.tools policy with URL canonicalization.
 
-    Policy:
-    1. GitHub is considered the authoritative source when a homepage is present.
-       If GitHub provides a homepage (`gh_schema["homepage"]`), that value is used
-       as the canonical homepage.
-    2. bio.tools is preserved only when GitHub provides no homepage.
-       If GitHub reports no homepage (missing or ``None``), the existing bio.tools
-       homepage is returned unchanged.
-    3. Exact matches are treated as no-ops.
-       If both GitHub and bio.tools provide a homepage and their canonicalized
-       URLs are identical, the existing bio.tools value
-       is returned unchanged and an exact-match log message is emitted.
-    4. Conflicts are logged and resolved in favor of GitHub.
-       If both GitHub and bio.tools provide a homepage but the canonicalized URLs
-       differ, a conflict is logged and the GitHub homepage replaces the bio.tools
-       value.
-    5. The GitHub repository URL is used as a fallback.
-       If neither GitHub nor bio.tools provides a homepage, the GitHub repository
-       URL (`gh_schema["html_url"]`) is used as the homepage and logged as added.
+    Homepage comparison is performed on canonicalized URLs. If neither GitHub
+    nor bio.tools defines a homepage, the GitHub repository URL
+    (``gh_schema["html_url"]``) is used as a fallback.
 
     Parameters
     ----------

@@ -18,28 +18,13 @@ logger = get_user_logger()
 
 def map_license(gh_license: str | None, bt_license: License | None) -> License | None:
     """
-    Map and reconcile license metadata from GitHub and bio.tools.
+    Map and reconcile GitHub and bio.tools license annotations using the generic
+    GitHub-over-bio.tools policy.
 
-    This function aligns the GitHub license (SPDX ID) for a repository with
-    the license annotation in bio.tools, using the `License` enum as the
-    canonical representation.
-
-    Policy:
-    1. GitHub is considered authoritative when it exposes a recognized license.
-       If `gh_license` is provided and can be resolved to a `License` enum
-       member, that value is used as the canonical license.
-    2. bio.tools is preserved when GitHub is silent or unrecognized.
-       If GitHub provides no license (`gh_license is None`) or the value cannot
-       be matched to the `License` enum, the existing bio.tools license
-       (`bt_license`) is returned unchanged.
-    3. Exact matches are treated as no-ops.
-       If both GitHub and bio.tools provide a license and they resolve to the
-       same `License` enum member, the existing bio.tools value is returned
-       unchanged and an exact-match log message is emitted.
-    4. Conflicts are logged and resolved in favor of GitHub.
-       If both GitHub and bio.tools provide licenses but they resolve to
-       different `License` enum members, a conflict is logged and the
-       GitHub-derived license replaces the bio.tools value.
+    The GitHub SPDX identifier is first resolved to the ``License`` enum via
+    ``find_matching_enum_member``. Only recognized GitHub licenses participate
+    in reconciliation; unrecognized or missing GitHub values leave the existing
+    bio.tools license unchanged.
 
     Parameters
     ----------

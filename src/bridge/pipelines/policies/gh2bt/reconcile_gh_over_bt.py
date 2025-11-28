@@ -27,12 +27,51 @@ def reconcile_gh_over_bt(
     log_label: str,
 ) -> BT | None:
     """
-    Implement generic reconciliation policy function for GitHub-over-bio.tools mapping.
+    Apply a generic GitHub-over-bio.tools reconciliation policy.
 
-    - If gh_norm is None: keep bt_value.
-    - If bt_norm is None: take GitHub (build_bt_from_gh).
-    - If gh_norm == bt_norm: log exact, keep bt_value.
-    - Else: log conflict, take GitHub.
+    This function operates on *normalized* representations of GitHub and
+    bio.tools values (``gh_norm`` and ``bt_norm``), while returning and
+    constructing concrete bio.tools values (``bt_value`` and the output).
+
+    Policy:
+    1. If ``gh_norm`` is ``None``, GitHub is treated as silent and the existing
+       bio.tools value (``bt_value``) is preserved. An "unchanged" log entry is
+       emitted.
+    2. If ``gh_norm`` is not ``None`` and ``bt_norm`` is ``None``, GitHub is
+       treated as the only source. A new bio.tools value is constructed via
+       ``build_bt_from_gh(gh_norm)`` and an "added" log entry is emitted.
+    3. If both ``gh_norm`` and ``bt_norm`` are not ``None`` and they compare
+       equal (``gh_norm == bt_norm``), the existing bio.tools value
+       (``bt_value``) is preserved and an exact-match log entry is emitted.
+    4. If both ``gh_norm`` and ``bt_norm`` are not ``None`` and differ, the
+       GitHub value is treated as authoritative. A new bio.tools value is
+       constructed via ``build_bt_from_gh(gh_norm)`` and a conflict log entry
+       is emitted.
+
+    Parameters
+    ----------
+    gh_norm : GHN | None
+        Normalized representation of the GitHub value (e.g., canonicalized URL,
+        lowercased language set, enum, etc.), or ``None`` if GitHub provides no
+        usable value.
+    bt_norm : BTN | None
+        Normalized representation of the existing bio.tools value, or ``None``
+        if no value is recorded.
+    bt_value : BT | None
+        The current bio.tools value to be preserved when GitHub is silent or
+        when the normalized values match.
+    build_bt_from_gh : Callable[[GHN], BT]
+        Callable that constructs a concrete bio.tools value from the normalized
+        GitHub representation.
+    log_label : str
+        Short label used in log messages to identify the reconciled field
+        (e.g., ``"license"``, ``"languages"``, ``"homepage"``).
+
+    Returns
+    -------
+    BT | None
+        The reconciled bio.tools value according to the policy, or ``None`` if
+        both sources effectively provide no usable value.
     """
     if gh_norm is None:
         logger.unchanged(f"No GitHub {log_label} found, nothing to map.")
