@@ -7,6 +7,8 @@ from bridge.services import ChatMessage, HuggingFaceProvider
 
 logger = get_user_logger()
 
+MAX_README_CHARS = 10000
+
 
 async def map_description(gh_params: dict | None, bt_description: str | None) -> str | None:
     """
@@ -29,7 +31,7 @@ async def map_description(gh_params: dict | None, bt_description: str | None) ->
                 f"Based on the following README content, generate a description for a bioinformatics tool. "
                 f"Limit your response to 1–2 sentences. "
                 f"Do not include any extra commentary or explanation. "
-                f"Only output the description itself.\n\n{readme}"
+                f"Only output the description itself.\n\n{readme.strip()[:MAX_README_CHARS]}",
             )
             message_sys = ChatMessage(
                 role="system",
