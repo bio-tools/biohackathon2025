@@ -3,6 +3,7 @@ Mapping functions for description metadata.
 """
 
 from bridge.logging import get_user_logger
+from bridge.pipelines.utils import normalize_text
 from bridge.services import ChatMessage, HuggingFaceProvider
 
 logger = get_user_logger()
@@ -54,7 +55,7 @@ async def map_description(gh_params: dict | None, bt_description: str | None) ->
                     "No GitHub description and no existing bio.tools description; using "
                     "readme to generate description."
                 )
-                return response.content.strip()[0:999]
+                return normalize_text(response.content).strip()[0:999]
             except Exception as e:
                 logger.note(f"HuggingFaceProvider call failed: {e}. Returning empty description.")
                 return None
