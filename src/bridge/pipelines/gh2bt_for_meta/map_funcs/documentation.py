@@ -4,8 +4,9 @@ Mapping functions for documentation field.
 
 from bridge.core.biotools import DocumentationItem, TypeEnum1
 from bridge.core.github_pages import GitHubPages
+from bridge.logging import get_user_logger
 
-# TODO: add logging
+logger = get_user_logger()
 
 
 def _add_doc_if_not_exists(
