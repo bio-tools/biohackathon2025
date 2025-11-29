@@ -7,6 +7,8 @@ propose a GitHub issue suggesting that the bio.tools description be adopted.
 """
 
 from bridge.logging import get_user_logger
+from bridge.pipelines.policies import reconcile_bt_over_gh_issue
+from bridge.pipelines.utils import normalize_text
 
 logger = get_user_logger()
 
@@ -43,23 +45,20 @@ def map_description(gh_description: str | None, bt_description: str | None) -> d
         A mapping with the issue title as key and the issue body as value,
         or ``None`` if no issue is to be created.
     """
-    if bt_description is None:
-        # if there is no bio.tools description, no need for the issue
-        logger.note("bio.tools description is None, nothing to map.")
-        return None
+    gh_norm = normalize_text(gh_description)
+    bt_norm = normalize_text(bt_description)
 
-    if bt_description == gh_description:
-        logger.exact("bio.tools description is the same as GitHub description, no need to map.")
-        return None
+    def make_issue(desc: str) -> dict[str, str]:
+        return {
+            "Add description from bio.tools metadata": (
+                f"The bio.tools description is:\n\n{desc}\n\n"
+                "Please consider adding this description to the GitHub repository."
+            )
+        }
 
-    if gh_description is not None:
-        logger.conflict("existing GitHub description differs from bio.tools description")
-        return None
-
-    logger.added(f"description: '{bt_description}'")
-    return {
-        "Add description from bio.tools metadata": (
-            f"The bio.tools description is:\n\n{bt_description}\n\n"
-            "Please consider adding this description to the GitHub repository."
-        )
-    }
+    return reconcile_bt_over_gh_issue(
+        gh_norm=gh_norm,
+        bt_norm=bt_norm,
+        make_issue=make_issue,
+        log_label="description",
+    )
