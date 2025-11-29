@@ -6,10 +6,10 @@ from bridge.core.biotools import DocumentationItem, TypeEnum1
 from bridge.core.github_pages import GitHubPages
 from bridge.pipelines.gh2bt_for_meta.map_funcs.documentation import (
     _add_doc_if_not_exists,
-    map_code_of_conduct,
+    _map_code_of_conduct,
+    _map_github_pages,
+    _map_wiki,
     map_documentation,
-    map_github_pages,
-    map_wiki,
 )
 
 
@@ -22,7 +22,7 @@ class TestMapWiki:
         gh_has_wiki = True
         bt_documentation = None
 
-        result = map_wiki(gh_html_url, gh_has_wiki, bt_documentation)
+        result = _map_wiki(gh_html_url, gh_has_wiki, bt_documentation)
 
         assert result is not None
         assert len(result) == 1
@@ -35,7 +35,7 @@ class TestMapWiki:
         gh_has_wiki = False
         bt_documentation = None
 
-        result = map_wiki(gh_html_url, gh_has_wiki, bt_documentation)
+        result = _map_wiki(gh_html_url, gh_has_wiki, bt_documentation)
 
         assert result is None
 
@@ -45,7 +45,7 @@ class TestMapWiki:
         gh_has_wiki = True
         bt_documentation = None
 
-        result = map_wiki(gh_html_url, gh_has_wiki, bt_documentation)
+        result = _map_wiki(gh_html_url, gh_has_wiki, bt_documentation)
 
         assert result is None
 
@@ -57,7 +57,7 @@ class TestMapWiki:
         existing_doc = DocumentationItem(url="https://github.com/owner/repo/wiki", type=[TypeEnum1.General])
         bt_documentation = [existing_doc]
 
-        result = map_wiki(gh_html_url, gh_has_wiki, bt_documentation)
+        result = _map_wiki(gh_html_url, gh_has_wiki, bt_documentation)
 
         assert result is not None
         assert len(result) == 1  # Should still be 1, not 2
@@ -71,7 +71,7 @@ class TestMapCodeOfConduct:
         gh_code_of_conduct = {"html_url": "https://github.com/owner/repo/blob/main/CODE_OF_CONDUCT.md"}
         bt_documentation = None
 
-        result = map_code_of_conduct(gh_code_of_conduct, bt_documentation)
+        result = _map_code_of_conduct(gh_code_of_conduct, bt_documentation)
 
         assert result is not None
         assert len(result) == 1
@@ -83,7 +83,7 @@ class TestMapCodeOfConduct:
         gh_code_of_conduct = None
         bt_documentation = None
 
-        result = map_code_of_conduct(gh_code_of_conduct, bt_documentation)
+        result = _map_code_of_conduct(gh_code_of_conduct, bt_documentation)
 
         assert result is None
 
@@ -92,7 +92,7 @@ class TestMapCodeOfConduct:
         gh_code_of_conduct = {}
         bt_documentation = None
 
-        result = map_code_of_conduct(gh_code_of_conduct, bt_documentation)
+        result = _map_code_of_conduct(gh_code_of_conduct, bt_documentation)
 
         assert result is None
 
@@ -105,7 +105,7 @@ class TestMapCodeOfConduct:
         )
         bt_documentation = [existing_doc]
 
-        result = map_code_of_conduct(gh_code_of_conduct, bt_documentation)
+        result = _map_code_of_conduct(gh_code_of_conduct, bt_documentation)
 
         assert result is not None
         assert len(result) == 1  # Should still be 1, not 2
@@ -126,7 +126,7 @@ class TestMapGitHubPages:
         )
         bt_documentation = None
 
-        result = map_github_pages(gh_pages, bt_documentation)
+        result = _map_github_pages(gh_pages, bt_documentation)
 
         assert result is not None
         assert len(result) == 1
@@ -145,7 +145,7 @@ class TestMapGitHubPages:
         )
         bt_documentation = None
 
-        result = map_github_pages(gh_pages, bt_documentation)
+        result = _map_github_pages(gh_pages, bt_documentation)
 
         assert result is not None
         assert len(result) == 1
@@ -156,7 +156,7 @@ class TestMapGitHubPages:
         gh_pages = None
         bt_documentation = None
 
-        result = map_github_pages(gh_pages, bt_documentation)
+        result = _map_github_pages(gh_pages, bt_documentation)
 
         assert result is None
 
@@ -172,7 +172,7 @@ class TestMapGitHubPages:
         )
         bt_documentation = None
 
-        result = map_github_pages(gh_pages, bt_documentation)
+        result = _map_github_pages(gh_pages, bt_documentation)
 
         assert result is None
 
@@ -189,7 +189,7 @@ class TestMapGitHubPages:
         existing_doc = DocumentationItem(url="https://owner.github.io/repo", type=[TypeEnum1.General])
         bt_documentation = [existing_doc]
 
-        result = map_github_pages(gh_pages, bt_documentation)
+        result = _map_github_pages(gh_pages, bt_documentation)
 
         assert result is not None
         assert len(result) == 1  # Should still be 1, not 2

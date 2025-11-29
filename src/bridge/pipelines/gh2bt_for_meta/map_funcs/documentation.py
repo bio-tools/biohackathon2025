@@ -51,7 +51,7 @@ def _add_doc_if_not_exists(
     return bt_documentation
 
 
-def map_wiki(
+def _map_wiki(
     gh_html_url: str | None, gh_has_wiki: bool | None, bt_documentation: list[DocumentationItem] | None
 ) -> list[DocumentationItem] | None:
     """
@@ -84,7 +84,7 @@ def map_wiki(
     return bt_documentation
 
 
-def map_code_of_conduct(
+def _map_code_of_conduct(
     gh_code_of_conduct: dict | None, bt_documentation: list[DocumentationItem] | None
 ) -> list[DocumentationItem] | None:
     """
@@ -114,7 +114,7 @@ def map_code_of_conduct(
     return bt_documentation
 
 
-def map_github_pages(
+def _map_github_pages(
     gh_pages: GitHubPages | None, bt_documentation: list[DocumentationItem] | None
 ) -> list[DocumentationItem] | None:
     """
@@ -185,8 +185,8 @@ def map_documentation(
     gh_code_of_conduct = gh_repo_data.get("code_of_conduct")
     gh_pages = gh_repo_data.get("github_pages")
 
-    bt_documentation = map_wiki(gh_html_url, gh_has_wiki, bt_documentation)
-    bt_documentation = map_code_of_conduct(gh_code_of_conduct, bt_documentation)
-    bt_documentation = map_github_pages(gh_pages, bt_documentation)
+    bt_documentation = _map_wiki(gh_html_url, gh_has_wiki, bt_documentation)
+    bt_documentation = _map_code_of_conduct(gh_code_of_conduct, bt_documentation)
+    bt_documentation = _map_github_pages(gh_pages, bt_documentation)
 
     return bt_documentation
