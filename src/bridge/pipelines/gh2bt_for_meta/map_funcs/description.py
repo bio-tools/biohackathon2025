@@ -103,7 +103,7 @@ async def map_description(gh_params: dict | None, bt_description: str | None) ->
             bt_description is not None
             and gh_description.rstrip(". ").strip() == normalize_text(bt_description).rstrip(". ").strip()
         ):
-            logger.exact_match("GitHub description matches existing bio.tools description.")
+            logger.exact("GitHub description matches existing bio.tools description.")
             return bt_description
         elif bt_description is not None:
             logger.conflict("Using GitHub description to overwrite existing bio.tools description.")
