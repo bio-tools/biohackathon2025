@@ -1,32 +1,31 @@
 """
-Mapping functions for description metadata.
+Map description metadata from bio.tools to GitHub.
 
-This module compares a repository's existing GitHub
-description with the description registered in bio.tools, and, when useful,
-propose a GitHub issue suggesting that the bio.tools description be adopted.
+This module compares the description recorded in bio.tools with the
+description configured on a GitHub repository and, when appropriate,
+proposes a GitHub issue suggesting that the bio.tools description be
+adopted. It applies a bio.tools-over-GitHub policy that only suggests
+changes when bio.tools provides a description and the repository has
+no conflicting description set.
 """
 
 from bridge.logging import get_user_logger
+from bridge.pipelines.policies.bt2gh import reconcile_bt_over_gh_issue
+from bridge.pipelines.utils import normalize_text
 
 logger = get_user_logger()
 
 
 def map_description(gh_description: str | None, bt_description: str | None) -> dict[str, str] | None:
     """
-    Propose a GitHub issue to add a description based on bio.tools metadata.
+    Propose a GitHub issue to add a description based on bio.tools metadata,
+    using the generic bio.tools-over-GitHub issue policy.
 
-    This function examines the description from a bio.tools entry and the
-    current description of a GitHub repository. It decides whether it makes
-    sense to open an issue suggesting that the bio.tools description be added
-    to the repository.
-
-    Decision logic:
-    1. If `bt_description` (bio.tools description) is missing, nothing to do.
-    2. If `bt_description` is identical to the GitHub description, nothing to do.
-    3. If the repository already has a description that differs from
-       `bt_description`, log a conflict and do not propose an issue.
-    4. If the repository has no description set and `bt_description` is present,
-       propose an issue suggesting that it be added.
+    Both the GitHub and bio.tools descriptions are normalized (HTML/whitespace
+    cleanup) before comparison. A suggestion is only made when bio.tools
+    provides a description and the GitHub repository has no description set;
+    existing, differing GitHub descriptions are treated as authoritative and
+    result in a logged conflict but no proposed issue.
 
     Parameters
     ----------
@@ -41,25 +40,22 @@ def map_description(gh_description: str | None, bt_description: str | None) -> d
     -------
     dict[str, str] | None
         A mapping with the issue title as key and the issue body as value,
-        or ``None`` if no issue is to be created.
+        or ``None`` if no issue is to be created under the policy.
     """
-    if bt_description is None:
-        # if there is no bio.tools description, no need for the issue
-        logger.note("bio.tools description is None, nothing to map.")
-        return None
+    gh_norm = normalize_text(gh_description)
+    bt_norm = normalize_text(bt_description)
 
-    if bt_description == gh_description:
-        logger.exact("bio.tools description is the same as GitHub description, no need to map.")
-        return None
+    def make_issue(desc: str) -> dict[str, str]:
+        return {
+            "Add description from bio.tools metadata": (
+                f"The bio.tools description is:\n\n{desc}\n\n"
+                "Please consider adding this description to the GitHub repository."
+            )
+        }
 
-    if gh_description is not None:
-        logger.conflict("existing GitHub description differs from bio.tools description")
-        return None
-
-    logger.added(f"description: '{bt_description}'")
-    return {
-        "Add description from bio.tools metadata": (
-            f"The bio.tools description is:\n\n{bt_description}\n\n"
-            "Please consider adding this description to the GitHub repository."
-        )
-    }
+    return reconcile_bt_over_gh_issue(
+        gh_norm=gh_norm,
+        bt_norm=bt_norm,
+        make_issue=make_issue,
+        log_label="description",
+    )
