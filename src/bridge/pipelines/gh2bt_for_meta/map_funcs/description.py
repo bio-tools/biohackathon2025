@@ -8,18 +8,22 @@ from bridge.services import ChatMessage, HuggingFaceProvider
 logger = get_user_logger()
 
 
-async def map_description(gh_description: dict | None, bt_description: str | None) -> str | None:
+async def map_description(gh_params: dict | None, bt_description: str | None) -> str | None:
     """
     Map GitHub description metadata to bio.tools description metadata.
     """
-    if gh_description is None:
+    if gh_params is None:
         logger.unchanged("No GitHub description found, nothing to map.")
         return bt_description
 
-    if gh_description.get("description") is None:
+    if gh_params.get("description") is None:
         # if there is no GitHub description, run LLM call on readme, overwrite only when no bt_description'
         if bt_description is None:
-            readme = gh_description.get("readme")
+            readme = gh_params.get("readme")
+            if readme is None:
+                logger.unchanged("No GitHub description and no readme found, nothing to map.")
+                return None
+
             hf_provider = HuggingFaceProvider()
             prompt = (
                 f"Based on the following README content, generate a description for a bioinformatics tool. "
@@ -58,7 +62,7 @@ async def map_description(gh_description: dict | None, bt_description: str | Non
         # check if they are different (ignoring trailing periods and whitespace)
         if (
             bt_description is not None
-            and gh_description.get("description").rstrip(". ").strip() == bt_description.rstrip(". ").strip()
+            and gh_params.get("description").rstrip(". ").strip() == bt_description.rstrip(". ").strip()
         ):
             logger.exact_match("GitHub description matches existing bio.tools description.")
             return bt_description
@@ -66,4 +70,4 @@ async def map_description(gh_description: dict | None, bt_description: str | Non
             logger.conflict("Using GitHub description to overwrite existing bio.tools description.")
         else:
             logger.added("Using GitHub description as no existing bio.tools description.")
-        return gh_description.get("description")
+        return gh_params.get("description")
