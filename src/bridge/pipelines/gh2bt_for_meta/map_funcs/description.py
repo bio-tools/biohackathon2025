@@ -12,6 +12,10 @@ async def map_description(gh_description: dict | None, bt_description: str | Non
     """
     Map GitHub description metadata to bio.tools description metadata.
     """
+    if gh_description is None:
+        logger.unchanged("No GitHub description found, nothing to map.")
+        return bt_description
+
     if gh_description.get("description") is None:
         # if there is no GitHub description, run LLM call on readme, overwrite only when no bt_description'
         if bt_description is None:
