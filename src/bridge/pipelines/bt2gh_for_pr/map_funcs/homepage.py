@@ -10,6 +10,7 @@ from pydantic import AnyUrl
 
 from bridge.core.biotools import UrlftpType
 from bridge.logging import get_user_logger
+from bridge.pipelines.policies import reconcile_bt_over_gh_issue
 
 logger = get_user_logger()
 
@@ -51,26 +52,24 @@ def map_homepage(gh_schema: dict[AnyUrl | str | None], bt_homepage: UrlftpType |
     """
     gt_homepage = gh_schema.get("homepage")
     gh_hp = str(gt_homepage).rstrip("/") if gt_homepage else None
-    gh_url = gh_schema["html_url"]
+    gh_url = str(gh_schema["html_url"]).rstrip("/")
     bt_hp = str(bt_homepage).rstrip("/") if bt_homepage else None
 
-    if bt_hp is None:
-        logger.note("bio.tools homepage is None, nothing to map.")
-        return None
-
-    if bt_hp == gh_url:
+    if bt_hp is not None and bt_hp == gh_url:
         logger.exact("bio.tools homepage is the same as GitHub URL, no need to map.")
         return None
 
-    if gh_hp is not None:
-        if gh_hp != bt_hp:
-            logger.conflict(f"existing GitHub homepage '{gh_hp}' differs from bio.tools homepage '{bt_hp}'")
-            return None
+    def make_issue(homepage: str) -> dict[str, str]:
+        return {
+            "Add homepage from bio.tools metadata": (
+                f"The bio.tools homepage is:\n\n{homepage}\n\n"
+                "Please consider adding this homepage to the GitHub repository."
+            )
+        }
 
-    logger.added(f"homepage '{bt_hp}'")
-    return {
-        "Add homepage from bio.tools metadata": (
-            f"The bio.tools homepage is:\n\n{bt_hp}\n\n"
-            "Please consider adding this homepage to the GitHub repository."
-        )
-    }
+    return reconcile_bt_over_gh_issue(
+        gh_norm=gh_hp,
+        bt_norm=bt_hp,
+        make_issue=make_issue,
+        log_label="homepage",
+    )
