@@ -5,6 +5,7 @@ Mapping functions for documentation field.
 from bridge.core.biotools import DocumentationItem, TypeEnum1
 from bridge.core.github_pages import GitHubPages
 from bridge.logging import get_user_logger
+from bridge.pipelines.utils import canonicalize_url
 
 logger = get_user_logger()
 
@@ -19,9 +20,9 @@ def _add_doc_if_not_exists(
         bt_documentation = []
 
     # Normalize the incoming URL for comparison
-    normalized_url = url.rstrip("/").lower()
+    normalized_url = canonicalize_url(url)
 
-    url_exists = any(str(doc.url.root).rstrip("/").lower() == normalized_url for doc in bt_documentation)
+    url_exists = any(canonicalize_url(str(doc.url.root)) == normalized_url for doc in bt_documentation)
 
     if not url_exists:
         doc_item = DocumentationItem(url=url, type=[doc_type])
@@ -37,8 +38,8 @@ def map_wiki(
     Map GitHub wiki presence to bio.tools documentation.
     """
     if gh_has_wiki and gh_html_url:
-        repo_url = str(gh_html_url).rstrip("/")
-        wiki_url = f"{repo_url}/wiki"
+        repo_url = canonicalize_url(str(gh_html_url))
+        wiki_url = canonicalize_url(f"{repo_url}/wiki")
         return _add_doc_if_not_exists(bt_documentation, wiki_url, TypeEnum1.General)
 
     return bt_documentation
