@@ -53,7 +53,9 @@ async def map_description(gh_params: dict | None, bt_description: str | None) ->
         logger.unchanged("No GitHub description found, nothing to map.")
         return bt_description
 
-    if gh_params.get("description") is None:
+    gh_description = normalize_text(gh_params.get("description"))
+
+    if gh_description is None:
         # if there is no GitHub description, run LLM call on readme, overwrite only when no bt_description'
         if bt_description is None:
             readme = gh_params.get("readme")
@@ -99,7 +101,7 @@ async def map_description(gh_params: dict | None, bt_description: str | None) ->
         # check if they are different (ignoring trailing periods and whitespace)
         if (
             bt_description is not None
-            and gh_params.get("description").rstrip(". ").strip() == bt_description.rstrip(". ").strip()
+            and gh_description.rstrip(". ").strip() == normalize_text(bt_description).rstrip(". ").strip()
         ):
             logger.exact_match("GitHub description matches existing bio.tools description.")
             return bt_description
@@ -107,4 +109,4 @@ async def map_description(gh_params: dict | None, bt_description: str | None) ->
             logger.conflict("Using GitHub description to overwrite existing bio.tools description.")
         else:
             logger.added("Using GitHub description as no existing bio.tools description.")
-        return gh_params.get("description")
+        return gh_description
