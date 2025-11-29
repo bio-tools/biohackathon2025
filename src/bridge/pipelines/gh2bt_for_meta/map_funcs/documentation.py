@@ -47,6 +47,9 @@ def _add_doc_if_not_exists(
     if not url_exists:
         doc_item = DocumentationItem(url=url, type=[doc_type])
         bt_documentation.append(doc_item)
+        logger.added(f"documentation URL '{url}' as type '{doc_type.value}'.")
+    else:
+        logger.exact(f"documentation URL '{url}' of type '{doc_type.value}' already exists, not adding.")
 
     return bt_documentation
 
@@ -81,6 +84,7 @@ def _map_wiki(
         wiki_url = canonicalize_url(wiki_raw)
         return _add_doc_if_not_exists(bt_documentation, wiki_url, TypeEnum1.General)
 
+    logger.unchanged("no GitHub wiki found, nothing to map.")
     return bt_documentation
 
 
@@ -111,6 +115,7 @@ def _map_code_of_conduct(
         coc_url = gh_code_of_conduct.get("html_url")
         return _add_doc_if_not_exists(bt_documentation, coc_url, TypeEnum1.Code_of_conduct)
 
+    logger.unchanged("no GitHub code of conduct found, nothing to map.")
     return bt_documentation
 
 
@@ -140,6 +145,7 @@ def _map_github_pages(
         pages_url = str(gh_pages.html_url)
         return _add_doc_if_not_exists(bt_documentation, pages_url, TypeEnum1.General)
 
+    logger.unchanged("no GitHub Pages site found, nothing to map.")
     return bt_documentation
 
 
@@ -178,6 +184,7 @@ def map_documentation(
         documentation mappings.
     """
     if not gh_repo_data:
+        logger.unchanged("no GitHub repository documentation data found, nothing to map.")
         return bt_documentation
 
     gh_html_url = gh_repo_data.get("html_url")
