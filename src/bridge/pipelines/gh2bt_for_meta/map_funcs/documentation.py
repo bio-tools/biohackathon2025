@@ -1,5 +1,9 @@
 """
-Mapping functions for documentation field.
+Mapping functions for documentation metadata.
+
+This module maps GitHub repository features (wiki, code of conduct, GitHub Pages)
+to the bio.tools ``documentation`` field by adding appropriate
+``DocumentationItem`` entries when they are not already present.
 """
 
 from urllib.parse import urljoin
@@ -16,7 +20,21 @@ def _add_doc_if_not_exists(
     bt_documentation: list[DocumentationItem] | None, url: str, doc_type: TypeEnum1
 ) -> list[DocumentationItem]:
     """
-    Add documentation item if it doesn't already exist.
+    Add a documentation item for the given URL if it does not already exist.
+
+    Parameters
+    ----------
+    bt_documentation : list[DocumentationItem] | None
+        Existing bio.tools documentation list, or ``None`` if unset.
+    url : str
+        Documentation URL to add.
+    doc_type : TypeEnum1
+        Documentation type to associate with this URL.
+
+    Returns
+    -------
+    list[DocumentationItem]
+        Updated list of documentation items.
     """
     if not bt_documentation:
         bt_documentation = []
@@ -38,6 +56,24 @@ def map_wiki(
 ) -> list[DocumentationItem] | None:
     """
     Map GitHub wiki presence to bio.tools documentation.
+
+    If the repository has a wiki enabled and a repository URL is available,
+    a documentation entry of type ``TypeEnum1.General`` pointing to
+    ``<repo_url>/wiki`` is added when not already present.
+
+    Parameters
+    ----------
+    gh_html_url : str | None
+        GitHub repository HTML URL (e.g. ``https://github.com/user/repo``).
+    gh_has_wiki : bool | None
+        Flag indicating whether the repository has wiki enabled.
+    bt_documentation : list[DocumentationItem] | None
+        Existing bio.tools documentation entries.
+
+    Returns
+    -------
+    list[DocumentationItem] | None
+        Updated documentation list, or the original list if nothing changed.
     """
     if gh_has_wiki and gh_html_url:
         repo_url = str(gh_html_url)
@@ -53,6 +89,23 @@ def map_code_of_conduct(
 ) -> list[DocumentationItem] | None:
     """
     Map GitHub code of conduct presence to bio.tools documentation.
+
+    If a code of conduct is configured on GitHub and an ``html_url`` is
+    available, a documentation entry of type ``TypeEnum1.Code_of_conduct``
+    is added when not already present.
+
+    Parameters
+    ----------
+    gh_code_of_conduct : dict[str, Any] | None
+        GitHub code of conduct metadata dictionary, expected to contain
+        an ``"html_url"`` key when present.
+    bt_documentation : list[DocumentationItem] | None
+        Existing bio.tools documentation entries.
+
+    Returns
+    -------
+    list[DocumentationItem] | None
+        Updated documentation list, or the original list if nothing changed.
     """
     if gh_code_of_conduct and gh_code_of_conduct.get("html_url"):
         coc_url = gh_code_of_conduct.get("html_url")
@@ -65,7 +118,23 @@ def map_github_pages(
     gh_pages: GitHubPages | None, bt_documentation: list[DocumentationItem] | None
 ) -> list[DocumentationItem] | None:
     """
-    Map GitHub Pages to bio.tools documentation.
+    Map GitHub Pages configuration to bio.tools documentation.
+
+    If a GitHub Pages URL is configured, a documentation entry of type
+    ``TypeEnum1.General`` is added when not already present.
+
+    Parameters
+    ----------
+    gh_pages : GitHubPages | None
+        Parsed GitHub Pages information, expected to expose an ``html_url``
+        attribute when configured.
+    bt_documentation : list[DocumentationItem] | None
+        Existing bio.tools documentation entries.
+
+    Returns
+    -------
+    list[DocumentationItem] | None
+        Updated documentation list, or the original list if nothing changed.
     """
     if gh_pages and gh_pages.html_url:
         pages_url = str(gh_pages.html_url)
@@ -78,7 +147,35 @@ def map_documentation(
     gh_repo_data: dict | None, bt_documentation: list[DocumentationItem] | None
 ) -> list[DocumentationItem] | None:
     """
-    Map GitHub wiki presence to bio.tools documentation field.
+    Map and reconcile GitHub documentation-related metadata to the
+    bio.tools documentation field.
+
+    This function applies the documentation mapping policies for all
+    supported GitHub documentation sources:
+    - Repository wiki
+    - Code of conduct
+    - GitHub Pages site
+
+    Each source is mapped independently and contributes a
+    ``DocumentationItem`` entry when a corresponding URL is present on
+    GitHub and not already recorded in bio.tools.
+
+    Parameters
+    ----------
+    gh_repo_data : dict[str, Any] | None
+        GitHub repository metadata dictionary. Expected keys include:
+        - ``"html_url"``
+        - ``"has_wiki"``
+        - ``"code_of_conduct"``
+        - ``"github_pages"``
+    bt_documentation : list[DocumentationItem] | None
+        Existing bio.tools documentation entries.
+
+    Returns
+    -------
+    list[DocumentationItem] | None
+        The updated bio.tools documentation list after applying all
+        documentation mappings.
     """
     if not gh_repo_data:
         return bt_documentation
