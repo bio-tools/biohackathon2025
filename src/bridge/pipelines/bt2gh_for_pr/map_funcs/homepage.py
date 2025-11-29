@@ -13,7 +13,7 @@ from pydantic import AnyUrl
 
 from bridge.core.biotools import UrlftpType
 from bridge.logging import get_user_logger
-from bridge.pipelines.policies import reconcile_bt_over_gh_issue
+from bridge.pipelines.policies.bt2gh import reconcile_bt_over_gh_issue
 from bridge.pipelines.utils import canonicalize_url
 
 logger = get_user_logger()

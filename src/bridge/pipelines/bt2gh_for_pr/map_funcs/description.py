@@ -10,7 +10,7 @@ no conflicting description set.
 """
 
 from bridge.logging import get_user_logger
-from bridge.pipelines.policies import reconcile_bt_over_gh_issue
+from bridge.pipelines.policies.bt2gh import reconcile_bt_over_gh_issue
 from bridge.pipelines.utils import normalize_text
 
 logger = get_user_logger()
