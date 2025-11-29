@@ -1,9 +1,12 @@
 """
-Map homepage URL from bio.tools metadata to a GitHub repository.
+Map homepage URL from bio.tools to a GitHub.
 
-This module compares the homepage URL recorded in bio.tools with the homepage
-(and HTML URL) of a GitHub repository, and decides whether an issue should be
-opened to suggest updating the repository's homepage.
+This module compares the homepage URL recorded in bio.tools with the
+homepage (and HTML URL) of a GitHub repository and, when appropriate,
+proposes a GitHub issue suggesting that the bio.tools homepage be added
+to the repository settings. It applies a bio.tools-over-GitHub policy:
+bio.tools is only used to suggest a homepage when GitHub has no
+conflicting homepage configured.
 """
 
 from pydantic import AnyUrl
@@ -17,21 +20,16 @@ logger = get_user_logger()
 
 def map_homepage(gh_schema: dict[AnyUrl | str | None], bt_homepage: UrlftpType | None) -> dict[str, str] | None:
     """
-    Propose a GitHub issue to add a homepage based on bio.tools metadata.
+    Propose a GitHub issue to add a homepage based on bio.tools metadata,
+    using the generic bio.tools-over-GitHub issue policy.
 
-    This function examines the homepage URL from bio.tools and the existing
-    homepage/HTML URL of a GitHub repository and decides whether it makes
-    sense to open an issue suggesting the addition of the bio.tools homepage
-    to the repository settings.
-
-    Decision logic:
-    1. If `bt_homepage` (bio.tools homepage) is missing, nothing to do.
-    2. If `bt_homepage` is the same as the repository's HTML URL
-       (e.g. https://github.com/org/repo), nothing to do.
-    3. If the repository already has a homepage set and it differs from
-       `bt_homepage`, log a conflict and do not propose an issue.
-    4. If the repository has no homepage set and `bt_homepage` is present
-       and different from the HTML URL, propose an issue to add it.
+    The GitHub homepage and bio.tools homepage are normalized by stripping
+    trailing slashes before comparison. If the bio.tools homepage is equal
+    to the repository HTML URL, no suggestion is made. If GitHub already
+    has a different homepage configured, that value is treated as
+    authoritative and a conflict is logged without proposing an issue.
+    Only when the bio.tools homepage is present, differs from the HTML URL,
+    and the GitHub homepage is unset does this function propose an issue.
 
     Parameters
     ----------
