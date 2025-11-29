@@ -64,6 +64,12 @@ def map_maturity(gh_schema: dict | None, bt_maturity: Maturity | None) -> Maturi
     ----------
     gh_schema : dict[str, Any] | None
         GitHub repository metadata dictionary, or ``None`` if unavailable.
+        Expected keys include:
+        - 'archived'           : Boolean indicating if the repository is archived.
+        - 'stargazers_count'   : Number of stars.
+        - 'forks_count'        : Number of forks.
+        - 'watchers_count'     : Number of watchers.
+        - 'subscribers_count'  : Number of subscribers.
     bt_maturity : Maturity | None
         Existing bio.tools maturity annotation, or ``None`` if unset.
 
