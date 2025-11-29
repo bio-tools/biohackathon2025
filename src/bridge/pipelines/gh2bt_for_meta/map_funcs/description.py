@@ -68,7 +68,7 @@ async def map_description(gh_params: dict | None, bt_description: str | None) ->
                 f"Based on the following README content, generate a description for a bioinformatics tool. "
                 f"Limit your response to 1–2 sentences. "
                 f"Do not include any extra commentary or explanation. "
-                f"Only output the description itself.\n\n{readme.strip()[:MAX_README_CHARS]}",
+                f"Only output the description itself.\n\n{readme.strip()[:MAX_README_CHARS]}"
             )
             message_sys = ChatMessage(
                 role="system",
