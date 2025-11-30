@@ -9,7 +9,7 @@ from pydantic import BaseModel
 from bridge.pipelines.protocols import MapItem, Method, ModelsMap
 from bridge.pipelines.utils import load_dict_from_yaml_file
 
-from .map_funcs import map_citation, map_description, map_edam2topics, map_homepage, map_readme
+from .map_funcs import map_citation, map_description, map_homepage, map_readme, map_topics
 
 
 class MapDestination(BaseModel):
@@ -73,7 +73,7 @@ class MapBioTools2GitHub(ModelsMap):
                 schema_entry={"topics": self.metadata.topic, "functions": self.metadata.function},
                 repo_entry=self.repo.repo.topics,
                 method=Method.FUZZY,
-                fn=map_edam2topics,
+                fn=map_topics,
             ),
             # TODO: function2readme
             "homepage": MapItem(

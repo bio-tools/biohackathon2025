@@ -81,14 +81,12 @@ def _flatten_function(function: list[FunctionItem]) -> list[str]:
     function_flat = []
     # extract all EDAM terms
     for fnc_item in function:
-
         for op_item in fnc_item.operation or []:
             if op_item.term:
                 function_flat.append(op_item.term)
 
         io_items = (fnc_item.input or []) + (fnc_item.output or [])
         for io_item in io_items:
-
             if io_item.data and io_item.data.term:
                 function_flat.append(io_item.data.term)
 
@@ -99,7 +97,7 @@ def _flatten_function(function: list[FunctionItem]) -> list[str]:
     return function_flat
 
 
-def map_edam2topics(gh_topics: list[str] | None, bt_edam: dict[str, any] | None) -> dict[str, str] | None:
+def map_topics(gh_topics: list[str] | None, bt_edam: dict[str, any] | None) -> dict[str, str] | None:
     """
     Propose a GitHub issue to add missing EDAM-based topics from bio.tools.
 
