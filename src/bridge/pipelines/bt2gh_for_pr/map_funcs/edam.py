@@ -8,7 +8,7 @@ from bridge.logging import get_user_logger
 logger = get_user_logger()
 
 
-def _flatten_function(function: list[FunctionItem]) -> list[str]:
+def _flatten_function(function: list[FunctionItem] | None) -> list[str]:
     """
     Flatten bio.tools topic annototions and function annotations for operation, input, and output.
 
@@ -34,15 +34,26 @@ def _flatten_function(function: list[FunctionItem]) -> list[str]:
     list
         Flattened list of EDAM terms
     """
+    if not function:
+        return []
+
     function_flat = []
     # extract all EDAM terms
     for fnc_item in function:
-        for op_item in fnc_item.operation:
-            function_flat += [op_item.term]
-        for io_item in fnc_item.input + fnc_item.output:
-            function_flat += [io_item.data.term]
-            for form_item in io_item.format:
-                function_flat += [form_item.term]
+
+        for op_item in fnc_item.operation or []:
+            if op_item.term:
+                function_flat.append(op_item.term)
+
+        io_items = (fnc_item.input or []) + (fnc_item.output or [])
+        for io_item in io_items:
+
+            if io_item.data and io_item.data.term:
+                function_flat.append(io_item.data.term)
+
+            for form_item in io_item.format or []:
+                if form_item.term:
+                    function_flat.append(form_item.term)
 
     # replace all spaces with hyphens
     function_flat = [term.replace(" ", "-").lower() for term in function_flat]
