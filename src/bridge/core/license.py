@@ -33,7 +33,7 @@ class SPDXCrossRef(BaseModel):
     timestamp: str | None = None
 
 
-class SPDXLicenseModel(BaseModel):
+class SPDXLicense(BaseModel):
     """
     Represent an SPDX license.
 
