@@ -8,9 +8,43 @@ from bridge.logging import get_user_logger
 logger = get_user_logger()
 
 
+def _normalize_edam_term(term: str) -> str:
+    """
+    Normalize an EDAM term by replacing spaces with hyphens and converting to lowercase.
+
+    Parameters
+    ----------
+    term : str
+        The EDAM term to normalize.
+
+    Returns
+    -------
+    str
+        The normalized EDAM term.
+    """
+    return term.replace(" ", "-").lower()
+
+
+def _normalize_gh_topic(gh_topic: str) -> str:
+    """
+    Normalize a GitHub topic by converting to lowercase.
+
+    Parameters
+    ----------
+    gh_topic : str
+        The GitHub topic to normalize.
+
+    Returns
+    -------
+    str
+        The normalized GitHub topic.
+    """
+    return gh_topic.lower()
+
+
 def _flatten_function(function: list[FunctionItem]) -> list[str]:
     """
-    Flatten bio.tools topic annototions and function annotations for operation, input, and output.
+    Flatten bio.tools function annotations for operation, input, and output.
 
     Terms may contain spaces. Those spaces are replaced by hyphens.
     This will allow copy/pasting the terms into GitHub and ensure that
@@ -55,9 +89,6 @@ def _flatten_function(function: list[FunctionItem]) -> list[str]:
                 if form_item.term:
                     function_flat.append(form_item.term)
 
-    # replace all spaces with hyphens
-    function_flat = [term.replace(" ", "-").lower() for term in function_flat]
-
     return function_flat
 
 
@@ -76,8 +107,8 @@ def map_edam2topics(gh_topics: list[str] | None, bt_edam: dict[str, any] | None)
 
     topic_items: list[TopicItem] = bt_edam.get("topics") or []
     # get only each term for topic items
-    topic_terms = [ti.term.replace(" ", "-").lower() for ti in topic_items if ti.term]
-    function_terms = _flatten_function(bt_edam.get("functions") or [])
+    topic_terms = [_normalize_edam_term(ti.term) for ti in topic_items if ti.term]
+    function_terms = [_normalize_edam_term(term) for term in _flatten_function(bt_edam.get("functions") or [])]
     edam_terms = list(set(topic_terms + function_terms))
 
     if not edam_terms:
@@ -86,6 +117,8 @@ def map_edam2topics(gh_topics: list[str] | None, bt_edam: dict[str, any] | None)
 
     if gh_topics is None:
         gh_topics = []
+
+    gh_topics = [_normalize_gh_topic(t) for t in gh_topics]
     terms_missing = set(edam_terms).difference(set(gh_topics))
     if not terms_missing:
         logger.exact("all bio.tools EDAM terms are already present in GitHub topics")
@@ -100,7 +133,7 @@ def map_edam2topics(gh_topics: list[str] | None, bt_edam: dict[str, any] | None)
     logger.added(f"{num_missing} EDAM {noun} to GitHub topics: {terms}")
 
     return {
-        "Add edam annotations from bio.tools metadata": (
+        "Add EDAM annotations from bio.tools metadata": (
             f"The bio.tools edam annotations contain {num_missing} EDAM {noun} "
             f"that {verb} not included in the GitHub topics: \n\n{terms}\n\n"
             f"Please consider adding {pronoun} to the GitHub repository."
