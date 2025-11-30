@@ -13,23 +13,25 @@ from bridge.pipelines.utils import find_matching_enum_member
 logger = get_user_logger()
 
 
-def map_license(gh_license: GHLicense | None, bt_license: BTLicense | None) -> dict[str, str] | None:
+async def map_license(gh_license: GHLicense | None, bt_license: BTLicense | None) -> dict[str, str] | None:
     """
     TODO
     """
     gh_norm = find_matching_enum_member(gh_license.spdx_id, BTLicense) if gh_license else None
     bt_norm = bt_license
 
-    def make_pr(bt_value: BTLicense) -> dict[str, str]:
+    async def make_pr(bt_value: BTLicense) -> dict[str, str]:
         spdx_id = bt_value.spdx_id
         try:
-            license: SPDXLicense = compose_spdx_license_metadata(spdx_id)
+            license: SPDXLicense = await compose_spdx_license_metadata(spdx_id)
             full_text = license.full_text
             logger.added(f"LICENSE.txt with full text for SPDX ID '{spdx_id}'")
             return {"LICENSE.txt": full_text}
         except Exception:
             logger.unchanged(f"could not retrieve full text for SPDX ID '{spdx_id}'")
             return None
+
+        exit(1)
 
     return reconcile_bt_over_gh(
         gh_norm=gh_norm,

@@ -19,7 +19,7 @@ from bridge.pipelines.utils import canonicalize_url
 logger = get_user_logger()
 
 
-def map_homepage(gh_schema: dict[AnyUrl | str | None], bt_homepage: UrlftpType | None) -> dict[str, str] | None:
+async def map_homepage(gh_schema: dict[AnyUrl | str | None], bt_homepage: UrlftpType | None) -> dict[str, str] | None:
     """
     Propose a GitHub issue to add a homepage based on bio.tools metadata,
     using the generic bio.tools-over-GitHub issue policy.
@@ -72,7 +72,7 @@ def map_homepage(gh_schema: dict[AnyUrl | str | None], bt_homepage: UrlftpType |
             )
         }
 
-    return reconcile_bt_over_gh(
+    return await reconcile_bt_over_gh(
         gh_norm=gh_hp_norm,
         bt_norm=bt_hp_norm,
         make_output=make_issue,

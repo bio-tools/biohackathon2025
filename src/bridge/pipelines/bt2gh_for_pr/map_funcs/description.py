@@ -16,7 +16,7 @@ from bridge.pipelines.utils import normalize_text
 logger = get_user_logger()
 
 
-def map_description(gh_description: str | None, bt_description: str | None) -> dict[str, str] | None:
+async def map_description(gh_description: str | None, bt_description: str | None) -> dict[str, str] | None:
     """
     Propose a GitHub issue to add a description based on bio.tools metadata,
     using the generic bio.tools-over-GitHub issue policy.
@@ -53,7 +53,7 @@ def map_description(gh_description: str | None, bt_description: str | None) -> d
             )
         }
 
-    return reconcile_bt_over_gh(
+    return await reconcile_bt_over_gh(
         gh_norm=gh_norm,
         bt_norm=bt_norm,
         make_output=make_issue,

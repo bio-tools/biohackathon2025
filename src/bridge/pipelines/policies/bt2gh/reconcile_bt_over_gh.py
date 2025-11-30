@@ -19,7 +19,7 @@ GHN = TypeVar("GHN")  # normalized GitHub representation
 OUTPUT = TypeVar("OUTPUT")  # issue payload type, e.g. dict[str, str]
 
 
-def reconcile_bt_over_gh(
+async def reconcile_bt_over_gh(
     *,
     gh_norm: GHN | None,
     bt_norm: BTN | None,
@@ -79,7 +79,7 @@ def reconcile_bt_over_gh(
             return None
 
         logger.conflict(f"existing GitHub {log_label} {gh_norm!r} differs from bio.tools {log_label} {bt_norm!r}")
-        return make_output(bt_norm)
+        return await make_output(bt_norm)
 
     logger.added(f"{log_label}: {bt_norm!r}")
-    return make_output(bt_norm)
+    return await make_output(bt_norm)
