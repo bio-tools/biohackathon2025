@@ -28,6 +28,9 @@ class Settings(BaseSettings):
     # Europe PMC
     europe_pmc_api_url: HttpUrl = "https://www.ebi.ac.uk/europepmc/webservices/rest"
 
+    # SPDX license list
+    spdx_license_base_url: HttpUrl = "https://spdx.org/licenses"
+
     # Logging
     log_level: str = "INFO"
 
@@ -50,6 +53,11 @@ class Settings(BaseSettings):
     def europepmc_api_base(self) -> str:
         """Base URL for Europe PMC API as a string"""
         return self._api_base(self.europe_pmc_api_url)
+
+    @property
+    def spdx_license_base(self) -> str:
+        """Base URL for SPDX license JSON as a string"""
+        return self._api_base(self.spdx_license_base_url)
 
     @staticmethod
     def _api_base(url: HttpUrl) -> str:
