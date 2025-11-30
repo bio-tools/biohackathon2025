@@ -11,7 +11,7 @@ bio.tools-on-top-of-GitHub additive policy.
 
 from bridge.core.biotools import FunctionItem, TopicItem
 from bridge.logging import get_user_logger
-from bridge.pipelines.policies.bt2gh import reconcile_bt_ontop_gh_issue
+from bridge.pipelines.policies.bt2gh import reconcile_bt_ontop_gh
 
 logger = get_user_logger()
 
@@ -153,10 +153,10 @@ def map_topics(gh_topics: list[str] | None, bt_edam: dict[str, any] | None) -> d
             )
         }
 
-    return reconcile_bt_ontop_gh_issue(
+    return reconcile_bt_ontop_gh(
         gh_norm=gh_terms,
         bt_norm=bt_terms,
-        make_issue=make_issue,
+        make_output=make_issue,
         log_label="EDAM terms",
     )
 

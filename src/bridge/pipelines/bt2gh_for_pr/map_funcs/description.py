@@ -10,7 +10,7 @@ no conflicting description set.
 """
 
 from bridge.logging import get_user_logger
-from bridge.pipelines.policies.bt2gh import reconcile_bt_over_gh_issue
+from bridge.pipelines.policies.bt2gh import reconcile_bt_over_gh
 from bridge.pipelines.utils import normalize_text
 
 logger = get_user_logger()
@@ -53,9 +53,9 @@ def map_description(gh_description: str | None, bt_description: str | None) -> d
             )
         }
 
-    return reconcile_bt_over_gh_issue(
+    return reconcile_bt_over_gh(
         gh_norm=gh_norm,
         bt_norm=bt_norm,
-        make_issue=make_issue,
+        make_output=make_issue,
         log_label="description",
     )

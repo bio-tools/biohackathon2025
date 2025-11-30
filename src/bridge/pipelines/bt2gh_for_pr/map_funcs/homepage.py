@@ -13,7 +13,7 @@ from pydantic import AnyUrl
 
 from bridge.core.biotools import UrlftpType
 from bridge.logging import get_user_logger
-from bridge.pipelines.policies.bt2gh import reconcile_bt_over_gh_issue
+from bridge.pipelines.policies.bt2gh import reconcile_bt_over_gh
 from bridge.pipelines.utils import canonicalize_url
 
 logger = get_user_logger()
@@ -72,9 +72,9 @@ def map_homepage(gh_schema: dict[AnyUrl | str | None], bt_homepage: UrlftpType |
             )
         }
 
-    return reconcile_bt_over_gh_issue(
+    return reconcile_bt_over_gh(
         gh_norm=gh_hp_norm,
         bt_norm=bt_hp_norm,
-        make_issue=make_issue,
+        make_output=make_issue,
         log_label="homepage",
     )
