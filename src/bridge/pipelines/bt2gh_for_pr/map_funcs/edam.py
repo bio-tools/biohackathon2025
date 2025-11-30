@@ -8,7 +8,7 @@ from bridge.logging import get_user_logger
 logger = get_user_logger()
 
 
-def _flatten_function(function: list[FunctionItem] | None) -> list[str]:
+def _flatten_function(function: list[FunctionItem]) -> list[str]:
     """
     Flatten bio.tools topic annototions and function annotations for operation, input, and output.
 
@@ -71,28 +71,28 @@ def map_edam2topics(gh_topics: list[str] | None, bt_edam: dict[str, any] | None)
         A dictionary with issue title as key and issue body as value, or None if no issue is needed.
     """
     if bt_edam is None:
-        logger.unchanged("No bio.tools EDAM annotations found, nothing to map.")
+        logger.unchanged("No bio.tools EDAM annotations found, nothing to map")
         return None
 
-    topic_terms: list[TopicItem] = bt_edam.get("topics") or []
+    topic_items: list[TopicItem] = bt_edam.get("topics") or []
     # get only each term for topic items
-    topic_terms = [ti.term.replace(" ", "-").lower() for ti in topic_terms if ti.term]
+    topic_terms = [ti.term.replace(" ", "-").lower() for ti in topic_items if ti.term]
     function_terms = _flatten_function(bt_edam.get("functions") or [])
-    edam_terms = topic_terms + function_terms
+    edam_terms = list(set(topic_terms + function_terms))
 
     if not edam_terms:
-        # no function annotations in bio.tools
+        logger.unchanged("No bio.tools EDAM extracted, nothing to map")
         return None
 
     if gh_topics is None:
         gh_topics = []
     terms_missing = set(edam_terms).difference(set(gh_topics))
     if not terms_missing:
-        # no bio.tools function annotations missing in GitHub topics
+        logger.exact("all bio.tools EDAM terms are already present in GitHub topics")
         return None
 
     num_missing = len(terms_missing)
-    terms = " ".join(sorted(terms_missing))
+    terms = "\n".join(sorted(terms_missing))
 
     # adjust message based on singular/plural
     noun, verb, pronoun = ("term", "is", "it") if num_missing == 1 else ("terms", "are", "them")
