@@ -66,7 +66,7 @@ def map_edam2topics(gh_topics: list[str] | None, bt_edam: dict[str, any] | None)
     topic_terms: list[TopicItem] = bt_edam.get("topics") or []
     # get only each term for topic items
     topic_terms = [ti.term.replace(" ", "-").lower() for ti in topic_terms if ti.term]
-    function_terms = _flatten_function(bt_edam.get("functions", []))
+    function_terms = _flatten_function(bt_edam.get("functions") or [])
     edam_terms = topic_terms + function_terms
 
     if not edam_terms:
