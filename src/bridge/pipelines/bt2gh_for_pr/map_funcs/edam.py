@@ -2,7 +2,7 @@
 Functions for mapping bio.tools function and topic EDAM annotation terms (topic, operation, input, output) to GitHub
 """
 
-from bridge.core.biotools import FunctionItem
+from bridge.core.biotools import FunctionItem, TopicItem
 from bridge.logging import get_user_logger
 
 logger = get_user_logger()
@@ -59,10 +59,13 @@ def map_edam2topics(gh_topics: list[str] | None, bt_edam: dict[str, any] | None)
     dict[str, str] | None
         A dictionary with issue title as key and issue body as value, or None if no issue is needed.
     """
-    topic_terms = bt_edam.get("topics", [])
+    if bt_edam is None:
+        logger.unchanged("No bio.tools EDAM annotations found, nothing to map.")
+        return None
+
+    topic_terms: list[TopicItem] = bt_edam.get("topics") or []
     # get only each term for topic items
-    topic_terms = [ti.term for ti in topic_terms]
-    topic_terms = [term.replace(" ", "-").lower() for term in topic_terms]
+    topic_terms = [ti.term.replace(" ", "-").lower() for ti in topic_terms if ti.term]
     function_terms = _flatten_function(bt_edam.get("functions", []))
     edam_terms = topic_terms + function_terms
 
