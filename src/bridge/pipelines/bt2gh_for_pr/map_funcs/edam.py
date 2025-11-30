@@ -72,8 +72,8 @@ def _flatten_function(function: list[FunctionItem]) -> list[str]:
 
     Returns
     -------
-    list
-        Flattened list of EDAM terms.
+    list[str]
+        Flattened list of EDAM terms strings.
     """
     if not function:
         return []
@@ -107,7 +107,8 @@ def map_edam2topics(gh_topics: list[str] | None, bt_edam: dict[str, any] | None)
     topics and function-level operation/input/output terms), normalizes them
     to GitHub-topic-style slugs, and compares them against the normalized
     set of existing GitHub topics. It then applies the generic
-    bio.tools-on-top-of-GitHub additive policy.
+    bio.tools-on-top-of-GitHub additive policy to decide whether an issue
+    should be proposed and which EDAM terms to include.
 
     Parameters
     ----------
@@ -115,7 +116,8 @@ def map_edam2topics(gh_topics: list[str] | None, bt_edam: dict[str, any] | None)
         Current list of GitHub topics for the repository, or ``None`` if
         no topics are set.
     bt_edam : dict[str, Any] | None
-        EDAM-related metadata from bio.tools. Expected keys include:
+        EDAM-related metadata from bio.tools.
+        Expected keys include:
         - "topics"    : list[TopicItem]
         - "functions" : list[FunctionItem]
 
