@@ -5,18 +5,17 @@ This module compares the description recorded in bio.tools with the
 description configured on a GitHub repository and, when appropriate,
 proposes a GitHub issue suggesting that the bio.tools description be
 adopted. It applies a bio.tools-over-GitHub policy that only suggests
-changes when bio.tools provides a description and the repository has
-no conflicting description set.
+changes when bio.tools provides a description.
 """
 
 from bridge.logging import get_user_logger
-from bridge.pipelines.policies.bt2gh import reconcile_bt_over_gh_issue
+from bridge.pipelines.policies.bt2gh import reconcile_bt_over_gh
 from bridge.pipelines.utils import normalize_text
 
 logger = get_user_logger()
 
 
-def map_description(gh_description: str | None, bt_description: str | None) -> dict[str, str] | None:
+async def map_description(gh_description: str | None, bt_description: str | None) -> dict[str, str] | None:
     """
     Propose a GitHub issue to add a description based on bio.tools metadata,
     using the generic bio.tools-over-GitHub issue policy.
@@ -53,9 +52,9 @@ def map_description(gh_description: str | None, bt_description: str | None) -> d
             )
         }
 
-    return reconcile_bt_over_gh_issue(
+    return await reconcile_bt_over_gh(
         gh_norm=gh_norm,
         bt_norm=bt_norm,
-        make_issue=make_issue,
+        make_output=make_issue,
         log_label="description",
     )

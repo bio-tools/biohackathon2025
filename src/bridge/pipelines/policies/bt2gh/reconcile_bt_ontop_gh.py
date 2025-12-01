@@ -2,8 +2,8 @@
 Generic reconciliation policies for bio.tools-to-GitHub *additive* mappings.
 
 This module provides a generic function to determine whether a GitHub issue
-should be proposed based on bio.tools metadata, according to a policy that
-treats bio.tools values as additions on top of existing GitHub values.
+or pull request should be proposed based on bio.tools metadata, according to a
+policy that treats bio.tools values as additions on top of existing GitHub values.
 """
 
 from collections.abc import Callable
@@ -15,16 +15,16 @@ logger = get_user_logger()
 
 BTN = TypeVar("BTN")  # element type for bio.tools set
 GHN = TypeVar("GHN")  # element type for GitHub set (usually same as BTN)
-ISSUE = TypeVar("ISSUE")  # issue payload type, e.g. dict[str, str]
+OUTPUT = TypeVar("OUTPUT")  # issue/pr payload type, e.g. dict[str, str]
 
 
-def reconcile_bt_ontop_gh_issue(
+def reconcile_bt_ontop_gh(
     *,
     gh_norm: set[GHN] | None,
     bt_norm: set[BTN] | None,
-    make_issue: Callable[[set[BTN]], ISSUE],
+    make_output: Callable[[set[BTN]], OUTPUT],
     log_label: str,
-) -> ISSUE | None:
+) -> OUTPUT | None:
     """
     Apply a generic bio.tools-on-top-of-GitHub policy for additive metadata.
 
@@ -36,14 +36,14 @@ def reconcile_bt_ontop_gh_issue(
 
     Policy:
     1. If ``bt_norm`` is ``None`` or empty, bio.tools is treated as silent and
-       no issue is proposed. An "unchanged" log entry is emitted.
+       no issue/pr is proposed. An "unchanged" log entry is emitted.
     2. If ``gh_norm`` is ``None`` or empty, all values from ``bt_norm`` are
-       considered missing and an issue is proposed with an "added" log entry.
+       considered missing and an issue/pr is proposed with an "added" log entry.
     3. If both ``gh_norm`` and ``bt_norm`` are non-empty:
        - If all values in ``bt_norm`` are already present in ``gh_norm``,
-         no issue is proposed and an "exact" log entry is emitted.
+         no issue/pr is proposed and an "exact" log entry is emitted.
        - Otherwise, the set difference ``missing = bt_norm - gh_norm`` is
-         passed to ``make_issue`` and an "added" log entry is emitted.
+         passed to ``make_output`` and an "added" log entry is emitted.
 
     Parameters
     ----------
@@ -53,8 +53,8 @@ def reconcile_bt_ontop_gh_issue(
     bt_norm : set[BTN] | None
         Normalized set of values from bio.tools, or ``None`` if bio.tools
         does not provide values for this field.
-    make_issue : Callable[[set[BTN]], ISSUE]
-        Callable that constructs an issue payload from the set of missing
+    make_output : Callable[[set[BTN]], OUTPUT]
+        Callable that constructs an issue/pr payload from the set of missing
         bio.tools values.
     log_label : str
         Short label used in log messages to identify the metadata field
@@ -72,7 +72,7 @@ def reconcile_bt_ontop_gh_issue(
 
     if not gh_norm:
         logger.added(f"bio.tools {log_label} additions: {bt_norm!r}")
-        return make_issue(bt_norm)
+        return make_output(bt_norm)
 
     missing = bt_norm - gh_norm  # set difference
 
@@ -81,4 +81,4 @@ def reconcile_bt_ontop_gh_issue(
         return None
 
     logger.added(f"bio.tools {log_label} additions missing on GitHub: {missing!r}")
-    return make_issue(missing)
+    return make_output(missing)

@@ -4,22 +4,20 @@ Map homepage URL from bio.tools to a GitHub.
 This module compares the homepage URL recorded in bio.tools with the
 homepage (and HTML URL) of a GitHub repository and, when appropriate,
 proposes a GitHub issue suggesting that the bio.tools homepage be added
-to the repository settings. It applies a bio.tools-over-GitHub policy:
-bio.tools is only used to suggest a homepage when GitHub has no
-conflicting homepage configured.
+to the repository settings. It applies a bio.tools-over-GitHub policy.
 """
 
 from pydantic import AnyUrl
 
 from bridge.core.biotools import UrlftpType
 from bridge.logging import get_user_logger
-from bridge.pipelines.policies.bt2gh import reconcile_bt_over_gh_issue
+from bridge.pipelines.policies.bt2gh import reconcile_bt_over_gh
 from bridge.pipelines.utils import canonicalize_url
 
 logger = get_user_logger()
 
 
-def map_homepage(gh_schema: dict[AnyUrl | str | None], bt_homepage: UrlftpType | None) -> dict[str, str] | None:
+async def map_homepage(gh_schema: dict[AnyUrl | str | None], bt_homepage: UrlftpType | None) -> dict[str, str] | None:
     """
     Propose a GitHub issue to add a homepage based on bio.tools metadata,
     using the generic bio.tools-over-GitHub issue policy.
@@ -28,9 +26,9 @@ def map_homepage(gh_schema: dict[AnyUrl | str | None], bt_homepage: UrlftpType |
     are compared in canonicalized form to avoid spurious differences due
     to trailing slashes, case, or query parameter ordering.
     If the bio.tools homepage is equal to the repository HTML URL,
-    no suggestion is made. If GitHub already has a different homepage configured, t
-    hat value is treated as authoritative and a conflict is logged without proposing an issue.
-    Only when the bio.tools homepage is present, differs from the HTML URL,
+    no suggestion is made. If GitHub already has a different homepage configured,
+    that value is treated as authoritative and a conflict is logged while still proposing an issue.
+    When the bio.tools homepage is present, differs from the HTML URL,
     and the GitHub homepage is unset does this function propose an issue.
 
     Parameters
@@ -72,9 +70,9 @@ def map_homepage(gh_schema: dict[AnyUrl | str | None], bt_homepage: UrlftpType |
             )
         }
 
-    return reconcile_bt_over_gh_issue(
+    return await reconcile_bt_over_gh(
         gh_norm=gh_hp_norm,
         bt_norm=bt_hp_norm,
-        make_issue=make_issue,
+        make_output=make_issue,
         log_label="homepage",
     )
