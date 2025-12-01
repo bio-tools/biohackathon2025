@@ -8,6 +8,7 @@ from .europe_pmc import EuropePMCIngestor
 from .github import GitHubIngestor, GitHubRepoProvider
 from .huggingface import HuggingFaceProvider
 from .protocols import ChatMessage
+from .spdx import SPDXLicenseIngestor
 
 __all__ = [
     "GitHubRepoProvider",
@@ -16,4 +17,5 @@ __all__ = [
     "HuggingFaceProvider",
     "ChatMessage",
     "EuropePMCIngestor",
+    "SPDXLicenseIngestor",
 ]
