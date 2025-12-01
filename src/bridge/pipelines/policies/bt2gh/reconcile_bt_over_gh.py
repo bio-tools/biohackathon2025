@@ -7,10 +7,11 @@ a policy that treats bio.tools as authoritative while preserving existing GitHub
 values when bio.tools is silent.
 """
 
-from collections.abc import Callable
+from collections.abc import Awaitable, Callable
 from typing import TypeVar
 
 from bridge.logging import get_user_logger
+from bridge.utils import maybe_await
 
 logger = get_user_logger()
 
@@ -23,7 +24,7 @@ async def reconcile_bt_over_gh(
     *,
     gh_norm: GHN | None,
     bt_norm: BTN | None,
-    make_output: Callable[[BTN], OUTPUT],
+    make_output: Callable[[BTN], Awaitable[OUTPUT] | OUTPUT],
     log_label: str,
 ) -> OUTPUT | None:
     """
@@ -56,17 +57,17 @@ async def reconcile_bt_over_gh(
     bt_norm : BTN | None
         Normalized representation of the bio.tools value, or ``None`` if
         no value is recorded in bio.tools.
-    make_output : Callable[[BTN], OUTPUT]
+    make_output : Callable[[BTN], Awaitable[OUTPUT] | OUTPUT]
         Callable that constructs an issue/pr payload from the normalized
-        bio.tools value.
+        bio.tools value. The callable may be asynchronous.
     log_label : str
         Short label used in log messages to identify the metadata field
         (e.g., ``"description"``, ``"homepage"``, ``"license"``).
 
     Returns
     -------
-    ISSUE | None
-        Issue payload to propose according to the policy, or ``None`` if
+    OUTPUT | None
+        Issue/pr payload to propose according to the policy, or ``None`` if
         no issue should be created.
     """
     if bt_norm is None:
@@ -79,7 +80,7 @@ async def reconcile_bt_over_gh(
             return None
 
         logger.conflict(f"existing GitHub {log_label} {gh_norm!r} differs from bio.tools {log_label} {bt_norm!r}")
-        return await make_output(bt_norm)
+        return await maybe_await(make_output, bt_norm)
 
     logger.added(f"{log_label}: {bt_norm!r}")
-    return await make_output(bt_norm)
+    return await maybe_await(make_output, bt_norm)

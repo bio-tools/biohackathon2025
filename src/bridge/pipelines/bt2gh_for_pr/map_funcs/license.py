@@ -31,9 +31,7 @@ async def map_license(gh_license: GHLicense | None, bt_license: BTLicense | None
             logger.unchanged(f"could not retrieve full text for SPDX ID '{spdx_id}'")
             return None
 
-        exit(1)
-
-    return reconcile_bt_over_gh(
+    return await reconcile_bt_over_gh(
         gh_norm=gh_norm,
         bt_norm=bt_norm,
         make_output=make_pr,
