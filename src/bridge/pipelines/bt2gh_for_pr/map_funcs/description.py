@@ -5,8 +5,7 @@ This module compares the description recorded in bio.tools with the
 description configured on a GitHub repository and, when appropriate,
 proposes a GitHub issue suggesting that the bio.tools description be
 adopted. It applies a bio.tools-over-GitHub policy that only suggests
-changes when bio.tools provides a description and the repository has
-no conflicting description set.
+changes when bio.tools provides a description.
 """
 
 from bridge.logging import get_user_logger
