@@ -21,14 +21,14 @@ async def map_license(gh_license: GHLicense | None, bt_license: BTLicense | None
     bt_norm = bt_license
 
     async def make_pr(bt_value: BTLicense) -> dict[str, str]:
-        spdx_id = bt_value.spdx_id
+        spdx_id = bt_value.value
         try:
             license: SPDXLicense = await compose_spdx_license_metadata(spdx_id)
-            full_text = license.full_text
+            full_text = license.licenseText
             logger.added(f"LICENSE.txt with full text for SPDX ID '{spdx_id}'")
             return {"LICENSE.txt": full_text}
-        except Exception:
-            logger.unchanged(f"could not retrieve full text for SPDX ID '{spdx_id}'")
+        except Exception as e:
+            logger.unchanged(f"could not retrieve full text for SPDX ID '{spdx_id}': {e}")
             return None
 
     return await reconcile_bt_over_gh(
