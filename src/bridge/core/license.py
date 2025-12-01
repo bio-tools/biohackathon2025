@@ -2,7 +2,7 @@
 Module defining the SPDX license data model.
 """
 
-from pydantic import BaseModel, Field, HttpUrl
+from pydantic import BaseModel, ConfigDict, Field, HttpUrl
 
 
 class SPDXCrossRef(BaseModel):
@@ -23,7 +23,13 @@ class SPDXCrossRef(BaseModel):
         The match type of the cross-reference.
     timestamp : str | None
         The timestamp of the cross-reference.
+    order : int | None
+        The order of the cross-reference.
     """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
 
     url: HttpUrl
     isValid: bool | None = None
@@ -31,6 +37,7 @@ class SPDXCrossRef(BaseModel):
     isWayBackLink: bool | None = None
     match_: str | None = Field(default=None, alias="match")
     timestamp: str | None = None
+    order: int | None = None
 
 
 class SPDXLicense(BaseModel):
@@ -45,28 +52,35 @@ class SPDXLicense(BaseModel):
         Full name of the license.
     licenseText : str
         Canonical license text.
+    licenseTextHtml : str
+        HTML-formatted license text.
+    isDeprecatedLicenseId : bool | None
+        Whether the license ID is deprecated.
+    standardLicenseTemplate : str | None
+        Standard license template text, if available.
     isOsiApproved : bool | None
-        Whether the license is OSI approved.
+        Whether the license is OSI-approved.
     isFsfLibre : bool | None
         Whether the license is FSF libre.
-    standardLicenseHeader : str | None
-        Standard license header text, if available.
-    licenseComments : str | None
-        Additional comments about the license.
     seeAlso : list[HttpUrl] | None
-        List of URLs with more information about the license.
+        List of URLs with additional information about the license.
     crossRef : list[SPDXCrossRef] | None
         List of cross-references for the license.
     """
 
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+
     licenseId: str
     name: str
     licenseText: str
+    licenseTextHtml: str
 
+    isDeprecatedLicenseId: bool | None = None
+    standardLicenseTemplate: str | None = None
     isOsiApproved: bool | None = None
     isFsfLibre: bool | None = None
-    standardLicenseHeader: str | None = None
-    licenseComments: str | None = None
 
     seeAlso: list[HttpUrl] | None = None
     crossRef: list[SPDXCrossRef] | None = None
