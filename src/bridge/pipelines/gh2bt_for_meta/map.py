@@ -2,6 +2,8 @@
 Mapping classes for GitHub to bio.tools.
 """
 
+from pathlib import Path
+
 from bridge.pipelines.protocols import MapItem, Method, ModelsMap
 from bridge.pipelines.utils import load_dict_from_yaml_file
 
@@ -21,6 +23,10 @@ class MapGitHub2BioTools(ModelsMap):
     """
     Map bio.tools metadata record to GitHub
     """
+
+    def __init__(self, repo, metadata, repo_path: str):
+        super().__init__(repo=repo, metadata=metadata)
+        self.repo_path = Path(repo_path)
 
     @property
     def map(self) -> dict[str, MapItem]:
@@ -92,7 +98,7 @@ class MapGitHub2BioTools(ModelsMap):
             ),
             "publication": MapItem(
                 schema_entry=self.metadata.publication,
-                repo_entry=load_dict_from_yaml_file(self.repo_path / "CITATION.cff"),  # TODO: pass full repo?
+                repo_entry=load_dict_from_yaml_file(self.repo_path / "CITATION.cff"),
                 method=Method.FUZZY,
                 fn=map_publication,
             ),
