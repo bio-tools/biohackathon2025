@@ -8,6 +8,7 @@ from .homepage import map_homepage
 from .language import map_language
 from .license import map_license
 from .maturity import map_maturity
+from .publication import map_publication
 from .version import map_version
 
 __all__ = [
@@ -18,4 +19,5 @@ __all__ = [
     "map_license",
     "map_maturity",
     "map_version",
+    "map_publication",
 ]
