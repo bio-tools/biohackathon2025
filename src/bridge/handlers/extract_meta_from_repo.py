@@ -48,23 +48,25 @@ async def extract_meta_from_repo(schema: str, repo_type: str, **kwargs) -> str:
     )
 
     metadata_composer = get_schema_composer(schema)
-    repo_composer, _ = get_repo_components(repo_type)
+    repo_composer, repo_provider = get_repo_components(repo_type)
     pipeline, args_model = get_pipeline(schema, repo_type, PipelineGoal.EXTRACT_METADATA)
 
     repo_model = await repo_composer(**kwargs)
     identifier = kwargs.get("identifier")
     metadata = await metadata_composer(**kwargs) if identifier else None
 
-    pipeline_kwargs = {
-        "repo_model": repo_model,
-        "existing_metadata": metadata,
-    }
-    merged_kwargs = {**pipeline_kwargs, **kwargs}
-    pipeline_args = args_model(**merged_kwargs)
-    result = await pipeline(pipeline_args)
+    with repo_provider.clone_context(repo_model.repo.full_name) as cloned_repo:
+        pipeline_kwargs = {
+            "repo_model": repo_model,
+            "existing_metadata": metadata,
+            "repo_path": cloned_repo,
+        }
+        merged_kwargs = {**pipeline_kwargs, **kwargs}
+        pipeline_args = args_model(**merged_kwargs)
+        result = await pipeline(pipeline_args)
 
-    result_json = result.model_dump_json(exclude_none=True, indent=2)
-    logger.info(
-        f"Extracted {schema} metadata from {repo_type} repo {kwargs.get('owner')}/{kwargs.get('repo')} successfully"
-    )
-    return result_json
+        result_json = result.model_dump_json(exclude_none=True, indent=2)
+        logger.info(
+            f"Extracted {schema} metadata from {repo_type} repo {kwargs.get('owner')}/{kwargs.get('repo')} successfully"
+        )
+        return result_json

@@ -24,11 +24,14 @@ class GitHubToBiotoolsForMetaPipelineArgs(PipelineArgs):
     ----------
     repo_model : GitHubRepoModel
         The source GitHub repository model.
+    repo_path : str
+        The local path to the cloned GitHub repository.
     existing_metadata : BiotoolsToolModel | None
         Existing bio.tools metadata model, if available. Default is None.
     """
 
     repo_model: GitHubRepoModel
+    repo_path: str
     existing_metadata: BiotoolsToolModel | None = None
 
 
