@@ -271,7 +271,7 @@ async def map_citation(gh_citation_cff: dict[str, Any], bt_params: dict[str, Any
     ----------
     gh_citation_cff : dict[str, Any]
         Parsed content of an existing CITATION.cff file from the GitHub
-        repository, or ``None`` if no file exists.
+        repository.
     bt_params : dict[str, Any]
         The bio.tools tool metadata as a dictionary.
         Expected keys include:

@@ -1,5 +1,10 @@
 """
-Mapping functions for publication metadata from GitHub citation.cff to bio.tools.
+Mapping functions for publication metadata.
+
+This module reconciles GitHub CITATION.cff references with bio.tools
+publication entries by converting CITATION.cff data into bio.tools
+PublicationItem instances and merging them with existing entries.
+Duplicates are removed, prioritizing CITATION.cff entries.
 """
 
 from typing import Any
@@ -53,7 +58,28 @@ def map_publication(
     gh_citation_cff: dict[str, Any], bt_publications: list[PublicationItem] | None
 ) -> list[PublicationItem] | None:
     """
-    TODO
+    Map and reconcile GitHub CITATION.cff metadata and bio.tools publication entries.
+
+    Policy:
+    - If no CITATION.cff data is present, the existing bio.tools publication
+      entries are unchanged.
+    - If CITATION.cff data is present, its references are converted to
+      bio.tools PublicationItem instances and merged with existing bio.tools
+      entries. Duplicates are removed, prioritizing CITATION.cff entries.
+
+    Parameters
+    ----------
+    gh_citation_cff : dict[str, Any]
+        Parsed content of an existing CITATION.cff file from the GitHub
+        repository.
+    bt_publications : list[PublicationItem] | None
+        Existing bio.tools publication entries, or ``None`` if none are defined.
+
+    Returns
+    -------
+    list[PublicationItem] | None
+        Updated list of bio.tools publication entries after reconciliation,
+        or ``None`` if no publications are defined.
     """
     if not gh_citation_cff:
         logger.unchanged("No CITATION.cff data found in GitHub repository, nothing to map.")
