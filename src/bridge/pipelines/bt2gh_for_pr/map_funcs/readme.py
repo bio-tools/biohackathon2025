@@ -85,6 +85,30 @@ def _deduplicate_badges(badges: Iterable[Badge]) -> list[Badge]:
     return result
 
 
+def _is_likely_badge_image_url(url: str) -> bool:
+    """
+    Heuristic check whether a URL likely points to a badge image.
+
+    Parameters
+    ----------
+    url : str
+        The URL to evaluate.
+
+    Returns
+    -------
+    bool
+        True if the URL likely points to a badge image, False otherwise.
+    """
+    u = url.lower()
+    if "shields.io" in u:
+        return True
+    if u.startswith("http://") or u.startswith("https://"):
+        return False
+    if "badge" in u and u.endswith(".svg"):
+        return True
+    return False
+
+
 def _extract_existing_badges(gh_readme: str | None) -> list[Badge]:
     """
     Parse and extract badge definitions from a README.
@@ -94,8 +118,9 @@ def _extract_existing_badges(gh_readme: str | None) -> list[Badge]:
     - `[![alt](img)](link)` (badge wrapped in a link)
     - `![alt](img)` (image-only badge)
 
-    For each match, a `Badge` object is created. Invalid or malformed badges
-    (e.g. bad URLs) are skipped.
+    For each match, a `Badge` object is created if the image URL appears to
+    point to a badge (based on simple heuristics).
+    Invalid or unparseable badges are skipped.
 
     Parameters
     ----------
@@ -119,6 +144,9 @@ def _extract_existing_badges(gh_readme: str | None) -> list[Badge]:
             alt = match.group("alt2").strip()
             img = match.group("img2").strip()
             link = None
+
+        if not _is_likely_badge_image_url(img):
+            continue
 
         try:
             badge = Badge(
