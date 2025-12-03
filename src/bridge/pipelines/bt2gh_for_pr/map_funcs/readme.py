@@ -231,7 +231,6 @@ def _build_readme(gh_readme: str | None, bt_name: str, bt_id: str, bt_tool_types
         original content.
     """
     # handle badges
-    new_badges = []
 
     bridge_badge = compose_badge(
         label="bridge",
@@ -242,8 +241,8 @@ def _build_readme(gh_readme: str | None, bt_name: str, bt_id: str, bt_tool_types
         url="https://bio-tools.github.io/biohackathon2025/",
         svg_path=BRIDGE_BADGE_LOGO_PATH,
     )
-    new_badges.append(bridge_badge)
 
+    new_badges = []
     biotools_badge = compose_badge(
         label="bio.tools",
         message=bt_id,
@@ -266,7 +265,7 @@ def _build_readme(gh_readme: str | None, bt_name: str, bt_id: str, bt_tool_types
         new_badges.append(tool_types_badge)
 
     existing_badges = _extract_existing_badges(gh_readme)
-    badges = _deduplicate_badges(new_badges + existing_badges)
+    badges = _deduplicate_badges(new_badges + existing_badges + [bridge_badge])
 
     # handle title
     existing_title = _extract_project_title(gh_readme)
