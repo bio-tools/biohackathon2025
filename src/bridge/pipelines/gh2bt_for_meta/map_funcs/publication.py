@@ -13,7 +13,7 @@ logger = get_user_logger()
 
 def _cff_ref_to_biotools(
     ref: dict[str, Any], pub_type: list[PublicationType] | PublicationType | None = None
-) -> PublicationItem:
+) -> PublicationItem | None:
     """
     Convert a CITATION.cff reference dictionary to a bio.tools PublicationItem.
 
@@ -24,12 +24,16 @@ def _cff_ref_to_biotools(
 
     Returns
     -------
-    PublicationItem
-        The corresponding bio.tools PublicationItem.
+    PublicationItem | None
+        The corresponding bio.tools PublicationItem instance, or ``None`` if no
+        valid identifiers were found in the reference.
     """
     doi = ref.get("doi")
     pmid = ref.get("pmid")
     pmcid = ref.get("pmcid")
+
+    if not doi and not pmid and not pmcid:
+        return None
 
     pub_type_bt: list[PublicationType] | None = (
         pub_type if isinstance(pub_type, list) else [pub_type] if pub_type else None
@@ -61,6 +65,7 @@ def map_publication(
     if cff_preferred:
         gh_publications.append(_cff_ref_to_biotools(cff_preferred, pub_type=PublicationType.Primary))
     gh_publications.extend([_cff_ref_to_biotools(ref) for ref in cff_references])
+    gh_publications = [pub for pub in gh_publications if pub is not None]
 
     if not gh_publications:
         logger.unchanged("CITATION.cff exists but contains no references. Using only bio.tools metadata.")
