@@ -85,6 +85,30 @@ def _deduplicate_badges(badges: Iterable[Badge]) -> list[Badge]:
     return result
 
 
+def _is_likely_badge_image_url(url: str) -> bool:
+    """
+    Heuristic check whether a URL likely points to a badge image.
+
+    Parameters
+    ----------
+    url : str
+        The URL to evaluate.
+
+    Returns
+    -------
+    bool
+        True if the URL likely points to a badge image, False otherwise.
+    """
+    u = url.lower()
+    if "shields.io" in u:
+        return True
+    if u.startswith("http://") or u.startswith("https://"):
+        return False
+    if "badge" in u and u.endswith(".svg"):
+        return True
+    return False
+
+
 def _extract_existing_badges(gh_readme: str | None) -> list[Badge]:
     """
     Parse and extract badge definitions from a README.
@@ -94,8 +118,9 @@ def _extract_existing_badges(gh_readme: str | None) -> list[Badge]:
     - `[![alt](img)](link)` (badge wrapped in a link)
     - `![alt](img)` (image-only badge)
 
-    For each match, a `Badge` object is created. Invalid or malformed badges
-    (e.g. bad URLs) are skipped.
+    For each match, a `Badge` object is created if the image URL appears to
+    point to a badge (based on simple heuristics).
+    Invalid or unparseable badges are skipped.
 
     Parameters
     ----------
@@ -119,6 +144,9 @@ def _extract_existing_badges(gh_readme: str | None) -> list[Badge]:
             alt = match.group("alt2").strip()
             img = match.group("img2").strip()
             link = None
+
+        if not _is_likely_badge_image_url(img):
+            continue
 
         try:
             badge = Badge(
@@ -231,7 +259,6 @@ def _build_readme(gh_readme: str | None, bt_name: str, bt_id: str, bt_tool_types
         original content.
     """
     # handle badges
-    new_badges = []
 
     bridge_badge = compose_badge(
         label="bridge",
@@ -242,8 +269,8 @@ def _build_readme(gh_readme: str | None, bt_name: str, bt_id: str, bt_tool_types
         url="https://bio-tools.github.io/biohackathon2025/",
         svg_path=BRIDGE_BADGE_LOGO_PATH,
     )
-    new_badges.append(bridge_badge)
 
+    new_badges = []
     biotools_badge = compose_badge(
         label="bio.tools",
         message=bt_id,
@@ -266,7 +293,7 @@ def _build_readme(gh_readme: str | None, bt_name: str, bt_id: str, bt_tool_types
         new_badges.append(tool_types_badge)
 
     existing_badges = _extract_existing_badges(gh_readme)
-    badges = _deduplicate_badges(new_badges + existing_badges)
+    badges = _deduplicate_badges(new_badges + existing_badges + [bridge_badge])
 
     # handle title
     existing_title = _extract_project_title(gh_readme)
