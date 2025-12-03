@@ -13,7 +13,6 @@ existing preferred-citation (if any) > bio.tools primary publications > other
 publications.
 """
 
-from collections.abc import Mapping
 from typing import Any
 
 import yaml
@@ -22,7 +21,7 @@ from bridge.builders import compose_europe_pmc_metadata
 from bridge.core import Publication
 from bridge.core.biotools import TypeEnum2
 from bridge.logging import get_user_logger
-from bridge.pipelines.shared.publications import deduplicate_references, ref_ids
+from bridge.pipelines.shared.publications import deduplicate_references, extract_cff_references
 from bridge.pipelines.utils import (
     normalize_dict_strings,
     normalize_pydantic_model_strings,
@@ -198,63 +197,6 @@ def _merge_top_level_metadata(
     return merged
 
 
-def _extract_gh_references(
-    gh_citation_cff: dict[str, Any] | None,
-) -> tuple[list[dict[str, Any]], dict[str, Any] | None]:
-    """
-    Extract publication information from an existing CITATION.cff dictionary.
-
-    This helper parses an existing CFF structure and returns:
-    - the list of reference entries, and
-    - the preferred-citation entry, if present.
-
-    The preferred citation is ensured to be part of the references list:
-    if it is not already present, it is appended.
-
-    Parameters
-    ----------
-    gh_citation_cff : dict[str, Any] | None
-        TParsed content of an existing CITATION.cff file,
-        or ``None`` if no file exists.
-
-    Returns
-    -------
-    tuple[list[dict[str, Any]], dict[str, Any] | None]
-        A tuple of:
-        - A list of reference dictionaries extracted from the CFF.
-        - The preferred-citation dictionary, or ``None`` if not present.
-    """
-    if not gh_citation_cff:
-        return [], None
-
-    gh_citation_cff = normalize_dict_strings(gh_citation_cff)
-
-    gh_references = gh_citation_cff.get("references") or []
-    gh_references = [r for r in gh_references if isinstance(r, Mapping)]
-
-    gh_preferred = gh_citation_cff.get("preferred-citation")
-    if isinstance(gh_preferred, Mapping):
-        gh_preferred = dict(gh_preferred)  # shallow copy
-    else:
-        gh_preferred = None
-
-    # ensure preferred-citation is included in references if present
-    if gh_preferred is not None:
-        pref_ids = ref_ids(gh_preferred)
-        in_refs = any(ref_ids(r) & pref_ids for r in gh_references)
-        if not in_refs:
-            gh_references.append(gh_preferred)
-
-    if gh_references:
-        logger.note(
-            f"CITATION.cff is not empty. Found {len(gh_references)} reference(s) to merge with bio.tools metadata."
-        )
-    else:
-        logger.note("CITATION.cff exists but contains no references. Using only bio.tools metadata.")
-
-    return gh_references, gh_preferred
-
-
 def _compose_citation(
     base_cff: dict[str, Any],
     references: list[Publication | dict[str, Any]],
@@ -352,7 +294,14 @@ async def map_citation(gh_citation_cff: dict[str, Any], bt_params: dict[str, Any
     bt_references: list[Publication] = []
     bt_primary_references: list[Publication] = []
 
-    gh_references, gh_preferred = _extract_gh_references(gh_citation_cff)
+    gh_references, gh_preferred = extract_cff_references(gh_citation_cff)
+
+    if gh_references:
+        logger.note(
+            f"CITATION.cff is not empty. Found {len(gh_references)} reference(s) to merge with bio.tools metadata."
+        )
+    else:
+        logger.note("CITATION.cff exists but contains no references. Using only bio.tools metadata.")
 
     for pub in bt_publication or []:
         try:

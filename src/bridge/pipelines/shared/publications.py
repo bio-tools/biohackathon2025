@@ -7,7 +7,7 @@ from typing import Any
 
 from bridge.core import Publication
 from bridge.core.biotools import PublicationItem
-from bridge.pipelines.utils import normalize_text
+from bridge.pipelines.utils import normalize_dict_strings, normalize_text
 
 
 def ref_ids(ref: Publication | PublicationItem | Mapping[str, Any]) -> set[str]:
@@ -117,3 +117,53 @@ def deduplicate_references(
         deduplicated.append(ref)
 
     return deduplicated
+
+
+def extract_cff_references(
+    citation_cff: dict[str, Any] | None,
+) -> tuple[list[dict[str, Any]], dict[str, Any] | None]:
+    """
+    Extract publication information from CITATION.cff dictionary.
+
+    This helper parses an existing CFF structure and returns:
+    - the list of reference entries, and
+    - the preferred-citation entry, if present.
+
+    The preferred citation is ensured to be part of the references list:
+    if it is not already present, it is appended.
+
+    Parameters
+    ----------
+    citation_cff : dict[str, Any] | None
+        Parsed content of an existing CITATION.cff file,
+        or ``None`` if no file exists.
+
+    Returns
+    -------
+    tuple[list[dict[str, Any]], dict[str, Any] | None]
+        A tuple of:
+        - A list of reference dictionaries extracted from the CFF.
+        - The preferred-citation dictionary, or ``None`` if not present.
+    """
+    if not citation_cff:
+        return [], None
+
+    citation_cff = normalize_dict_strings(citation_cff)
+
+    references = citation_cff.get("references") or []
+    references = [r for r in references if isinstance(r, Mapping)]
+
+    preferred = citation_cff.get("preferred-citation")
+    if isinstance(preferred, Mapping):
+        preferred = dict(preferred)  # shallow copy
+    else:
+        preferred = None
+
+    # ensure preferred-citation is included in references if present
+    if preferred is not None:
+        pref_ids = ref_ids(preferred)
+        in_refs = any(ref_ids(r) & pref_ids for r in references)
+        if not in_refs:
+            references.append(preferred)
+
+    return references, preferred
