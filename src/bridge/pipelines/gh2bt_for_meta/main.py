@@ -24,11 +24,14 @@ class GitHubToBiotoolsForMetaPipelineArgs(PipelineArgs):
     ----------
     repo_model : GitHubRepoModel
         The source GitHub repository model.
+    repo_path : str
+        The local path to the cloned GitHub repository.
     existing_metadata : BiotoolsToolModel | None
         Existing bio.tools metadata model, if available. Default is None.
     """
 
     repo_model: GitHubRepoModel
+    repo_path: str
     existing_metadata: BiotoolsToolModel | None = None
 
 
@@ -70,6 +73,7 @@ async def run(args: GitHubToBiotoolsForMetaPipelineArgs) -> BiotoolsToolModel:
     mapper = MapGitHub2BioTools(
         repo=github_repo,
         metadata=args.existing_metadata,
+        repo_path=args.repo_path,
     )
 
     biotools_metadata = BiotoolsToolModel(
@@ -81,6 +85,7 @@ async def run(args: GitHubToBiotoolsForMetaPipelineArgs) -> BiotoolsToolModel:
         license=await mapper.map["license"].run(),
         version=await mapper.map["version"].run(),
         documentation=await mapper.map["documentation"].run(),
+        publication=await mapper.map["publication"].run(),
     )
 
     biotools_url = settings.biotools_url
