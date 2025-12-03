@@ -3,6 +3,7 @@ Mapping classes for GitHub to bio.tools.
 """
 
 from bridge.pipelines.protocols import MapItem, Method, ModelsMap
+from bridge.pipelines.utils import load_dict_from_yaml_file
 
 from .map_funcs import (
     map_description,
@@ -11,6 +12,7 @@ from .map_funcs import (
     map_language,
     map_license,
     map_maturity,
+    map_publication,
     map_version,
 )
 
@@ -87,5 +89,11 @@ class MapGitHub2BioTools(ModelsMap):
                 repo_entry=self.repo.latest_release.tag_name,
                 method=Method.EXACT,
                 fn=map_version,
+            ),
+            "publication": MapItem(
+                schema_entry=self.metadata.publication,
+                repo_entry=load_dict_from_yaml_file(self.repo_path / "CITATION.cff"),  # TODO: pass full repo?
+                method=Method.FUZZY,
+                fn=map_publication,
             ),
         }
