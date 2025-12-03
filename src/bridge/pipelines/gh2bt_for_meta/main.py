@@ -73,6 +73,7 @@ async def run(args: GitHubToBiotoolsForMetaPipelineArgs) -> BiotoolsToolModel:
     mapper = MapGitHub2BioTools(
         repo=github_repo,
         metadata=args.existing_metadata,
+        repo_path=args.repo_path,
     )
 
     biotools_metadata = BiotoolsToolModel(

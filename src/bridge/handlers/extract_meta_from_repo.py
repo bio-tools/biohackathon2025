@@ -49,6 +49,7 @@ async def extract_meta_from_repo(schema: str, repo_type: str, **kwargs) -> str:
 
     metadata_composer = get_schema_composer(schema)
     repo_composer, repo_provider = get_repo_components(repo_type)
+    repo_provider = repo_provider()
     pipeline, args_model = get_pipeline(schema, repo_type, PipelineGoal.EXTRACT_METADATA)
 
     repo_model = await repo_composer(**kwargs)
@@ -58,8 +59,8 @@ async def extract_meta_from_repo(schema: str, repo_type: str, **kwargs) -> str:
     with repo_provider.clone_context(repo_model.repo.full_name) as cloned_repo:
         pipeline_kwargs = {
             "repo_model": repo_model,
-            "existing_metadata": metadata,
             "repo_path": cloned_repo,
+            "existing_metadata": metadata,
         }
         merged_kwargs = {**pipeline_kwargs, **kwargs}
         pipeline_args = args_model(**merged_kwargs)
