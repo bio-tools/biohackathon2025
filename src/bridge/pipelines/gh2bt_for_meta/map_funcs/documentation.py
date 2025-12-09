@@ -6,6 +6,7 @@ to the bio.tools ``documentation`` field by adding appropriate
 ``DocumentationItem`` entries when they are not already present.
 """
 
+import subprocess
 from urllib.parse import urljoin
 
 from bridge.core.biotools import DocumentationItem, TypeEnum1
@@ -54,6 +55,25 @@ def _add_doc_if_not_exists(
     return bt_documentation
 
 
+def _wiki_repo_exists(gh_html_url: str, timeout: float = 5.0) -> bool:
+    """
+    Check if the GitHub wiki repository exists by probing with `git ls-remote`.
+    """
+    try:
+        wiki_git_url = gh_html_url.rstrip("/") + ".wiki.git"
+
+        result = subprocess.run(
+            ["git", "ls-remote", wiki_git_url],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            timeout=timeout,
+        )
+        return result.returncode == 0
+    except subprocess.TimeoutExpired:
+        logger.warning(f"Timeout expired while checking wiki repository at '{wiki_git_url}'.")
+        return False
+
+
 def _map_wiki(
     gh_html_url: str | None, gh_has_wiki: bool | None, bt_documentation: list[DocumentationItem] | None
 ) -> list[DocumentationItem] | None:
@@ -78,7 +98,7 @@ def _map_wiki(
     list[DocumentationItem] | None
         Updated documentation list, or the original list if nothing changed.
     """
-    if gh_has_wiki and gh_html_url:
+    if gh_has_wiki and gh_html_url and _wiki_repo_exists(gh_html_url):
         repo_url = str(gh_html_url)
         wiki_raw = urljoin(repo_url.rstrip("/") + "/", "wiki")
         wiki_url = canonicalize_url(wiki_raw)
