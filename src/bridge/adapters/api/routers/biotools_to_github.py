@@ -43,7 +43,7 @@ class BioToolsToGitHubPayload(BaseModel):
     summary="Create a GitHub PR from bio.tools metadata",
     description="Create a GitHub PR from bio.tools metadata",
 )
-async def biotools_to_github_pr(payload: BioToolsToGitHubPayload):
+async def biotools_to_github_pr_issues(payload: BioToolsToGitHubPayload):
     """
     Create a GitHub PR from bio.tools metadata.
 
