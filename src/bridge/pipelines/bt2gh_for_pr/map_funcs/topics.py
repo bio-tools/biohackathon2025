@@ -9,6 +9,8 @@ suggesting that these terms be added as topics, using a generic
 bio.tools-on-top-of-GitHub additive policy.
 """
 
+import re
+
 from bridge.core.biotools import FunctionItem, TopicItem
 from bridge.logging import get_user_logger
 from bridge.pipelines.policies.bt2gh import reconcile_bt_ontop_gh
@@ -21,7 +23,8 @@ def _normalize_edam_term(term: str) -> str:
     Normalize an EDAM term by replacing spaces with hyphens and converting to lowercase.
 
     This makes EDAM terms suitable for use as GitHub topics and ensures
-    that multi-word terms are treated as a single topic.
+    that multi-word terms are treated as a single topic. Non-alphanumeric
+    characters (except hyphens) are stripped to comply with GitHub topic rules.
 
     Parameters
     ----------
@@ -33,7 +36,13 @@ def _normalize_edam_term(term: str) -> str:
     str
         The normalized EDAM term.
     """
-    return term.replace(" ", "-").lower()
+    # Replace spaces with hyphens and lowercase
+    normalized = term.replace(" ", "-").lower()
+    # Replace any non-alphanumeric/hyphen chars with hyphens
+    normalized = re.sub(r"[^a-z0-9-]", "-", normalized)
+    # Collapse multiple consecutive hyphens and strip leading/trailing hyphens
+    normalized = re.sub(r"-{2,}", "-", normalized).strip("-")
+    return normalized
 
 
 def _normalize_gh_topic(gh_topic: str) -> str:
@@ -145,11 +154,32 @@ def map_topics(gh_topics: list[str] | None, bt_edam: dict[str, any] | None) -> d
         # adjust message based on singular/plural
         noun, verb, pronoun = ("term", "is", "it") if num_missing == 1 else ("terms", "are", "them")
 
+        # Construct the JSON payload for the API
+        names_json = ",".join(f'"{term}"' for term in sorted(missing))
+
         return {
             "Add EDAM annotations from bio.tools metadata": (
                 f"The bio.tools EDAM annotations contain {num_missing} EDAM {noun} "
                 f"that {verb} not included in the GitHub topics:\n\n{terms}\n\n"
-                f"Please consider adding {pronoun} to the GitHub repository."
+                f"Please consider adding {pronoun} to the GitHub repository.\n\n"
+                f"We recommend one of the following methods:\n\n"
+                f"1. _Use the GitHub CLI (one --add-topic flag per term):_\n"
+                f"```\n"
+                f"gh repo edit <OWNER/REPO> " + " ".join(f"--add-topic {term}" for term in sorted(missing)) + "\n"
+                f"```\n\n"
+                f"2. _Use the GitHub API via curl (requires token):_\n"
+                f"```\n"
+                f"curl -L -X PUT \\\n"
+                f"  -H 'Accept: application/vnd.github+json' \\\n"
+                f"  -H 'Authorization: Bearer <YOUR-TOKEN>' \\\n"
+                f"  -H 'X-GitHub-Api-Version: 2022-11-28' \\\n"
+                f"  https://api.github.com/repos/OWNER/REPO/topics \\\n"
+                f"  -d '{{\"names\": [{names_json}]}}'\n"
+                f"```\n\n"
+                f"3. _Visit the GitHub web UI:_\n"
+                f"You can also add topics manually via the repository settings:\n"
+                f"https://github.com/OWNER/REPO/settings\n\n"
+                f"Please replace `<OWNER/REPO>` and `<YOUR-TOKEN>` with the appropriate values."
             )
         }
 
