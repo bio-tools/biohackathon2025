@@ -40,9 +40,9 @@ def _unique_branch_name(prefix: str = "update") -> str:
 
 @require_args("owner", "repo", "identifier")
 @register_handler(PipelineGoal.CREATE_PR)
-async def create_pr_from_meta(schema: str, repo_type: str, **kwargs):
+async def create_pr_issues_from_meta(schema: str, repo_type: str, **kwargs):
     """
-    Create a pull request in the repository based on the metadata.
+    Create a pull request and issues in the repository based on the metadata.
 
     Parameters
     ----------
@@ -59,7 +59,7 @@ async def create_pr_from_meta(schema: str, repo_type: str, **kwargs):
         - identifier: str - Identifier for the source metadata in bio.tools.
     """
     logger.info(
-        f"Creating PR in {repo_type} repo {kwargs.get('owner')}/{kwargs.get('repo')} "
+        f"Creating PR and issues in {repo_type} repo {kwargs.get('owner')}/{kwargs.get('repo')} "
         f"from {schema} metadata ID {kwargs.get('identifier')}"
     )
 
@@ -90,6 +90,8 @@ async def create_pr_from_meta(schema: str, repo_type: str, **kwargs):
         pipeline_args = args_model(**merged_kwargs)
         file_changes, issues = await pipeline(pipeline_args)
 
+        output = {"pr": None, "issues": None}
+
         pr = {}
         if file_changes:
             branch = _unique_branch_name()
@@ -102,11 +104,13 @@ async def create_pr_from_meta(schema: str, repo_type: str, **kwargs):
                 head_branch=f"{fork.owner}:{branch}",
                 base_branch=repo_model.repo.default_branch,
             )
+            output["pr"] = pr
             logger.info(f"Created PR for {owner}/{repo}: {pr.get('html_url')}")
 
         allow_issues = kwargs.get("allow_issues", None)
 
         if allow_issues and issues:
+            created_issues = []
             for title, body in issues.items():
                 created_issue = await repo_provider.create_issue(
                     owner=owner,
@@ -114,6 +118,8 @@ async def create_pr_from_meta(schema: str, repo_type: str, **kwargs):
                     title=title,
                     body=body,
                 )
+                created_issues.append(created_issue)
                 logger.info(f"Created issue for {owner}/{repo}: {created_issue.get('html_url')}")
+            output["issues"] = created_issues
 
-        return pr
+        return output

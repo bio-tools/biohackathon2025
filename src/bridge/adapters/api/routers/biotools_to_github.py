@@ -8,7 +8,7 @@ from fastapi import APIRouter, HTTPException, status
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
-from bridge.handlers import create_pr_from_meta
+from bridge.handlers import create_pr_issues_from_meta
 
 logger = logging.getLogger(__name__)
 
@@ -59,7 +59,7 @@ async def biotools_to_github_pr(payload: BioToolsToGitHubPayload):
     """
     logger.info(f"Received PR creation request for {payload.owner}/{payload.repo} from bio.tools:{payload.biotools_id}")
     try:
-        pr = await create_pr_from_meta(
+        pr = await create_pr_issues_from_meta(
             schema="biotools",
             repo_type="github",
             identifier=payload.biotools_id,
