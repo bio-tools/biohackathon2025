@@ -1,7 +1,11 @@
 Sequence diagrams
 =================
 
-.. mermaid::
-    :name: GitHub ⇄ bio.tools: Flow
+This sequence diagram illustrates the high-level runtime flow of the GitHub ⇄ bio.tools bridge.
+It shows how user input is handled by the interface, routed through the central handler, and executed
+depending on the selected direction of the bridge.
 
-    sequence/bridge-flow.mmd
+General flow of the GitHub ⇄ bio.tools bridge
+----------------------------------------------
+
+.. mermaid:: sequence/bridge-flow.mmd
