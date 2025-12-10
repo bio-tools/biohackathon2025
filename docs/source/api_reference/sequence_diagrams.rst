@@ -18,3 +18,12 @@ The diagram below details the process of composing the metadata models
 from GitHub repositories and bio.tools entries.
 
 .. mermaid:: sequence/composing.mmd
+
+
+GitHub → bio.tools pipeline
+----------------------------
+
+The diagram below details the pipeline for mapping GitHub repository
+to a bio.tools tool metadata.
+
+.. mermaid:: sequence/gh2bt.mmd
