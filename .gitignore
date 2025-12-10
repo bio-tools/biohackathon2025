@@ -9,6 +9,7 @@ logs/
 # Documentation
 docs/source/api_reference/_apidoc_generated/
 docs/source/api_reference/_architecture_generated/
+docs/source/api_reference/sequence/*.svg
 docs/source/_generated/
 docs/build/
 

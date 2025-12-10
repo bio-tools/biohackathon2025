@@ -1,0 +1,107 @@
+---
+config:
+  theme: base
+  look: neo
+  themeVariables:
+    darkMode: true
+    sequenceNumberColor: "#005a7a"
+    actorBkg: "#005a7a"
+    actorBorder: "#005a7a"
+    actorLineColor: "#005a7a"
+    activationBkgColor: "#1099c9"
+    activationBorderColor: "#1099c9"
+    labelBoxBorderColor: "#5DD3FC"
+    loopTextColor: "#5DD3FC"
+    labelTextColor: "#5DD3FC"
+    noteBkgColor: "#F47D22"
+    noteBorderColor: "#F47D22"
+    noteTextColor: "#fff"
+---
+sequenceDiagram
+
+    actor user
+    participant interface
+    participant bootstrap
+    participant handler
+
+    participant gh-composer as builder<br/>GitHub composer
+    participant bt-composer as builder<br/>bio.tools composer
+    participant gh-provider as service<br/> GitHubRepoProvider
+
+    autonumber
+
+    activate interface
+
+    alt API usage
+        user->>interface: bridge api
+    else CLI usage
+        user->>interface: bridge cli
+    else Python package usage
+        user->>interface: import bridge
+    end
+
+    activate bootstrap
+    critical
+        interface->>bootstrap: register_handler()<br/>{goal}
+        bootstrap-->>interface: register handler for goal
+        bootstrap-->>interface: wire app registry
+    end
+    deactivate bootstrap
+    interface-->>interface: load config settings
+    interface-->>interface: setup logging
+
+    user->>interface: trigger handler
+    activate handler
+
+    alt GitHub → bio.tools
+        interface-)handler: extract_meta_from_repo() <br/> {owner, repo, biotools_id?}
+    else bio.tools → GitHub
+        interface-)handler: create_pr_issues_from_meta() <br/> {biotools_id, owner, repo, allow_issues?}
+    end
+
+    activate gh-composer
+    handler->>gh-composer: repo_composer() / compose_github_repo()<br/>{owner, repo}
+    note over gh-composer: Fetch GitHub repo metadata<br/>and transform to GitHubRepoModel
+    gh-composer-->>handler: GitHubRepoModel<br/>composed repo model
+    deactivate gh-composer
+
+    alt bio.tools id provided
+        activate bt-composer
+        handler->>bt-composer: metadata_composer() / compose_biotools_metadata()<br/>{identifier}
+        note over bt-composer: Fetch bio.tools metadata<br/>and transform to BiotoolsToolModel
+        bt-composer-->>handler: BiotoolsToolModel<br/>composed metadata model
+        deactivate bt-composer
+    end
+
+    activate gh-provider
+    handler->>gh-provider: <<create>> GitHubRepoProvider
+    handler->>gh-provider: clone_context()
+    gh-provider-->>handler: path to temp cloned repo
+
+    alt GitHub → bio.tools
+
+        note over handler: REF GitHub → bio.tools pipeline
+
+        handler-->>handler: dump BiotoolsToolModel
+        handler-->>interface: bio.tools json metadata
+    else bio.tools → GitHub
+        handler->>gh-provider: fork()
+
+        note over handler: REF bio.tools → GitHub pipeline
+
+        handler->>gh-provider: apply_changes_and_push()<br/>{file changes} (to the new branch in fork)
+        handler->>gh-provider: create_pull_request()<br/>(to the head branch of OG repo)
+        gh-provider-->>handler: PR metadata
+        opt issues allowed
+            loop every issue
+                handler->>gh-provider: create_issue()<br/>(to the OG repo)
+                gh-provider-->>handler: issue metadata
+            end
+        end
+        handler-->>interface: metadata about created PR and issues
+    end
+
+    deactivate gh-provider
+    deactivate handler
+
+    deactivate interface
