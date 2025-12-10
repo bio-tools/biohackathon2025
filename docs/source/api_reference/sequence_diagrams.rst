@@ -9,3 +9,12 @@ General flow of the GitHub ⇄ bio.tools bridge
 ----------------------------------------------
 
 .. mermaid:: sequence/bridge-flow.mmd
+
+
+Composing models
+-----------------
+
+The diagram below details the process of composing the metadata models
+from GitHub repositories and bio.tools entries.
+
+.. mermaid:: sequence/composing.mmd
