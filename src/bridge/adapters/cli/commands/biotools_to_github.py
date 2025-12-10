@@ -7,22 +7,22 @@ import logging
 
 import typer
 
-from bridge.handlers import create_pr_from_meta
+from bridge.handlers import create_pr_issues_from_meta
 
 logger = logging.getLogger(__name__)
 
 app = typer.Typer(help="bio.tools -> GitHub bridge")
 
 
-@app.command("pr")
-def pr(
+@app.command("update")
+def update(
     biotools_id: str = typer.Argument(..., help="The ID of the source bio.tools entry."),
     owner: str = typer.Argument(..., help="The owner of the GitHub repository to create the PR in."),
     repo: str = typer.Argument(..., help="The name of the GitHub repository to create the PR in."),
     allow_issues: bool | None = typer.Option(None, help="Whether to create issues in the repository."),
 ):
     """
-    Create a GitHub PR from bio.tools metadata.
+    Create a GitHub PR (and issues) from bio.tools metadata.
 
     Parameters
     ----------
@@ -35,10 +35,10 @@ def pr(
     allow_issues : bool | None
         Whether to create issues in the repository based on bio.tools issues. Default is None.
     """
-    logger.info(f"Creating PR for {owner}/{repo} from bio.tools:{biotools_id}")
+    logger.info(f"Creating PR (and issues) for {owner}/{repo} from bio.tools:{biotools_id}")
 
     async def _run():
-        result = await create_pr_from_meta(
+        result = await create_pr_issues_from_meta(
             schema="biotools",
             repo_type="github",
             identifier=biotools_id,
