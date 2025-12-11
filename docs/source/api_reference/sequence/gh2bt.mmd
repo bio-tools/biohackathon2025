@@ -22,9 +22,9 @@ sequenceDiagram
     actor handler
 
     participant gh2bt as pipeline<br/>GitHub → bio.tools
-    participant mapper as MapGitHub2BioTools
-    participant map_item as MapItem
-    participant model as BiotoolsToolModel
+    participant mapper as pipeline<br/>MapGitHub2BioTools
+    participant map_item as pipeline<br/>MapItem
+    participant model as core<br/>BiotoolsToolModel
 
     activate  gh2bt
 
