@@ -1,0 +1,62 @@
+---
+config:
+  theme: base
+  look: neo
+  themeVariables:
+    darkMode: true
+    sequenceNumberColor: "#005a7a"
+    actorBkg: "#005a7a"
+    actorBorder: "#005a7a"
+    actorLineColor: "#005a7a"
+    activationBkgColor: "#1099c9"
+    activationBorderColor: "#1099c9"
+    labelBoxBorderColor: "#5DD3FC"
+    loopTextColor: "#5DD3FC"
+    labelTextColor: "#5DD3FC"
+    noteBkgColor: "#F47D22"
+    noteBorderColor: "#F47D22"
+    noteTextColor: "#fff"
+---
+sequenceDiagram
+
+    actor handler
+
+    participant bt2gh as pipeline<br/>bio.tools → GitHub
+    participant mapper as MapBioTools2GitHub
+    participant map_destination as MapDestination
+    participant map_item as MapItem
+
+    activate  bt2gh
+
+    handler-)bt2gh: run()<br/>{repo_model, repo_path, metadata_model}
+    activate mapper
+    bt2gh->>mapper: <<create>> MapBioTools2GitHub
+    activate map_destination
+    bt2gh->>map_destination: <<create>> MapDestination<br/>(differentiates issues/PR in MapBioTools2GitHub)
+    bt2gh->>map_destination: get issues in MapBioTools2GitHub
+
+    loop every issue
+        bt2gh->>mapper: call map function
+        activate map_item
+        mapper-)map_item: run()<br/>{bio.tools relevant fields, GitHub relevant fields}
+        note over map_item: REF perform bio.tools → GitHub mapping for issues
+        map_item-->>bt2gh: new issue info (if needed)
+        deactivate map_item
+    end
+
+    bt2gh->>map_destination: get file_changes (for PR) in MapBioTools2GitHub
+
+    loop every file change
+        bt2gh->>mapper: call map function
+        activate map_item
+        mapper-)map_item: run()<br/>{bio.tools relevant fields, GitHub relevant fields}
+        note over map_item: REF perform bio.tools → GitHub mapping for file changes
+        map_item-->>bt2gh: new/changed file info (if needed)
+        deactivate map_item
+    end
+
+    bt2gh-->>handler: new issues info, file changes info
+    deactivate map_destination
+    deactivate mapper
+    deactivate  bt2gh
+
