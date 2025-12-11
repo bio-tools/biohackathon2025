@@ -49,8 +49,13 @@ Map description
 
 .. mermaid:: diagrams/gh2bt/description.mmd
 
+Map homepage
+~~~~~~~~~~~~~~~~~~~~
 
-Policy GitHub over bio.tools
+.. mermaid:: diagrams/gh2bt/homepage.mmd
+
+
+Policy: GitHub over bio.tools
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. mermaid:: diagrams/gh2bt/policy-gh-over-bt.mmd
