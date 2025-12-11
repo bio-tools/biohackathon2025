@@ -41,3 +41,4 @@ flowchart LR
     gh_languages & bt_languages --> check_gh{is GitHub languages None or empty?}
     check_gh -->|yes| nochange
     check_gh -->|no| policy[[REF Policy: GitHub languages over bio.tools languages]]:::ref
+    policy --> return_resolved([return resolved]):::success

@@ -61,6 +61,12 @@ Map language
 .. mermaid:: diagrams/gh2bt/language.mmd
 
 
+Map version
+~~~~~~~~~~~~~
+
+.. mermaid:: diagrams/gh2bt/version.mmd
+
+
 Policy: GitHub over bio.tools
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

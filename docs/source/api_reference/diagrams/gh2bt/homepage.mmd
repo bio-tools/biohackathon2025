@@ -48,3 +48,4 @@ flowchart LR
     check_gh_bt_homepage -->|no| check_gh_homepage{is GitHub homepage None?}
     check_gh_homepage -->|yes| nochange
     check_gh_homepage -->|no| policy[[REF Policy: GitHub homepage over bio.tools homepage]]:::ref
+    policy --> return_resolved([return resolved]):::success

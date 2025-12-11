@@ -1,0 +1,53 @@
+---
+config:
+  theme: base
+  look: neo
+  layout: elk
+  elk:
+    nodePlacementStrategy: NETWORK_SIMPLEX
+  themeVariables:
+    darkMode: true
+    background: "#121212"
+    primaryColor: "#005a7a"
+    primaryBorderColor: "#121212"
+    secondaryBorderColor:  "#121212"
+    edgeLabelBackground: transparent
+    labelTextColor: "#5DD3FC"
+    clusterBkg: transparent
+    clusterBorder: "#5DD3FC"
+    noteBkgColor: "#F47D22"
+    noteBorderColor: "#F47D22"
+    noteTextColor: "#fff"
+---
+flowchart LR
+    classDef ref fill:#F47D22
+    classDef notestyle fill:#F47D22
+    classDef notestyle stroke:#F47D22
+    classDef terminal fill:#1099c9
+    classDef terminal stroke:#1099c9
+    classDef success fill:#299967
+    classDef success stroke:#299967
+
+    start([start]):::terminal
+    nochange([no change, exit]):::terminal
+    subgraph GitHub entry
+        gh_version[/GitHub latest version tag/]
+    end
+    subgraph bio.tools entry
+        bt_versions[/bio.tools versions/]
+    end
+    conflict@{ shape: braces, label: "log conflict" }
+    style conflict fill:#F47D22,stroke:#F47D22
+
+    start --> gh_version & bt_versions
+    gh_version & bt_versions --> check_gh{is GitHub latest version tag None?}
+    check_gh -->|no| check_bt{is bio.tools versions None or empty?}
+    check_bt -->|yes| return_gh([return GitHub latest version tag]):::success
+    check_bt -->|no| check_gh_in_bt{is GitHub latest version tag present in the bio.tools versions?}
+    check_gh_in_bt -->|no| nochange
+    check_gh_in_bt -->|yes| check_bt_newer{is any version in bio.tools versions newer than GitHub latest version tag?}
+    check_bt_newer -->|yes| conflict
+    conflict --> return_gh
+    check_bt_newer -->|no| add[append GitHub latest version tag to bio.tools versions]
+    add --> return_result([return combined result]):::success
+    check_gh -->|yes| nochange
