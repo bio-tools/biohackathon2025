@@ -31,20 +31,13 @@ flowchart LR
     start([start]):::terminal
     nochange([no change, exit]):::terminal
     subgraph GitHub entry
-        gh_homepage[/GitHub homepage/]
-        gh_url[/GitHub html url/]
+        gh_languages[/GitHub languages/]
     end
     subgraph bio.tools entry
-        bt_homepage[/bio.tools homepage/]
+        bt_languages[/bio.tools languages/]
     end
 
-    start --> gh_homepage & gh_url & bt_homepage
-    gh_homepage & gh_url & bt_homepage --> check_gh_bt_homepage{are GitHub homepage AND bio.tools homepage None?}
-
-    check_gh_bt_homepage -->|yes| check_gh_url{is GitHub html url None?}
-    check_gh_url -->|no| return_gh_url([return GitHub html url]):::success
-    check_gh_url -->|yes| nochange
-
-    check_gh_bt_homepage -->|no| check_gh_homepage{is GitHub homepage None?}
-    check_gh_homepage -->|yes| nochange
-    check_gh_homepage -->|no| policy[[REF Policy: GitHub homepage over bio.tools homepage]]:::ref
+    start --> gh_languages & bt_languages
+    gh_languages & bt_languages --> check_gh{is GitHub languages None or empty?}
+    check_gh -->|yes| nochange
+    check_gh -->|no| policy[[REF Policy: GitHub languages over bio.tools languages]]:::ref

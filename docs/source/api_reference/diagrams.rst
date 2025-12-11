@@ -50,9 +50,15 @@ Map description
 .. mermaid:: diagrams/gh2bt/description.mmd
 
 Map homepage
-~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~
 
 .. mermaid:: diagrams/gh2bt/homepage.mmd
+
+
+Map language
+~~~~~~~~~~~~~~
+
+.. mermaid:: diagrams/gh2bt/language.mmd
 
 
 Policy: GitHub over bio.tools
