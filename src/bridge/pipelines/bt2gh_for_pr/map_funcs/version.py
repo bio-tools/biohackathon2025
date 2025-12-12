@@ -2,12 +2,13 @@
 Mapping versions from bio.tools to GitHub.
 """
 
-import logging
+from bridge.core.biotools import VersionType
+from bridge.logging import get_user_logger
 
-logger = logging.getLogger(__name__)
+logger = get_user_logger()
 
 
-def map_version(gh_version: str | None, bt_version: list | None) -> str | None:
+def map_version(gh_version: str | None, bt_version: list[VersionType] | None) -> dict[str, str] | None:
     """
     Map bio.tools version to GitHub version.
     """
@@ -15,7 +16,6 @@ def map_version(gh_version: str | None, bt_version: list | None) -> str | None:
         logger.info("CONFLICT: GitHub version doesn't exist.")
         return None
 
-    if not bt_version:
-        return gh_version
-
-    return gh_version
+    # if not bt_version:
+    #     return gh_version
+    return {}
