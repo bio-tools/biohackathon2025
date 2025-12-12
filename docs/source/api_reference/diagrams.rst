@@ -106,6 +106,11 @@ Map homepage
 
 .. mermaid:: diagrams/bt2gh/homepage.mmd
 
+Map topics
+~~~~~~~~~~~
+
+.. mermaid:: diagrams/bt2gh/topics.mmd
+
 Policy: bio.tools over GitHub
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
