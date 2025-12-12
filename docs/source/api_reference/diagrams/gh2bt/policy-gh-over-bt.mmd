@@ -40,7 +40,9 @@ flowchart LR
     gh & bt --> gh_check{is GitHub entry None?}
     gh_check -->|yes| nochange
     gh_check -->|no| build[[cast GitHub entry as bio.tools]]
-    build --> bt_check{is bio.tools entry None?}
+    build --> check_cast{is cast entry None / cast unsuccessful?}
+    check_cast -->|yes| nochange
+    check_cast -->|no| bt_check{is bio.tools entry None?}
     bt_check -->|yes| return
     bt_check -->|no| equal_check{are entries in GitHub and bio.tools equal?}
     equal_check -->|yes| nochange

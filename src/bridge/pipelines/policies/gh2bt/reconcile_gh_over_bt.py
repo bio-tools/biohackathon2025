@@ -79,6 +79,10 @@ def reconcile_gh_over_bt(
 
     gh_from_bt = build_bt_from_gh(gh_norm)
 
+    if gh_from_bt is None:
+        logger.unchanged(f"GitHub {log_label} could not be cast as bio.tools, nothing to map.")
+        return bt_value
+
     if bt_norm is None:
         logger.added(f"{log_label} from GitHub: {gh_norm!r}")
         return gh_from_bt
