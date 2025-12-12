@@ -1,10 +1,10 @@
 """
-Generate SVG diagrams from Mermaid `.mmd` files.
-Diagrams code location: docs/source/api_reference/diagrams/*.mmd
+Generate SVG process diagrams from Mermaid `.mmd` files.
+Diagrams code location: docs/source/api_reference/_process_diagrams/*.mmd
 Output SVGs next to the .mmd files (same basename, .svg extension).
 
 Run via:
-    poetry run gen-sequence-diagrams
+    poetry run gen-process-diagrams
 """
 
 from __future__ import annotations
@@ -14,7 +14,7 @@ import subprocess
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-SEQ_DOCS_DIR = BASE_DIR / "docs" / "source" / "api_reference" / "diagrams"
+SEQ_DOCS_DIR = BASE_DIR / "docs" / "source" / "api_reference" / "_process_diagrams"
 
 
 def find_mermaid_files(root: Path) -> list[Path]:
@@ -38,8 +38,9 @@ def render_mermaid_to_svg(mmd_file: Path, mmdc_exe: str) -> None:
                 str(mmd_file),
                 "-o",
                 str(svg_file),
-                # Optional tweaks:
-                # "--backgroundColor", "transparent",
+                # optional tweaks:
+                "--backgroundColor",
+                "#121212",
                 # "--scale", "1.0",
             ],
             check=True,
