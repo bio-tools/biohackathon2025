@@ -1,0 +1,43 @@
+---
+config:
+  theme: base
+  look: neo
+  themeVariables:
+    darkMode: true
+    background: "#121212"
+    sequenceNumberColor: "#005a7a"
+    actorBkg: "#005a7a"
+    actorBorder: "#005a7a"
+    actorLineColor: "#005a7a"
+    activationBkgColor: "#1099c9"
+    activationBorderColor: "#1099c9"
+    labelBoxBorderColor: "#5DD3FC"
+    loopTextColor: "#5DD3FC"
+    labelTextColor: "#5DD3FC"
+    noteBkgColor: "#F47D22"
+    noteBorderColor: "#F47D22"
+    noteTextColor: "#fff"
+---
+sequenceDiagram
+
+    actor composer as builder<br/>composer
+
+    participant ingestor as service<br/>Ingestor
+    participant transformer as builder<br>Transformer
+    participant model as core<br>Model
+
+    autonumber
+
+    activate ingestor
+    composer->>ingestor: <<create>> Ingestor
+    activate transformer
+    composer->>transformer: <<create>> Transformer
+    composer-)transformer: transform()<br/>{ingestor}
+    transformer-)ingestor: fetch()
+    ingestor-->>transformer: raw API data
+    deactivate ingestor
+    activate model
+    transformer->>model: <<create>> Model<br/>(cast raw data)
+    deactivate transformer
+    deactivate model
+

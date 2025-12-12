@@ -21,11 +21,6 @@ def map_license(gh_license: str | None, bt_license: License | None) -> License |
     Map and reconcile GitHub and bio.tools license annotations using the generic
     GitHub-over-bio.tools policy.
 
-    The GitHub SPDX identifier is first resolved to the ``License`` enum via
-    ``find_matching_enum_member``. Only recognized GitHub licenses participate
-    in reconciliation; unrecognized or missing GitHub values leave the existing
-    bio.tools license unchanged.
-
     Parameters
     ----------
     gh_license : str | None
@@ -40,25 +35,15 @@ def map_license(gh_license: str | None, bt_license: License | None) -> License |
         The reconciled license as a `License` enum member, or ``None`` if
         neither GitHub nor bio.tools provides a usable license.
     """
-    gh_matched_license = find_matching_enum_member(gh_license, License) if gh_license else None
-
     if gh_license is None:
         # if no GitHub license, return bio.tools license, which may be None
         logger.note("GitHub has no license SPDX ID, nothing to map")
         return bt_license
 
-    if gh_matched_license is None:
-        # if GitHub license is not recognized, return bio.tools license, which may be None
-        logger.note(f"GitHub license '{gh_license}' not recognized in bio.tools License enum, nothing to map")
-        return bt_license
-
-    gh_norm = gh_matched_license  # normalized as License enum
-    bt_norm = bt_license  # already a License enum
-
     return reconcile_gh_over_bt(
-        gh_norm=gh_norm,
-        bt_norm=bt_norm,
+        gh_norm=gh_license,
+        bt_norm=bt_license,
         bt_value=bt_license,
-        build_bt_from_gh=lambda x: x,
+        build_bt_from_gh=lambda gh: find_matching_enum_member(gh, License),
         log_label="license",
     )

@@ -38,6 +38,7 @@ extensions = [
     "myst_parser",  # Markdown parser
     "sphinx_automodapi.automodapi",  # Advanced autodoc for modules
     "sphinx_automodapi.smart_resolver",  # Better cross-referencing
+    "sphinxcontrib.mermaid",  # Mermaid diagrams
 ]
 napoleon_google_docstring = True
 napoleon_numpy_docstring = True
@@ -99,6 +100,9 @@ autosummary_imported_members = False
 autodoc_typehints = "description"
 automodsumm_inherited_members = False
 automodsumm_imported_members = False
+
+mermaid_d3_zoom = True
+mermaid_fullscreen = True
 
 templates_path = ["_templates"]
 exclude_patterns = []
