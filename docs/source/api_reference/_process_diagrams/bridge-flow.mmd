@@ -61,14 +61,14 @@ sequenceDiagram
     end
 
     activate gh-composer
-    handler->>gh-composer: repo_composer() / compose_github_repo()<br/>{owner, repo}
+    handler-)gh-composer: repo_composer() / compose_github_repo()<br/>{owner, repo}
     note over gh-composer: REF composing<br/>fetch GitHub repo metadata (GitHubIngestor)<br/>and transform (GitHubRepoTransformer) to GitHubRepoModel
     gh-composer-->>handler: GitHubRepoModel<br/>composed repo model
     deactivate gh-composer
 
     alt bio.tools id provided
         activate bt-composer
-        handler->>bt-composer: metadata_composer() / compose_biotools_metadata()<br/>{identifier}
+        handler-)bt-composer: metadata_composer() / compose_biotools_metadata()<br/>{identifier}
         note over bt-composer: REF composing<br/>fetch bio.tools metadata (BiotoolsIngestor)<br/>and transform (BiotoolsToolTransformer) to BiotoolsToolModel
         bt-composer-->>handler: BiotoolsToolModel<br/>composed metadata model
         deactivate bt-composer
@@ -76,7 +76,7 @@ sequenceDiagram
 
     activate gh-provider
     handler->>gh-provider: <<create>> GitHubRepoProvider
-    handler->>gh-provider: clone_context()
+    handler-)gh-provider: clone_context()
     gh-provider-->>handler: path to temp cloned repo
 
     alt GitHub → bio.tools
@@ -86,16 +86,16 @@ sequenceDiagram
         handler-->>handler: dump BiotoolsToolModel
         handler-->>interface: bio.tools json metadata
     else bio.tools → GitHub
-        handler->>gh-provider: fork()
+        handler-)gh-provider: fork()
 
         note over handler: REF bio.tools → GitHub pipeline
 
-        handler->>gh-provider: apply_changes_and_push()<br/>{file changes} (to the new branch in fork)
-        handler->>gh-provider: create_pull_request()<br/>(to the head branch of OG repo)
+        handler-)gh-provider: apply_changes_and_push()<br/>{file changes} (to the new branch in fork)
+        handler-)gh-provider: create_pull_request()<br/>(to the head branch of OG repo)
         gh-provider-->>handler: PR metadata
         opt issues allowed
             loop every issue
-                handler->>gh-provider: create_issue()<br/>(to the OG repo)
+                handler-)gh-provider: create_issue()<br/>(to the OG repo)
                 gh-provider-->>handler: issue metadata
             end
         end
