@@ -21,7 +21,8 @@ dependencies = [
     "httpx (>=0.28.1,<0.29.0)",
     "typer (>=0.20.0,<0.21.0)",
     "huggingface-hub (>=1.0.1,<2.0.0)",
-    "numpy (>=2.3.4,<3.0.0)"
+    "numpy (>=2.3.4,<3.0.0)",
+    "sphinxcontrib-mermaid (>=1.2.3,<2.0.0)"
 ]
 
 [tool.poetry.group.dev.dependencies]
@@ -106,6 +107,7 @@ gen-biotools-models = "scripts.gen_models:generate_biotools_models"
 gen-github-models = "scripts.gen_models:generate_github_models"
 gen-docs = "scripts.gen_docs:main"
 gen-diagrams = "scripts.gen_diagrams:main"
+gen-process-diagrams = "scripts.gen_process_diagrams:main"
 bridge = "bridge.__main__:main_app"
 
 

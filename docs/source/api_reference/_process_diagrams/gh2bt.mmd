@@ -1,0 +1,50 @@
+---
+config:
+  theme: base
+  look: neo
+  themeVariables:
+    darkMode: true
+    background: "#121212"
+    sequenceNumberColor: "#005a7a"
+    actorBkg: "#005a7a"
+    actorBorder: "#005a7a"
+    actorLineColor: "#005a7a"
+    activationBkgColor: "#1099c9"
+    activationBorderColor: "#1099c9"
+    labelBoxBorderColor: "#5DD3FC"
+    loopTextColor: "#5DD3FC"
+    labelTextColor: "#5DD3FC"
+    noteBkgColor: "#F47D22"
+    noteBorderColor: "#F47D22"
+    noteTextColor: "#fff"
+---
+sequenceDiagram
+
+    actor handler
+
+    participant gh2bt as pipeline<br/>GitHub → bio.tools
+    participant mapper as pipeline<br/>MapGitHub2BioTools
+    participant map_item as pipeline<br/>MapItem
+    participant model as core<br/>BiotoolsToolModel
+
+    activate  gh2bt
+
+    handler-)gh2bt: run()<br/>{repo_model, repo_path, existing_metadata?}
+    activate mapper
+    gh2bt->>mapper: <<create>> MapGitHub2BioTools
+
+    loop every mappable metadata entry
+        gh2bt-)mapper: call map function
+        activate map_item
+        mapper-)map_item: run()<br/>{bio.tools relevant fields, GitHub relevant fields}
+        note over map_item: REF GitHub → bio.tools mapping
+        map_item-->>gh2bt: mapped metadata entry
+        deactivate map_item
+    end
+
+    activate model
+    gh2bt->>model: <<create>> BiotoolsToolModel<br/>{mapped entries}
+    gh2bt-->>handler: BiotoolsToolModel
+    deactivate model
+    deactivate mapper
+    deactivate  gh2bt

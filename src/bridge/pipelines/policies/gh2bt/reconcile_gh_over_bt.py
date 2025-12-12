@@ -77,13 +77,19 @@ def reconcile_gh_over_bt(
         logger.unchanged(f"No GitHub {log_label} found, nothing to map.")
         return bt_value
 
+    gh_from_bt = build_bt_from_gh(gh_norm)
+
+    if gh_from_bt is None:
+        logger.unchanged(f"GitHub {log_label} could not be cast as bio.tools, nothing to map.")
+        return bt_value
+
     if bt_norm is None:
         logger.added(f"{log_label} from GitHub: {gh_norm!r}")
-        return build_bt_from_gh(gh_norm)
+        return gh_from_bt
 
-    if gh_norm == bt_norm:
+    if gh_from_bt == bt_norm:
         logger.exact(f"GitHub {log_label} matches bio.tools {log_label}.")
         return bt_value
 
     logger.conflict(f"Existing GitHub {log_label} {gh_norm!r} differs from bio.tools {log_label} {bt_norm!r}")
-    return build_bt_from_gh(gh_norm)
+    return gh_from_bt
