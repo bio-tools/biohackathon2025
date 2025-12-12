@@ -116,6 +116,19 @@ Map version
 
 TODO: add diagram here once errors in the mapping function are resolved.
 
+
+bio.tools → GitHub mapping for pull requests
+---------------------------------------------
+
+The flowcharts below detail the mapping of specific fields from bio.tools to GitHub
+in the form of pull requests.
+
+Map license
+~~~~~~~~~~~~~~~~
+
+.. mermaid:: diagrams/bt2gh/license.mmd
+
+
 Policy: bio.tools over GitHub
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -125,10 +138,3 @@ Policy: bio.tools on top of GitHub
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. mermaid:: diagrams/bt2gh/policy-bt-ontop-gh.mmd
-
-
-bio.tools → GitHub mapping for pull requests
----------------------------------------------
-
-The flowcharts below detail the mapping of specific fields from bio.tools to GitHub
-in the form of pull requests.
