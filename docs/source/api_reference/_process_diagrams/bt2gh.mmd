@@ -34,10 +34,10 @@ sequenceDiagram
     bt2gh->>mapper: <<create>> MapBioTools2GitHub
     activate map_destination
     bt2gh->>map_destination: <<create>> MapDestination<br/>(differentiates issues/PR in MapBioTools2GitHub)
-    bt2gh->>map_destination: get issues in MapBioTools2GitHub
+    bt2gh-)map_destination: get issues in MapBioTools2GitHub
 
     loop every issue
-        bt2gh->>mapper: call map function
+        bt2gh-)mapper: call map function
         activate map_item
         mapper-)map_item: run()<br/>{bio.tools relevant fields, GitHub relevant fields}
         note over map_item: REF perform bio.tools → GitHub mapping for issues
@@ -45,10 +45,10 @@ sequenceDiagram
         deactivate map_item
     end
 
-    bt2gh->>map_destination: get file_changes (for PR) in MapBioTools2GitHub
+    bt2gh-)map_destination: get file_changes (for PR) in MapBioTools2GitHub
 
     loop every file change
-        bt2gh->>mapper: call map function
+        bt2gh-)mapper: call map function
         activate map_item
         mapper-)map_item: run()<br/>{bio.tools relevant fields, GitHub relevant fields}
         note over map_item: REF perform bio.tools → GitHub mapping for file changes
