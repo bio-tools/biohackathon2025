@@ -49,23 +49,25 @@ Map description
 
 .. mermaid:: diagrams/gh2bt/description.mmd
 
+Map version
+~~~~~~~~~~~~~
+
+.. mermaid:: diagrams/gh2bt/version.mmd
+
 Map homepage
 ~~~~~~~~~~~~~~
 
 .. mermaid:: diagrams/gh2bt/homepage.mmd
-
 
 Map language
 ~~~~~~~~~~~~~~
 
 .. mermaid:: diagrams/gh2bt/language.mmd
 
-
-Map version
+Map license
 ~~~~~~~~~~~~~
 
-.. mermaid:: diagrams/gh2bt/version.mmd
-
+.. mermaid:: diagrams/gh2bt/license.mmd
 
 Policy: GitHub over bio.tools
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
