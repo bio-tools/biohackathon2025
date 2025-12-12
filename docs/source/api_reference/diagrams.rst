@@ -1,5 +1,5 @@
-bridge diagrams
-=================
+bridge diagrams (for GitHub ⇄ bio.tools)
+==========================================
 
 General flow of the GitHub ⇄ bio.tools bridge
 ----------------------------------------------
@@ -58,6 +58,11 @@ Map maturity
 ~~~~~~~~~~~~~~
 
 .. mermaid:: diagrams/gh2bt/maturity.mmd
+
+Map publications
+~~~~~~~~~~~~~~~~~~
+
+.. mermaid:: diagrams/gh2bt/publication.mmd
 
 Map homepage
 ~~~~~~~~~~~~~~
