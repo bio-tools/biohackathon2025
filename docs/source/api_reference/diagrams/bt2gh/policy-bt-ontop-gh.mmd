@@ -36,9 +36,8 @@ flowchart LR
     gh & bt --> bt_check{is bio.tools entry None?}
     bt_check -->|yes| nochange
     bt_check -->|no| gh_check{is GitHub entry None?}
-    gh_check -->|yes| make_issue[[build info for new issue]]
+    gh_check -->|yes| return([create issue]):::success
     gh_check -->|no| diff["identify elements in GitHub entry that are missing in bio.tools entry (set difference)"]
     diff --> check_diff{is the set difference empty?}
     check_diff -->|yes| nochange
-    check_diff -->|no| make_issue
-    make_issue --> return([issue info]):::success
+    check_diff -->|no| return

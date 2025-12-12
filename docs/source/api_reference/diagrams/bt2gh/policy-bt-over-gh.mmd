@@ -41,6 +41,5 @@ flowchart LR
     gh_check -->|yes| equal_check{are entries in GitHub and bio.tools equal?}
     equal_check -->|yes| nochange
     equal_check -->|no| conflict
-    conflict --> make_issue[[build info for new issue]]
-    gh_check -->|no| make_issue
-    make_issue --> return([issue info]):::success
+    conflict --> return([create issue]):::success
+    gh_check -->|no| return
