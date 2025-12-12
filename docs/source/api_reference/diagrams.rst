@@ -54,6 +54,11 @@ Map version
 
 .. mermaid:: diagrams/gh2bt/version.mmd
 
+Map maturity
+~~~~~~~~~~~~~~
+
+.. mermaid:: diagrams/gh2bt/maturity.mmd
+
 Map homepage
 ~~~~~~~~~~~~~~
 
