@@ -91,19 +91,25 @@ async def run(args: GitHubToBiotoolsForMetaPipelineArgs) -> BiotoolsToolModel:
     biotools_url = settings.biotools_url
     logger.info(args.existing_metadata)
     logger.info(f"Extracted bio.tools metadata for repo {github_repo.repo.name}")
+
+    json_bytes = biotools_metadata.model_dump_json().encode("utf-8")
+    b64 = base64.b64encode(json_bytes).decode("ascii")
+    encoded_json = urllib.parse.quote(b64)
+
     if args.existing_metadata is not None:
         logger.info(
-            f"\n\n*** 🛠  Want to update the bio.tools entry for this repo? (You must have edit "
-            f"permissions on this tool in bio.tools) ***\n"
+            f"\n\n*** 🛠  Want to update the bio.tools entry for this repo? "
+            f"(You must have edit permissions on this tool in bio.tools) ***\n"
             f"🚀 (1) Log in to {biotools_url}\n"
-            f"✨ (2) click the following link:\n\n{str(biotools_url)}/{args.existing_metadata.name}/edit"
-            f"?json={urllib.parse.quote(base64.b64encode(biotools_metadata.model_dump_json().encode('ascii')))} \n"
+            f"✨ (2) click the following link:\n\n"
+            f"{biotools_url}/{args.existing_metadata.name}/edit?json={encoded_json}\n"
         )
     else:
         logger.info(
             f"\n\n*** 🛠  Want to create a bio.tools entry for this repo? ***\n"
             f"🚀 (1) Log in to {biotools_url}\n"
-            f"✨ (2) click the following link:\n\n{str(biotools_url)}/register"
-            f"?json={urllib.parse.quote(base64.b64encode(biotools_metadata.model_dump_json().encode('ascii')))} \n"
+            f"✨ (2) click the following link:\n\n"
+            f"{biotools_url}/register?json={encoded_json}\n"
         )
+
     return biotools_metadata
