@@ -111,6 +111,11 @@ Map topics
 
 .. mermaid:: diagrams/bt2gh/topics.mmd
 
+Map version
+~~~~~~~~~~~~~~
+
+TODO: add diagram here once errors in the mapping function are resolved.
+
 Policy: bio.tools over GitHub
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
