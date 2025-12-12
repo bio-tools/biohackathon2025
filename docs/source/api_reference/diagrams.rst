@@ -125,3 +125,10 @@ Policy: bio.tools on top of GitHub
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. mermaid:: diagrams/bt2gh/policy-bt-ontop-gh.mmd
+
+
+bio.tools → GitHub mapping for pull requests
+---------------------------------------------
+
+The flowcharts below detail the mapping of specific fields from bio.tools to GitHub
+in the form of pull requests.

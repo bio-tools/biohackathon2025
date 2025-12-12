@@ -28,7 +28,7 @@ flowchart LR
     classDef success stroke:#299967
 
     start([start]):::terminal
-    nochange([no issue, exit]):::terminal
+    nochange([no issue or PR, exit]):::terminal
     gh[/GitHub entry/]
     bt[/bio.tools entry/]
     conflict@{ shape: braces, label: "log conflict" }
@@ -41,5 +41,5 @@ flowchart LR
     gh_check -->|yes| equal_check{are entries in GitHub and bio.tools equal?}
     equal_check -->|yes| nochange
     equal_check -->|no| conflict
-    conflict --> return([create issue]):::success
+    conflict --> return([create issue or PR]):::success
     gh_check -->|no| return
