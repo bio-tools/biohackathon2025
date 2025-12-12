@@ -101,6 +101,11 @@ Map description
 
 .. mermaid:: diagrams/bt2gh/description.mmd
 
+Map homepage
+~~~~~~~~~~~~~~
+
+.. mermaid:: diagrams/bt2gh/homepage.mmd
+
 Policy: bio.tools over GitHub
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
