@@ -7,10 +7,14 @@ to the bio.tools ``documentation`` field by adding appropriate
 """
 
 import subprocess
+from typing import Any
 from urllib.parse import urljoin
+
+from pydantic import AnyUrl
 
 from bridge.core.biotools import DocumentationItem, TypeEnum1
 from bridge.core.github_pages import GitHubPages
+from bridge.core.github_repo import CodeOfConduct
 from bridge.logging import get_user_logger
 from bridge.pipelines.utils import canonicalize_url
 
@@ -55,12 +59,15 @@ def _add_doc_if_not_exists(
     return bt_documentation
 
 
-def _wiki_repo_exists(gh_html_url: str, timeout: float = 5.0) -> bool:
+def _wiki_repo_exists(gh_html_url: AnyUrl | None, timeout: float = 5.0) -> bool:
     """
     Check if the GitHub wiki repository exists by probing with `git ls-remote`.
     """
+    if not gh_html_url:
+        return False
+
     try:
-        wiki_git_url = gh_html_url.rstrip("/") + ".wiki.git"
+        wiki_git_url = str(gh_html_url).rstrip("/") + ".wiki.git"
 
         result = subprocess.run(
             ["git", "ls-remote", wiki_git_url],
@@ -75,7 +82,7 @@ def _wiki_repo_exists(gh_html_url: str, timeout: float = 5.0) -> bool:
 
 
 def _map_wiki(
-    gh_html_url: str | None, gh_has_wiki: bool | None, bt_documentation: list[DocumentationItem] | None
+    gh_html_url: AnyUrl | None, gh_has_wiki: bool | None, bt_documentation: list[DocumentationItem] | None
 ) -> list[DocumentationItem] | None:
     """
     Map GitHub wiki presence to bio.tools documentation.
@@ -86,7 +93,7 @@ def _map_wiki(
 
     Parameters
     ----------
-    gh_html_url : str | None
+    gh_html_url : AnyUrl | None
         GitHub repository HTML URL (e.g. ``https://github.com/user/repo``).
     gh_has_wiki : bool | None
         Flag indicating whether the repository has wiki enabled.
@@ -109,7 +116,7 @@ def _map_wiki(
 
 
 def _map_code_of_conduct(
-    gh_code_of_conduct: dict | None, bt_documentation: list[DocumentationItem] | None
+    gh_code_of_conduct: CodeOfConduct | None, bt_documentation: list[DocumentationItem] | None
 ) -> list[DocumentationItem] | None:
     """
     Map GitHub code of conduct presence to bio.tools documentation.
@@ -120,8 +127,8 @@ def _map_code_of_conduct(
 
     Parameters
     ----------
-    gh_code_of_conduct : dict[str, Any] | None
-        GitHub code of conduct metadata dictionary, expected to contain
+    gh_code_of_conduct : CodeOfConduct | None
+        GitHub code of conduct metadata, expected to contain
         an ``"html_url"`` key when present.
     bt_documentation : list[DocumentationItem] | None
         Existing bio.tools documentation entries.
@@ -131,9 +138,10 @@ def _map_code_of_conduct(
     list[DocumentationItem] | None
         Updated documentation list, or the original list if nothing changed.
     """
-    if gh_code_of_conduct and gh_code_of_conduct.get("html_url"):
-        coc_url = gh_code_of_conduct.get("html_url")
-        return _add_doc_if_not_exists(bt_documentation, coc_url, TypeEnum1.Code_of_conduct)
+    if gh_code_of_conduct and gh_code_of_conduct.html_url:
+        coc_url = gh_code_of_conduct.html_url
+        coc_url_str = canonicalize_url(str(coc_url))
+        return _add_doc_if_not_exists(bt_documentation, coc_url_str, TypeEnum1.Code_of_conduct)
 
     logger.unchanged("no GitHub code of conduct found, nothing to map.")
     return bt_documentation
@@ -162,15 +170,16 @@ def _map_github_pages(
         Updated documentation list, or the original list if nothing changed.
     """
     if gh_pages and gh_pages.html_url:
-        pages_url = str(gh_pages.html_url)
-        return _add_doc_if_not_exists(bt_documentation, pages_url, TypeEnum1.General)
+        pages_url = gh_pages.html_url
+        pages_url_str = canonicalize_url(str(pages_url))
+        return _add_doc_if_not_exists(bt_documentation, pages_url_str, TypeEnum1.General)
 
     logger.unchanged("no GitHub Pages site found, nothing to map.")
     return bt_documentation
 
 
 def map_documentation(
-    gh_repo_data: dict | None, bt_documentation: list[DocumentationItem] | None
+    gh_repo_data: dict[str, Any] | None, bt_documentation: list[DocumentationItem] | None
 ) -> list[DocumentationItem] | None:
     """
     Map and reconcile GitHub documentation-related metadata to the
@@ -207,10 +216,10 @@ def map_documentation(
         logger.unchanged("no GitHub repository documentation data found, nothing to map.")
         return bt_documentation
 
-    gh_html_url = gh_repo_data.get("html_url")
-    gh_has_wiki = gh_repo_data.get("has_wiki")
-    gh_code_of_conduct = gh_repo_data.get("code_of_conduct")
-    gh_pages = gh_repo_data.get("github_pages")
+    gh_html_url: AnyUrl | None = gh_repo_data.get("html_url")
+    gh_has_wiki: bool | None = gh_repo_data.get("has_wiki")
+    gh_code_of_conduct: CodeOfConduct | None = gh_repo_data.get("code_of_conduct")
+    gh_pages: GitHubPages | None = gh_repo_data.get("github_pages")
 
     bt_documentation = _map_wiki(gh_html_url, gh_has_wiki, bt_documentation)
     bt_documentation = _map_code_of_conduct(gh_code_of_conduct, bt_documentation)
