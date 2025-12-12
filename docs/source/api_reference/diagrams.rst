@@ -96,6 +96,10 @@ bio.tools → GitHub mapping for issues
 The flowcharts below detail the mapping of specific fields from bio.tools to GitHub
 in the form of issues.
 
+Map description
+~~~~~~~~~~~~~~~~~~
+
+.. mermaid:: diagrams/bt2gh/description.mmd
 
 Policy: bio.tools over GitHub
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
