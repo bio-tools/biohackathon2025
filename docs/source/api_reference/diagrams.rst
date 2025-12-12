@@ -133,6 +133,11 @@ Map citation
 
 .. mermaid:: diagrams/bt2gh/citation.mmd
 
+Map readme
+~~~~~~~~~~~~~~
+
+.. mermaid:: diagrams/bt2gh/readme.mmd
+
 
 Policy: bio.tools over GitHub
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
