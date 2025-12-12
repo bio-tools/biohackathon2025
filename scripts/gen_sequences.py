@@ -1,6 +1,6 @@
 """
-Generate SVG sequence diagrams from Mermaid `.mmd` files.
-Diagrams code location: docs/source/api_reference/sequence/*.mmd
+Generate SVG diagrams from Mermaid `.mmd` files.
+Diagrams code location: docs/source/api_reference/diagrams/*.mmd
 Output SVGs next to the .mmd files (same basename, .svg extension).
 
 Run via:
@@ -14,7 +14,7 @@ import subprocess
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-SEQ_DOCS_DIR = BASE_DIR / "docs" / "source" / "api_reference" / "sequence"
+SEQ_DOCS_DIR = BASE_DIR / "docs" / "source" / "api_reference" / "diagrams"
 
 
 def find_mermaid_files(root: Path) -> list[Path]:
