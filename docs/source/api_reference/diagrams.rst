@@ -64,6 +64,11 @@ Map publications
 
 .. mermaid:: diagrams/gh2bt/publication.mmd
 
+Map documentation
+~~~~~~~~~~~~~~~~~~~~
+
+TODO: add diagram here once errors in the mapping function are resolved.
+
 Map homepage
 ~~~~~~~~~~~~~~
 
