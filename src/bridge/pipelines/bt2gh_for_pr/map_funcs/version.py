@@ -13,7 +13,7 @@ def map_version(gh_version: str | None, bt_version: list[VersionType] | None) ->
     Map bio.tools version to GitHub version.
     """
     if not gh_version:
-        logger.info("CONFLICT: GitHub version doesn't exist.")
+        logger.unchanged("No GitHub version found, nothing to map.")
         return None
 
     # if not bt_version:
