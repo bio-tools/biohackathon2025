@@ -128,6 +128,11 @@ Map license
 
 .. mermaid:: diagrams/bt2gh/license.mmd
 
+Map citation
+~~~~~~~~~~~~~~
+
+.. mermaid:: diagrams/bt2gh/citation.mmd
+
 
 Policy: bio.tools over GitHub
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
