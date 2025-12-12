@@ -29,16 +29,6 @@ to a bio.tools tool metadata.
 .. mermaid:: diagrams/gh2bt.mmd
 
 
-bio.tools → GitHub pipeline
-----------------------------
-
-The sequence diagram below details the pipeline for mapping a bio.tools tool
-metadata to a GitHub repository in the form of a pull request and, optionally,
-issues.
-
-.. mermaid:: diagrams/bt2gh.mmd
-
-
 GitHub → bio.tools mapping
 ----------------------------
 
@@ -89,3 +79,30 @@ Policy: GitHub over bio.tools
 
 .. mermaid:: diagrams/gh2bt/policy-gh-over-bt.mmd
 
+
+bio.tools → GitHub pipeline
+----------------------------
+
+The sequence diagram below details the pipeline for mapping a bio.tools tool
+metadata to a GitHub repository in the form of a pull request and, optionally,
+issues.
+
+.. mermaid:: diagrams/bt2gh.mmd
+
+
+bio.tools → GitHub mapping for issues
+---------------------------------------
+
+The flowcharts below detail the mapping of specific fields from bio.tools to GitHub
+in the form of issues.
+
+
+Policy: bio.tools over GitHub
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. mermaid:: diagrams/bt2gh/policy-bt-over-gh.mmd
+
+Policy: bio.tools on top of GitHub
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. mermaid:: diagrams/bt2gh/policy-bt-ontop-gh.mmd
