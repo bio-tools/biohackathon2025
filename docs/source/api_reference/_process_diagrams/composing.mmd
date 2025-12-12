@@ -32,8 +32,8 @@ sequenceDiagram
     composer->>ingestor: <<create>> Ingestor
     activate transformer
     composer->>transformer: <<create>> Transformer
-    composer->>transformer: transform()<br/>{ingestor}
-    transformer->>ingestor: fetch()
+    composer-)transformer: transform()<br/>{ingestor}
+    transformer-)ingestor: fetch()
     ingestor-->>transformer: raw API data
     deactivate ingestor
     activate model
