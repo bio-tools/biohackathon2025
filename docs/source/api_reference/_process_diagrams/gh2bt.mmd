@@ -34,7 +34,7 @@ sequenceDiagram
     gh2bt->>mapper: <<create>> MapGitHub2BioTools
 
     loop every mappable metadata entry
-        gh2bt->>mapper: call map function
+        gh2bt-)mapper: call map function
         activate map_item
         mapper-)map_item: run()<br/>{bio.tools relevant fields, GitHub relevant fields}
         note over map_item: REF GitHub → bio.tools mapping
