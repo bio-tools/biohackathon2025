@@ -10,9 +10,8 @@ from bridge.core.github_pages import GitHubPages
 class _CoCStub:
     """Minimal stub that mimics bridge.core.github_repo.CodeOfConduct for these tests."""
 
-
-def __init__(self, html_url: str | None):
-    self.html_url = html_url
+    def __init__(self, html_url: str | None):
+        self.html_url = html_url
 
 
 class TestMapWiki:
