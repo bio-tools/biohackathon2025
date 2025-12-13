@@ -5,7 +5,7 @@ Unit tests for mapping bio.tools function EDAM terms to GitHub topics.
 import pytest
 
 from bridge.core.biotools import EDAMdata, EDAMformat, FunctionItem, InputItem, OperationItem, OutputItem
-from bridge.pipelines.bt2gh_for_pr.map_funcs.function import _flatten_function, map_function2topics
+from bridge.pipelines.bt2gh_for_pr_issues.map_funcs.function import _flatten_function, map_function2topics
 
 
 @pytest.fixture

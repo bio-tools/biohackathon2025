@@ -7,13 +7,13 @@ from types import SimpleNamespace
 
 import pytest
 
-handler_mod = importlib.import_module("bridge.handlers.create_pr_from_meta")
+handler_mod = importlib.import_module("bridge.handlers.create_pr_issues_from_meta")
 
 
 @pytest.mark.asyncio
-async def test_create_pr_from_meta_happy(monkeypatch):
+async def test_create_pr_issues_from_meta_happy(monkeypatch):
     """
-    Test that create_pr_from_meta works end-to-end with mocked components,
+    Test that create_pr_issues_from_meta works end-to-end with mocked components,
     including optional issue creation.
     """
 

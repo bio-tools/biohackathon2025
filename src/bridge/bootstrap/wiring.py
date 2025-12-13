@@ -10,7 +10,7 @@ from bridge.pipelines import (
     BiotoolsToGitHubForPRPipelineArgs,
     GitHubToBiotoolsForMetaPipelineArgs,
     PipelineGoal,
-    run_bt2gh_pipeline_for_pr,
+    run_bt2gh_pipeline_for_pr_issues,
     run_gh2bt_pipeline_for_meta,
 )
 from bridge.services import GitHubRepoProvider
@@ -40,7 +40,7 @@ def wiring(force: bool = False):
         "biotools",
         "github",
         pipelines={
-            PipelineGoal.CREATE_PR: (run_bt2gh_pipeline_for_pr, BiotoolsToGitHubForPRPipelineArgs),
+            PipelineGoal.CREATE_PR: (run_bt2gh_pipeline_for_pr_issues, BiotoolsToGitHubForPRPipelineArgs),
             PipelineGoal.EXTRACT_METADATA: (run_gh2bt_pipeline_for_meta, GitHubToBiotoolsForMetaPipelineArgs),
         },
     )
