@@ -48,7 +48,7 @@ def map_name(gh_name: str | None, bt_params: dict[str, str | None] | None) -> di
 
     def make_issue(name: str) -> dict[str, str]:
         return {
-            "Add repository name from bio.tools metadata": (
+            "Update repository name from bio.tools metadata": (
                 f"The GitHub repository name '{gh_name}' does not match the bio.tools "
                 f"name '{bt_name}' or ID '{bt_id}'.\n\n"
                 f"Proposed new name: '{bt_id}'.\n\n"

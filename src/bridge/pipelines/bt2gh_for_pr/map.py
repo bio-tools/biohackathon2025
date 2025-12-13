@@ -53,7 +53,13 @@ class MapBioTools2GitHub(ModelsMap):
         """
         return {
             "name": MapItem(
-                schema_entry=self.metadata.name, repo_entry=self.repo.repo.name, method=Method.EXACT, fn=map_name
+                schema_entry={
+                    "name": self.metadata.name,
+                    "biotoolsID": self.metadata.biotoolsID.root,
+                },
+                repo_entry=self.repo.repo.name,
+                method=Method.EXACT,
+                fn=map_name,
             ),
             "version": MapItem(
                 schema_entry=self.metadata.version,
