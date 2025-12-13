@@ -25,6 +25,7 @@ def reconcile_gh_over_bt(
     bt_value: BT | None,
     build_bt_from_gh: Callable[[GHN], BT],
     log_label: str,
+    equality_fn: Callable[[GHN, BTN], bool] | None = None,
 ) -> BT | None:
     """
     Apply a generic GitHub-over-bio.tools reconciliation policy.
@@ -66,6 +67,11 @@ def reconcile_gh_over_bt(
     log_label : str
         Short label used in log messages to identify the reconciled field
         (e.g., ``"license"``, ``"languages"``, ``"homepage"``).
+    equality_fn : Callable[[GHN, BTN], bool] | None, optional
+        Optional callable to determine equality between normalized GitHub and
+        bio.tools values. If ``None``, the default equality operator (``==``)
+        is used. This parameter is useful when the normalized representations
+        require custom comparison logic (e.g., set equality for lists).
 
     Returns
     -------
@@ -87,7 +93,12 @@ def reconcile_gh_over_bt(
         logger.added(f"{log_label} from GitHub: {gh_norm!r}")
         return gh_from_bt
 
-    if gh_from_bt == bt_norm:
+    if equality_fn is not None:
+        equal = equality_fn(gh_from_bt, bt_norm)
+    else:
+        equal = gh_from_bt == bt_norm
+
+    if equal:
         logger.exact(f"GitHub {log_label} matches bio.tools {log_label}.")
         return bt_value
 

@@ -57,7 +57,17 @@ Map publications
 Map documentation
 ~~~~~~~~~~~~~~~~~~~~
 
-TODO: add diagram here once errors in the mapping function are resolved.
+TODO: add diagram here.
+
+Map biotools ID
+~~~~~~~~~~~~~~~~~~
+
+TODO: add diagram here.
+
+Map name
+~~~~~~~~~~
+
+TODO: add diagram here.
 
 Map homepage
 ~~~~~~~~~~~~~~
@@ -114,7 +124,7 @@ Map topics
 Map version
 ~~~~~~~~~~~~~~
 
-TODO: add diagram here once errors in the mapping function are resolved.
+TODO: add diagram here.
 
 
 bio.tools → GitHub mapping for pull requests
