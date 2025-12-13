@@ -57,17 +57,17 @@ Map publications
 Map documentation
 ~~~~~~~~~~~~~~~~~~~~
 
-TODO: add diagram here.
+.. mermaid:: _process_diagrams/gh2bt/documentation.mmd
 
 Map biotools ID
 ~~~~~~~~~~~~~~~~~~
 
-TODO: add diagram here.
+.. mermaid:: _process_diagrams/gh2bt/biotools_id.mmd
 
 Map name
 ~~~~~~~~~~
 
-TODO: add diagram here.
+.. mermaid:: _process_diagrams/gh2bt/name.mmd
 
 Map homepage
 ~~~~~~~~~~~~~~
@@ -124,7 +124,7 @@ Map topics
 Map version
 ~~~~~~~~~~~~~~
 
-TODO: add diagram here.
+.. mermaid:: _process_diagrams/bt2gh/version.mmd
 
 
 bio.tools → GitHub mapping for pull requests
@@ -136,7 +136,7 @@ in the form of pull requests.
 Map name
 ~~~~~~~~~~
 
-TODO: add diagram here.
+.. mermaid:: _process_diagrams/bt2gh/name.mmd
 
 Map license
 ~~~~~~~~~~~~~~~~

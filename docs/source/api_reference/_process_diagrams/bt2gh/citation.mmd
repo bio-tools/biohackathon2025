@@ -48,15 +48,16 @@ flowchart LR
     subgraph loop through bio.tools publications
         loop --> composing[["REF composing<br/>fetch publication metadata (EuropePMCIngestor) and transform (EuropePMCTransformer) to Publication"]]:::ref
         composing --> compose_ok{is composing successful?}
-        compose_ok -->|no| loop
+        compose_ok -->|no| check_done_loop{checked all bio.tools publications?}
         compose_ok -->|yes| is_preferred{is the bio.tools publication Primary?} 
         is_preferred -->|no| add[append extracted publication to the publications list]
-        add --> loop
+        add --> check_done_loop
+        check_done_loop -->|no| loop
         is_preferred -->|yes| add_preferred[append extracted publication to the primary publications list]
         add_preferred --> add
     end
 
-    loop --> combine[["combine and deduplicate the list of (extracted) bio.tools publications and the list of GitHub publications from cff"]]
+    check_done_loop -->|yes| combine[["combine and deduplicate the list of (extracted) bio.tools publications and the list of GitHub publications from cff"]]
 
     combine --> compose_base[["compose base top-level cff content from basic bio.tools metadata"]]
     compose_base --> keep_existing["keep existing non-empty values from cff"]
