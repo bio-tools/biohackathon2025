@@ -67,7 +67,7 @@ Map biotools ID
 Map name
 ~~~~~~~~~~
 
-TODO: add diagram here.
+.. mermaid:: _process_diagrams/gh2bt/name.mmd
 
 Map homepage
 ~~~~~~~~~~~~~~
