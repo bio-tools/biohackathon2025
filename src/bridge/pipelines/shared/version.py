@@ -13,7 +13,7 @@ from packaging.version import InvalidVersion, Version
 from bridge.core.biotools import VersionType as BiotoolsVersionType
 
 _SEMVER_PREFIX_RE = re.compile(r"^[vV]?(\d+\.\d+(?:\.\d+)?(?:[^\s]*)?)$")
-_RANGE_SEP_RE = re.compile(r"\s*[-–]\s*")  # hyphen or en dash
+_RANGE_SEP_RE = re.compile(r"\s+[-–]\s+")  # hyphen or en dash
 _DATE_PATTERNS: list[tuple[str, re.Pattern[str]]] = [
     ("%Y-%m-%d", re.compile(r"^\d{4}-\d{2}-\d{2}$")),
     ("%Y.%m.%d", re.compile(r"^\d{4}\.\d{2}\.\d{2}$")),
