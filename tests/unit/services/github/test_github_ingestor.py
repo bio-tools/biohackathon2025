@@ -1,5 +1,5 @@
 """
-Minimal, high-value unit tests for bridge.services.github.GitHubIngestor.
+Unit tests for bridge.services.github.GitHubIngestor.
 """
 
 import base64

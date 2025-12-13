@@ -13,26 +13,27 @@ extract_mod = importlib.import_module("bridge.handlers.extract_meta_from_repo")
 @pytest.mark.asyncio
 async def test_create_pr_issues_from_meta_missing_args():
     """
-    Test that create_pr_issues_from_meta raises ValueError when required args are missing.
-
-    Raises
-    ------
-    ValueError
-        If required arguments are not provided.
+    create_pr_issues_from_meta should raise ValueError when required args are missing.
     """
-    with pytest.raises(ValueError, match="Missing required args: owner, repo, identifier"):
-        await create_mod.create_pr_from_meta(schema="biotools", repo_type="github")
+    with pytest.raises(ValueError) as exc:
+        await create_mod.create_pr_issues_from_meta(schema="biotools", repo_type="github")
+
+    msg = str(exc.value)
+    assert "Missing required args" in msg
+    assert "owner" in msg
+    assert "repo" in msg
+    assert "identifier" in msg
 
 
 @pytest.mark.asyncio
 async def test_extract_meta_from_repo_missing_args():
     """
-    Test that extract_meta_from_repo raises ValueError when required args are missing.
-
-    Raises
-    ------
-    ValueError
-        If required arguments are not provided.
+    extract_meta_from_repo should raise ValueError when required args are missing.
     """
-    with pytest.raises(ValueError, match="Missing required args: owner, repo"):
+    with pytest.raises(ValueError) as exc:
         await extract_mod.extract_meta_from_repo(schema="biotools", repo_type="github")
+
+    msg = str(exc.value)
+    assert "Missing required args" in msg
+    assert "owner" in msg
+    assert "repo" in msg

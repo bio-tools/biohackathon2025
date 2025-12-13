@@ -1,5 +1,5 @@
 """
-Minimal, high-value unit tests for bridge.services.github.GitHubRepoProvider.
+Unit tests for bridge.services.github.GitHubRepoProvider.
 """
 
 import httpx
