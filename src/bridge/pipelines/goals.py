@@ -11,11 +11,11 @@ class PipelineGoal(str, Enum):
 
     Attributes
     ----------
-    CREATE_PR : str
-        Goal to create a pull request in a repository based on source metadata.
+    CREATE_PR_ISSUES : str
+        Goal to create a pull request and issues in a repository based on source metadata.
     EXTRACT_METADATA : str
         Goal to extract metadata from a repository.
     """
 
-    CREATE_PR = "create_pr"
+    CREATE_PR_ISSUES = "create_pr_issues"
     EXTRACT_METADATA = "extract_metadata"

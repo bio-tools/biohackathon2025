@@ -39,7 +39,7 @@ def _unique_branch_name(prefix: str = "update") -> str:
 
 
 @require_args("owner", "repo", "identifier")
-@register_handler(PipelineGoal.CREATE_PR)
+@register_handler(PipelineGoal.CREATE_PR_ISSUES)
 async def create_pr_issues_from_meta(schema: str, repo_type: str, **kwargs):
     """
     Create a pull request and issues in the repository based on the metadata.
@@ -69,7 +69,7 @@ async def create_pr_issues_from_meta(schema: str, repo_type: str, **kwargs):
 
     metadata_composer = get_schema_composer(schema)
     repo_composer, repo_provider = get_repo_components(repo_type)
-    pipeline, args_model = get_pipeline(schema, repo_type, PipelineGoal.CREATE_PR)
+    pipeline, args_model = get_pipeline(schema, repo_type, PipelineGoal.CREATE_PR_ISSUES)
 
     if not repo_provider:
         raise ValueError(f"No provider found for repo type: {repo_type}")
