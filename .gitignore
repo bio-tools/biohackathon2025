@@ -31,3 +31,7 @@ __pycache__/
 
 # VSCode
 .vscode
+
+# Tests
+.coverage
+htmlcov/
