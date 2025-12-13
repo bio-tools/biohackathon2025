@@ -14,6 +14,7 @@ from .map_funcs import (
     map_language,
     map_license,
     map_maturity,
+    map_name,
     map_publication,
     map_version,
 )
@@ -34,7 +35,9 @@ class MapGitHub2BioTools(ModelsMap):
         Map GitHub metadata property to corresponding bio.tools property.
         """
         return {
-            "name": MapItem(schema_entry=self.metadata.name, repo_entry=self.repo.repo.name, method=Method.EXACT),
+            "name": MapItem(
+                schema_entry=self.metadata.name, repo_entry=self.repo.repo.name, method=Method.EXACT, fn=map_name
+            ),
             # Languages are both lists
             "language": MapItem(
                 schema_entry=self.metadata.language,
