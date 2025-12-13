@@ -1,5 +1,5 @@
 """
-TODO
+Shared version parsing and comparison utilities for pipelines.
 """
 
 import re
