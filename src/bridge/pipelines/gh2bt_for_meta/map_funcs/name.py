@@ -8,7 +8,7 @@ while preserving the bio.tools name when GitHub is silent or ambiguous.
 
 from bridge.logging import get_user_logger
 from bridge.pipelines.policies.gh2bt import reconcile_gh_over_bt
-from bridge.pipelines.utils import normalize_text
+from bridge.pipelines.utils import normalize_text, str_contain_each_other
 
 logger = get_user_logger()
 
@@ -43,4 +43,5 @@ def map_name(gh_name: str | None, bt_name: str | None) -> str | None:
         bt_value=bt_name,
         build_bt_from_gh=lambda name: name,
         log_label="name",
+        equality_fn=str_contain_each_other,
     )

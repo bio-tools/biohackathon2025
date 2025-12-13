@@ -10,30 +10,9 @@ import httpx
 
 from bridge.builders import compose_biotools_metadata
 from bridge.logging import get_user_logger
-from bridge.pipelines.utils import normalize_text
+from bridge.pipelines.utils import normalize_text, str_contain_each_other
 
 logger = get_user_logger()
-
-
-def _contain_each_other(str1: str, str2: str) -> bool:
-    """
-    Check if two strings contain each other (case-insensitive).
-
-    Parameters
-    ----------
-    str1 : str
-        First string.
-    str2 : str
-        Second string.
-
-    Returns
-    -------
-    bool
-        True if either string contains the other, False otherwise.
-    """
-    str1_lower = str1.lower()
-    str2_lower = str2.lower()
-    return str1_lower in str2_lower or str2_lower in str1_lower
 
 
 async def _matching_biotools_id_exists(biotools_id: str) -> bool:
@@ -103,11 +82,11 @@ async def map_biotools_id(gh_name: str | None, bt_id: str | None) -> str | None:
     gh_norm = normalize_text(gh_name)
     bt_norm = normalize_text(bt_id or "")
 
-    if bt_id is not None and _contain_each_other(gh_norm, bt_norm):
+    if bt_id is not None and str_contain_each_other(gh_norm, bt_norm):
         logger.exact(f"bio.tools ID '{bt_id}' and GitHub repo name '{gh_name}' contain each other")
         return bt_id
 
-    if bt_id is not None and not _contain_each_other(gh_norm, bt_norm):
+    if bt_id is not None and not str_contain_each_other(gh_norm, bt_norm):
         logger.conflict(f"bio.tools ID '{bt_id}' and GitHub repo name '{gh_name}' do not contain each other")
 
     if not await _matching_biotools_id_exists(gh_norm):
