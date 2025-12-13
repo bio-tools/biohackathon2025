@@ -57,7 +57,7 @@ Map publications
 Map documentation
 ~~~~~~~~~~~~~~~~~~~~
 
-TODO: add diagram here.
+.. mermaid:: _process_diagrams/gh2bt/documentation.mmd
 
 Map biotools ID
 ~~~~~~~~~~~~~~~~~~
