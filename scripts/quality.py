@@ -2,6 +2,7 @@
 Quality-related scripts: linting and formatting.
 """
 
+import os
 import re
 import subprocess
 import sys
@@ -66,35 +67,64 @@ def _clean_report_text(s: str) -> str:
 
 
 def cosmic_ray_report(
-    config_path: str = "cosmic-ray.toml",
-    session_path: str = "cosmic-ray.sqlite",
-    html_report_path: str = "cosmic-ray-report.html",
-    progress_every_s: int = 5,
+    env: str | None = None,  # "local" | "ci" | None(auto)
+    config_path: str | None = None,  # override if you want
+    session_path: str | None = None,  # override if you want
+    html_report_path: str | None = None,  # override if you want
+    progress_every_s: int | None = None,  # override if you want
+    open_browser: bool | None = None,  # override if you want
 ) -> None:
     """
     Run Cosmic Ray mutation testing with live progress reporting and HTML report generation.
+
+    Supports:
+      - local: uses cosmic-ray.local.toml, prints progress, opens browser (default)
+      - ci:    uses cosmic-ray.ci.toml, prints minimal progress, does NOT open browser (default)
+
+    Env auto-detection:
+      - if env is None and CI is set -> "ci"
+      - else -> "local"
     """
+    if env is None:
+        env = "ci" if os.getenv("CI") else "local"
+        print(f"Auto-detected Cosmic Ray env as: {env}")
+    env = env.lower().strip()
+    if env not in {"local", "ci"}:
+        raise ValueError(f"env must be 'local' or 'ci', got: {env!r}")
+
+    # Defaults per environment (can be overridden via args)
+    suffix = "ci" if env == "ci" else "local"
+    config_path = config_path or f"cosmic-ray.{suffix}.toml"
+    session_path = session_path or f"cosmic-ray.{suffix}.sqlite"
+    html_report_path = html_report_path or f"cosmic-ray-report-{suffix}.html"
+
+    # CI should be quiet + not open GUI stuff
+    if progress_every_s is None:
+        progress_every_s = 10 if env == "ci" else 5
+    if open_browser is None:
+        open_browser = env == "local"
+
     config = Path(config_path)
     session = Path(session_path)
     report = Path(html_report_path)
 
+    # 1) init
     rc = run(["cosmic-ray", "init", "--force", str(config), str(session)]).returncode
     if rc != 0:
         raise SystemExit(rc)
 
+    # 2) exec
     proc = Popen(["cosmic-ray", "exec", str(config), str(session)])
 
     stop = threading.Event()
 
     def _progress_watcher() -> None:
         last_line = ""
-
         while not stop.is_set():
             time.sleep(progress_every_s)
             if proc.poll() is not None:
                 return
 
-            # Cosmic Ray explicitly supports querying progress during exec.
             r = run(["cr-report", str(session)], capture_output=True, text=True)
             out = _clean_report_text((r.stdout or "") + "\n" + (r.stderr or ""))
 
@@ -103,28 +133,20 @@ def cosmic_ray_report(
             surv_m = _SURV_RE.search(out)
 
             if not (total_m and comp_m):
-                # Stay quiet by default (no spam).
-                # Uncomment if you want one-time visibility:
-                # if not warned_unparseable:
-                #     print("\n[debug] Could not parse cr-report output. First 300 chars:\n" + out[:300])
-                #     warned_unparseable = True
+                # Don't spam if parsing fails
                 continue
 
             total = int(total_m.group(1))
             complete = int(comp_m.group(1))
             pct = float(comp_m.group(2))
 
-            surviving = None
-            if surv_m:
-                surviving = int(surv_m.group(1))
+            surviving = int(surv_m.group(1)) if surv_m else None
 
-            status = "running..."
-            line = f"Cosmic Ray: {complete}/{total} ({pct:.2f}%)"
+            # Keep CI output minimal: still a single updating line.
+            line = f"Cosmic Ray [{env}]: {complete}/{total} ({pct:.2f}%)"
             if surviving is not None:
                 line += f" | surviving: {surviving}"
-            line += f" | {status}"
 
-            # print as a single updating line
             if line != last_line:
                 print("\r" + line.ljust(120), end="", flush=True)
                 last_line = line
@@ -134,12 +156,15 @@ def cosmic_ray_report(
 
     rc = proc.wait()
     stop.set()
-    print()  # newline after the \r progress line
+
+    # tidy progress line
+    print()
     print("\r" + (" " * 120) + "\r", end="", flush=True)
 
     if rc != 0:
         raise SystemExit(rc)
 
+    # 3) html report
     report.parent.mkdir(parents=True, exist_ok=True)
     with report.open("w", encoding="utf-8") as f:
         html_rc = run(["cr-html", str(session)], stdout=f, stderr=DEVNULL).returncode
@@ -147,7 +172,9 @@ def cosmic_ray_report(
         run(["cr-report", str(session)])
         raise SystemExit(html_rc)
 
-    report_uri = report.resolve().as_uri()
-    run([sys.executable, "-m", "webbrowser", report_uri])
+    # 4) open browser only when local (unless overridden)
+    if open_browser:
+        report_uri = report.resolve().as_uri()
+        run([sys.executable, "-m", "webbrowser", report_uri])
 
     raise SystemExit(0)
