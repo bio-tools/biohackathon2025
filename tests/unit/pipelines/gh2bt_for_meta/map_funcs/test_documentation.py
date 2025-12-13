@@ -5,7 +5,14 @@ Unit tests for documentation mapping functions.
 import bridge.pipelines.gh2bt_for_meta.map_funcs.documentation as docmap
 from bridge.core.biotools import DocumentationItem, TypeEnum1
 from bridge.core.github_pages import GitHubPages
-from bridge.core.github_repo import CodeOfConduct
+
+
+class _CoCStub:
+    """Minimal stub that mimics bridge.core.github_repo.CodeOfConduct for these tests."""
+
+
+def __init__(self, html_url: str | None):
+    self.html_url = html_url
 
 
 class TestMapWiki:
@@ -78,7 +85,7 @@ class TestMapCodeOfConduct:
 
     def test_map_code_of_conduct_with_coc(self):
         """Test mapping when code of conduct exists."""
-        gh_code_of_conduct = CodeOfConduct(html_url="https://github.com/owner/repo/blob/main/CODE_OF_CONDUCT.md")
+        gh_code_of_conduct = _CoCStub(html_url="https://github.com/owner/repo/blob/main/CODE_OF_CONDUCT.md")
         bt_documentation = None
 
         result = docmap._map_code_of_conduct(gh_code_of_conduct, bt_documentation)
@@ -95,7 +102,7 @@ class TestMapCodeOfConduct:
 
     def test_map_code_of_conduct_empty_object(self):
         """Test mapping when code of conduct object has no html_url."""
-        gh_code_of_conduct = CodeOfConduct(html_url=None)
+        gh_code_of_conduct = _CoCStub(html_url=None)
         bt_documentation = None
 
         result = docmap._map_code_of_conduct(gh_code_of_conduct, bt_documentation)
@@ -104,7 +111,7 @@ class TestMapCodeOfConduct:
 
     def test_map_code_of_conduct_duplicate_prevention(self):
         """Test that duplicate CoC URLs are not added."""
-        gh_code_of_conduct = CodeOfConduct(html_url="https://github.com/owner/repo/blob/main/CODE_OF_CONDUCT.md")
+        gh_code_of_conduct = _CoCStub(html_url="https://github.com/owner/repo/blob/main/CODE_OF_CONDUCT.md")
         existing_doc = DocumentationItem(
             url="https://github.com/owner/repo/blob/main/CODE_OF_CONDUCT.md",
             type=[TypeEnum1.Code_of_conduct],
@@ -215,7 +222,7 @@ class TestMapDocumentation:
         gh_repo_data = {
             "html_url": "https://github.com/owner/repo",
             "has_wiki": True,
-            "code_of_conduct": CodeOfConduct(html_url="https://github.com/owner/repo/blob/main/CODE_OF_CONDUCT.md"),
+            "code_of_conduct": _CoCStub(html_url="https://github.com/owner/repo/blob/main/CODE_OF_CONDUCT.md"),
             "github_pages": gh_pages,
         }
         bt_documentation = None
