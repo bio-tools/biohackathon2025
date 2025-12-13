@@ -136,7 +136,7 @@ in the form of pull requests.
 Map name
 ~~~~~~~~~~
 
-TODO: add diagram here.
+.. mermaid:: _process_diagrams/bt2gh/name.mmd
 
 Map license
 ~~~~~~~~~~~~~~~~
