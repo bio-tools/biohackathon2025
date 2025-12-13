@@ -133,6 +133,11 @@ bio.tools → GitHub mapping for pull requests
 The flowcharts below detail the mapping of specific fields from bio.tools to GitHub
 in the form of pull requests.
 
+Map name
+~~~~~~~~~~
+
+TODO: add diagram here.
+
 Map license
 ~~~~~~~~~~~~~~~~
 
