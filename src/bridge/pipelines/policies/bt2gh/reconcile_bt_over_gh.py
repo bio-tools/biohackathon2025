@@ -26,6 +26,7 @@ async def reconcile_bt_over_gh(
     bt_norm: BTN | None,
     make_output: Callable[[BTN], Awaitable[OUTPUT] | OUTPUT],
     log_label: str,
+    equality_fn: Callable[[GHN, BTN], bool] | None = None,
 ) -> OUTPUT | None:
     """
     Apply a generic bio.tools-over-GitHub policy to decide whether to
@@ -63,6 +64,10 @@ async def reconcile_bt_over_gh(
     log_label : str
         Short label used in log messages to identify the metadata field
         (e.g., ``"description"``, ``"homepage"``, ``"license"``).
+    equality_fn : Callable[[GHN, BTN], bool] | None, optional
+        Optional equality function to compare normalized GitHub and
+        bio.tools values. If ``None``, the default equality operator
+        (``==``) is used.
 
     Returns
     -------
@@ -75,7 +80,12 @@ async def reconcile_bt_over_gh(
         return None
 
     if gh_norm is not None:
-        if gh_norm == bt_norm:
+        if equality_fn is not None:
+            equal = equality_fn(gh_norm, bt_norm)
+        else:
+            equal = gh_norm == bt_norm
+
+        if equal:
             logger.exact(f"bio.tools {log_label} matches GitHub {log_label}, no need to map.")
             return None
 

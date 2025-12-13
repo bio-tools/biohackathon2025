@@ -9,7 +9,16 @@ from pydantic import BaseModel
 from bridge.pipelines.protocols import MapItem, Method, ModelsMap
 from bridge.pipelines.utils import load_dict_from_yaml_file
 
-from .map_funcs import map_citation, map_description, map_homepage, map_license, map_readme, map_topics, map_version
+from .map_funcs import (
+    map_citation,
+    map_description,
+    map_homepage,
+    map_license,
+    map_name,
+    map_readme,
+    map_topics,
+    map_version,
+)
 
 
 class MapDestination(BaseModel):
@@ -24,7 +33,7 @@ class MapDestination(BaseModel):
         List of properties to be mapped to pull requests.
     """
 
-    issue: list[str] = ["description", "homepage", "topics", "version"]
+    issue: list[str] = ["name", "description", "homepage", "topics", "version"]
     pr: list[str] = ["citation", "readme", "license"]
 
 
@@ -43,7 +52,15 @@ class MapBioTools2GitHub(ModelsMap):
         Map bio.tools metadata property to corresponding GitHub property.
         """
         return {
-            "name": MapItem(schema_entry=self.metadata.name, repo_entry=self.repo.repo.name, method=Method.EXACT),
+            "name": MapItem(
+                schema_entry={
+                    "name": self.metadata.name,
+                    "biotoolsID": self.metadata.biotoolsID.root,
+                },
+                repo_entry=self.repo.repo.name,
+                method=Method.EXACT,
+                fn=map_name,
+            ),
             "version": MapItem(
                 schema_entry=self.metadata.version,
                 repo_entry=self.repo.latest_release.tag_name,
