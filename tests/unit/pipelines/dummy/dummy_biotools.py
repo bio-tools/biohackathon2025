@@ -7,6 +7,8 @@ from bridge.core.biotools import (
     FunctionItem,
     ToolTypeEnum,
     LanguageEnum,
+    LinkItem,
+    TypeEnum,
 )
 
 
@@ -44,11 +46,13 @@ class DummyBioToolsTool:
         # If not used, leaving None is fine.
         self.function = None
 
-        # link is list of LinkItem in real model; your mapper might use it elsewhere.
-        # If MapBioTools2GitHub doesn't use it, keep minimal / None.
-        self.link = None
-
-        # fields used by other pipelines (kept from your earlier dummy)
+        # fields used by other pipelines
         self.documentation = None
         self.maturity = None
         self.publication = None
+
+        # link is list of LinkItem in real model
+        self.link = [
+            LinkItem(url=UrlftpType(root="https://tool.com/a"), type=[TypeEnum.Repository]),
+            LinkItem(url=UrlftpType(root="https://tool.com/b"), type=[TypeEnum.Repository]),
+        ]
