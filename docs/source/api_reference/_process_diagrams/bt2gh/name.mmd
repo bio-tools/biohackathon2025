@@ -1,0 +1,48 @@
+---
+config:
+  theme: base
+  look: neo
+  layout: elk
+  elk:
+    nodePlacementStrategy: NETWORK_SIMPLEX
+  themeVariables:
+    darkMode: true
+    background: "#121212"
+    primaryColor: "#005a7a"
+    primaryBorderColor: "#121212"
+    secondaryBorderColor:  "#121212"
+    edgeLabelBackground: transparent
+    labelTextColor: "#5DD3FC"
+    clusterBkg: transparent
+    clusterBorder: "#5DD3FC"
+    noteBkgColor: "#F47D22"
+    noteBorderColor: "#F47D22"
+    noteTextColor: "#fff"
+---
+flowchart LR
+    classDef ref fill:#F47D22
+    classDef notestyle fill:#F47D22
+    classDef notestyle stroke:#F47D22
+    classDef terminal fill:#1099c9
+    classDef terminal stroke:#1099c9
+    classDef success fill:#299967
+    classDef success stroke:#299967
+
+    start([start]):::terminal
+    nochange([no issue, exit]):::terminal
+    subgraph GitHub entry
+        gh_name[/GitHub name/]
+    end
+    subgraph bio.tools entry
+        bt_name[/bio.tools name/]
+        bt_id[/bio.tools ID/]
+    end
+
+    start --> gh_name & bt_name & bt_id
+    gh_name & bt_name & bt_id --> check_bt{is bio.tools entry None?}
+    check_bt -->|yes| nochange
+    check_bt -->|no| policy[["REF Policy: bio.tools ID over GitHub name but check equality by seeing if one string is a substring of another for GitHub name and bio.tools ID, for GitHub name and bio.tools name)"]]:::ref
+    policy --> policy_check{does the policy decide to create an issue?}
+    policy_check -->|no| nochange
+    policy_check -->|yes| issue[create issue info: suggesting to update repository name from bio.tools metadata]
+    issue --> return([return issue info]):::success
