@@ -229,3 +229,46 @@ def any_bt_newer_than_gh(
             continue
 
     return False
+
+
+def find_latest_bt_version(bt_versions: list[BiotoolsVersionType] | None) -> BiotoolsVersionType | None:
+    """
+    Find the latest bio.tools version from a list of versions.
+
+    Versions are parsed into ``ParsedVersion`` objects and compared using
+    their defined partial ordering. Incomparable versions (e.g. raw or
+    differing kinds) are ignored.
+
+    Parameters
+    ----------
+    bt_versions : list[BiotoolsVersionType] | None
+        Existing bio.tools versions, or ``None``.
+
+    Returns
+    -------
+    BiotoolsVersionType | None
+        The latest bio.tools version, or ``None`` if no comparable versions
+        were found.
+    """
+    latest_bt: BiotoolsVersionType | None = None
+    latest_parsed: ParsedVersion | None = None
+
+    if not bt_versions:
+        return None
+
+    for bt in bt_versions:
+        bt_parsed = _parse_version_label(bt.root)
+        if latest_parsed is None:
+            latest_bt = bt
+            latest_parsed = bt_parsed
+            continue
+
+        try:
+            if bt_parsed > latest_parsed:
+                latest_bt = bt
+                latest_parsed = bt_parsed
+        except TypeError:
+            # incomparable (different kind / raw) -> ignore
+            continue
+
+    return latest_bt
