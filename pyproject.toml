@@ -34,6 +34,7 @@ pytest = "^8.4.2"
 pytest-asyncio = "^1.2.0"
 pytest-httpx = "^0.35.0"
 pytest-cov = "^7.0.0"
+cosmic-ray = "^8.4.3"
 
 [tool.poetry.group.docs.dependencies]
 sphinx = "^8.2.3"
@@ -125,6 +126,7 @@ packages = [{ include = "bridge", from = "src" }]
 lint = "scripts.quality:lint"
 fmt = "scripts.quality:fmt"
 coverage-report = "scripts.quality:coverage_report"
+cosmic-ray-report = "scripts.quality:cosmic_ray_report"
 gen-biotools-models = "scripts.gen_models:generate_biotools_models"
 gen-github-models = "scripts.gen_models:generate_github_models"
 gen-docs = "scripts.gen_docs:main"

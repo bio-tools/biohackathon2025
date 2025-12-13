@@ -35,3 +35,5 @@ __pycache__/
 # Tests
 .coverage
 htmlcov/
+cosmic-ray.sqlite
+cosmic-ray-report.html
