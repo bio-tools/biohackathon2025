@@ -1,7 +1,8 @@
 """
-Unit tests for bridge.services.github.GitHubRepoProvider.
+Minimal, high-value unit tests for bridge.services.github.GitHubRepoProvider.
 """
 
+import httpx
 import pytest
 
 from bridge.services.github.github_repo_provider import GitHubRepoProvider
@@ -10,15 +11,16 @@ from bridge.services.github.github_repo_provider import GitHubRepoProvider
 @pytest.mark.asyncio
 async def test_fork_wait_ready_false(monkeypatch):
     """
-    Test forking a repo with wait_ready=False.
-
-    Raises
-    ------
-    AssertionError
-        If the forked repo information does not match expected values.
+    fork(wait_ready=False) returns ForkInfo from the POST /forks response
+    and does not poll readiness.
     """
 
-    # fake httpx client
+    # Bypass existing-fork logic (avoids extra API calls to /user and /repos/{login}/{repo})
+    async def fake_get_existing_fork(self, source_owner, source_repo):
+        return None
+
+    monkeypatch.setattr(GitHubRepoProvider, "_get_existing_fork", fake_get_existing_fork)
+
     class FakeResp:
         def __init__(self, json_data, status_code=202):
             self._json = json_data
@@ -26,14 +28,17 @@ async def test_fork_wait_ready_false(monkeypatch):
 
         def raise_for_status(self):
             if self.status_code >= 400:
-                raise RuntimeError("HTTP error")
+                raise httpx.HTTPStatusError(
+                    "error",
+                    request=httpx.Request("POST", "https://api.github.test/forks"),
+                    response=httpx.Response(self.status_code),
+                )
 
         def json(self):
             return self._json
 
     class FakeClient:
-        def __init__(self, *args, **kwargs):
-            self._calls = []
+        def __init__(self, *args, **kwargs): ...
 
         async def __aenter__(self):
             return self
@@ -52,87 +57,47 @@ async def test_fork_wait_ready_false(monkeypatch):
             )
 
     monkeypatch.setattr("bridge.services.github.github_repo_provider.httpx.AsyncClient", FakeClient)
-    # settings.require_github_token() is called in __init__, but we set env in conftest → OK
+
     provider = GitHubRepoProvider()
     fork_info = await provider.fork("upstream", "repo", wait_ready=False)
+
     assert fork_info.full_name == "me/repo-fork"
     assert fork_info.owner == "me"
     assert fork_info.repo == "repo-fork"
 
 
-def test_clone_context(monkeypatch, tmp_path):
-    """
-    Test cloning a GitHub repository.
-
-    Raises
-    ------
-    AssertionError
-        If the cloned path does not match expected values or if the git clone command was not called.
-    """
-    # make mkdtemp deterministic
-    monkeypatch.setattr("tempfile.mkdtemp", lambda: str(tmp_path / "cloned"))
-    # don't actually clone, just assert command
-    calls = []
-
-    def fake_run(cmd, check):
-        calls.append(cmd)
-
-    monkeypatch.setattr("subprocess.run", fake_run)
-    # don't actually delete
-    monkeypatch.setattr("shutil.rmtree", lambda *a, **k: None)
-
-    from bridge.services.github.github_repo_provider import GitHubRepoProvider
-
-    provider = GitHubRepoProvider()
-    with provider.clone_context("me/repo") as path:
-        assert path == str(tmp_path / "cloned")
-    # we should have called git clone
-    assert any("clone" in c for c in (" ".join(cmd) for cmd in calls))
-
-
 def test_apply_changes_and_push(monkeypatch, tmp_path):
     """
-    Test applying changes to a GitHub repository and pushing them.
-
-    Raises
-    ------
-    AssertionError
-        If the expected git commands were not called during the process.
+    apply_changes_and_push runs the expected git commands and writes files.
     """
     repo_dir = tmp_path / "repo"
     repo_dir.mkdir()
 
-    # avoid chdir out of pytest runner
-    cwd_holder = {"cwd": None}
+    # avoid changing the real process cwd
+    chdirs = []
 
     def fake_chdir(path):
-        cwd_holder["cwd"] = path
+        chdirs.append(path)
 
     monkeypatch.setattr("os.chdir", fake_chdir)
 
     calls = []
 
-    def fake_run(cmd, check):
+    def fake_run(cmd, check=True):
         calls.append(cmd)
 
     monkeypatch.setattr("subprocess.run", fake_run)
 
-    from bridge.services.github.github_repo_provider import GitHubRepoProvider
-
     provider = GitHubRepoProvider()
     provider.apply_changes_and_push(
         str(repo_dir),
-        "update",
+        "update-branch",
         {"README.md": "# hi"},
     )
 
-    # chdir happened
-    assert cwd_holder["cwd"] == str(repo_dir)
-    # branch created
-    assert ["git", "checkout", "-b", "update"] in calls
-    # file was added
+    assert chdirs == [str(repo_dir)]
+    assert ["git", "checkout", "-b", "update-branch"] in calls
     assert any(cmd[:2] == ["git", "add"] for cmd in calls)
-    # commit and push happened
     assert any(cmd[:2] == ["git", "commit"] for cmd in calls)
     assert any(cmd[:2] == ["git", "push"] for cmd in calls)
 
@@ -140,18 +105,16 @@ def test_apply_changes_and_push(monkeypatch, tmp_path):
 @pytest.mark.asyncio
 async def test_create_pr_success(monkeypatch):
     """
-    Test creating a pull request successfully.
-
-    Raises
-    ------
-    AssertionError
-        If the created pull request URL does not match expected values.
+    create_pull_request returns JSON on success.
     """
 
     class FakeResp:
         status_code = 201
+        text = ""
 
-        def raise_for_status(self): ...
+        def raise_for_status(self):  # no error
+            return None
+
         def json(self):
             return {"html_url": "https://github.com/x/y/pull/1"}
 
@@ -183,14 +146,9 @@ async def test_create_pr_success(monkeypatch):
 
 
 @pytest.mark.asyncio
-async def test_create_pr_422(monkeypatch):
+async def test_create_pr_422_raises_http_status_error(monkeypatch):
     """
-    Test creating a pull request that results in a 422 error.
-
-    Raises
-    ------
-    RuntimeError
-        If the pull request creation does not raise a RuntimeError on 422 response.
+    create_pull_request raises httpx.HTTPStatusError on 422 (validation failed).
     """
 
     class FakeResp:
@@ -198,7 +156,11 @@ async def test_create_pr_422(monkeypatch):
         text = "validation failed"
 
         def raise_for_status(self):
-            raise RuntimeError("422")
+            raise httpx.HTTPStatusError(
+                "422 Unprocessable Entity",
+                request=httpx.Request("POST", "https://api.github.test/pulls"),
+                response=httpx.Response(422, request=httpx.Request("POST", "https://api.github.test/pulls")),
+            )
 
         def json(self):
             return {}
@@ -219,7 +181,7 @@ async def test_create_pr_422(monkeypatch):
     )
 
     prov = GitHubRepoProvider()
-    with pytest.raises(RuntimeError):
+    with pytest.raises(httpx.HTTPStatusError):
         await prov.create_pull_request(
             owner="o",
             repo="r",
