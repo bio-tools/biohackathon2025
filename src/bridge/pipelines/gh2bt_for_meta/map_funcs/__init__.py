@@ -2,6 +2,7 @@
 Individual mapping functions for GitHub to bio.tools.
 """
 
+from .biotools_id import map_biotools_id
 from .description import map_description
 from .documentation import map_documentation
 from .homepage import map_homepage
@@ -22,4 +23,5 @@ __all__ = [
     "map_version",
     "map_publication",
     "map_name",
+    "map_biotools_id",
 ]

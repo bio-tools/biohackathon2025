@@ -77,6 +77,7 @@ async def run(args: GitHubToBiotoolsForMetaPipelineArgs) -> BiotoolsToolModel:
     )
 
     biotools_metadata = BiotoolsToolModel(
+        biotoolsID=await mapper.map["biotools_id"].run(),
         name=await mapper.map["name"].run(),
         description=((await mapper.map["description"].run()) or "***Please change this description***"),
         homepage=await mapper.map["homepage"].run(),

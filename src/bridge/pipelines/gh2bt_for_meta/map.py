@@ -8,6 +8,7 @@ from bridge.pipelines.protocols import MapItem, Method, ModelsMap
 from bridge.pipelines.utils import load_dict_from_yaml_file
 
 from .map_funcs import (
+    map_biotools_id,
     map_description,
     map_documentation,
     map_homepage,
@@ -35,6 +36,12 @@ class MapGitHub2BioTools(ModelsMap):
         Map GitHub metadata property to corresponding bio.tools property.
         """
         return {
+            "biotools_id": MapItem(
+                schema_entry=self.metadata.biotoolsID,
+                repo_entry=self.repo.repo.name,
+                method=Method.FUZZY,
+                fn=map_biotools_id,
+            ),
             "name": MapItem(
                 schema_entry=self.metadata.name, repo_entry=self.repo.repo.name, method=Method.EXACT, fn=map_name
             ),
