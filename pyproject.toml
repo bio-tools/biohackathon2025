@@ -57,6 +57,7 @@ force-exclude = '''
   | (^|/)src/bridge/core/github_languages\\.py
   | (^|/)src/bridge/core/license\\.py
   | (^|/)docs/
+  | (^|/)tests/
 )
 """
 '''
@@ -66,6 +67,7 @@ target-version = "py312"
 line-length = 120
 extend-exclude = [
   "docs",
+  "tests",
   "src/bridge/core/biotools.py",
   "src/bridge/core/github_repo.py",
   "src/bridge/core/github_latest_release.py",
