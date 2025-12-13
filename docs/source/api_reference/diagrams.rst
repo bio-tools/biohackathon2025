@@ -124,7 +124,7 @@ Map topics
 Map version
 ~~~~~~~~~~~~~~
 
-TODO: add diagram here.
+.. mermaid:: _process_diagrams/bt2gh/version.mmd
 
 
 bio.tools → GitHub mapping for pull requests
