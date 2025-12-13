@@ -30,7 +30,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install poetry
           poetry config virtualenvs.create false --local
-          poetry install --no-interaction --no-ansi
+          poetry install --no-interaction --no-ansi --with docs
 
       - name: Run unit tests
         env:
