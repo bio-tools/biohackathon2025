@@ -63,6 +63,7 @@ def test_mapbiotools2github_version_mapping(monkeypatch, tmp_path):
     item = mapper.map["version"]
     assert isinstance(item, MapItem)
 
+    # mapper uses schema_entry=self.metadata.version (bio.tools: Optional[List[VersionType]])
     assert deep_unwrap(item.schema_entry) == bt_tool.version
     assert deep_unwrap(item.repo_entry) == gh_repo.latest_release.tag_name
     assert item.method == Method.EXACT
@@ -95,6 +96,7 @@ def test_mapbiotools2github_topics_mapping(monkeypatch, tmp_path):
     item = mapper.map["topics"]
     assert isinstance(item, MapItem)
 
+    # mapper uses schema_entry={"topics": self.metadata.topic, "functions": self.metadata.function}
     assert deep_unwrap(item.schema_entry) == {"topics": bt_tool.topic, "functions": bt_tool.function}
     assert deep_unwrap(item.repo_entry) == gh_repo.repo.topics
     assert item.method == Method.FUZZY
@@ -111,6 +113,7 @@ def test_mapbiotools2github_homepage_mapping(monkeypatch, tmp_path):
     item = mapper.map["homepage"]
     assert isinstance(item, MapItem)
 
+    # schema_entry is UrlftpType RootModel in real schema
     assert deep_unwrap(item.schema_entry) == bt_tool.homepage
     assert deep_unwrap(item.repo_entry) == {"homepage": gh_repo.repo.homepage, "html_url": gh_repo.repo.html_url}
     assert item.method == Method.EXACT
@@ -147,6 +150,7 @@ def test_mapbiotools2github_license_mapping(monkeypatch, tmp_path):
     item = mapper.map["license"]
     assert isinstance(item, MapItem)
 
+    # schema_entry is a License enum member (not a list) in the real schema
     assert deep_unwrap(item.schema_entry) == bt_tool.license
     assert deep_unwrap(item.repo_entry) == gh_repo.repo.license
     assert item.method == Method.FUZZY
@@ -172,8 +176,10 @@ def test_mapbiotools2github_citation_mapping_loads_from_yaml(monkeypatch, tmp_pa
     assert item.method == Method.FUZZY
     assert item.fn is not None  # map_citation
 
-    # schema_entry is a big dict; just check a couple of load-bearing fields
     schema = deep_unwrap(item.schema_entry)
     assert schema["name"] == bt_tool.name
-    assert schema["biotoolsID"] == bt_tool.biotoolsID
+    assert schema["biotoolsID"] == bt_tool.biotoolsID  # NOTE: mapper uses the object, not .root
     assert schema["homepage"] == bt_tool.homepage
+    assert schema["license"] == bt_tool.license
+    assert schema["topic"] == bt_tool.topic
+    assert schema["description"] == bt_tool.description
