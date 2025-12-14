@@ -8,6 +8,23 @@ import pytest
 from bridge.services.github.github_repo_provider import GitHubRepoProvider
 
 
+@pytest.fixture(autouse=True)
+def _patch_gh_token(monkeypatch):
+    # Provider __init__ hard-requires a token; unit tests shouldn't.
+    monkeypatch.setattr(
+        "bridge.services.github.github_repo_provider.settings.require_github_token",
+        lambda: None,
+        raising=True,
+    )
+    # If provider builds auth headers using settings.github_token, give it something.
+    monkeypatch.setattr(
+        "bridge.services.github.github_repo_provider.settings",
+        "github_token",
+        "dummy",
+        raising=False,
+    )
+
+
 @pytest.mark.asyncio
 async def test_fork_wait_ready_false(monkeypatch):
     """

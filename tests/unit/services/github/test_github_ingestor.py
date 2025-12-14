@@ -12,6 +12,15 @@ from bridge.config import settings
 from bridge.services.github import GitHubIngestor
 
 
+@pytest.fixture(autouse=True)
+def _patch_gh_headers(monkeypatch):
+    # Ensure tests do not depend on GITHUB_TOKEN being set in CI.
+    monkeypatch.setattr(
+        "bridge.services.github.github_ingestor.get_github_headers",
+        lambda: {"Accept": "application/vnd.github+json"},
+    )
+
+
 def _b64(s: str) -> str:
     return base64.b64encode(s.encode("utf-8")).decode("ascii")
 

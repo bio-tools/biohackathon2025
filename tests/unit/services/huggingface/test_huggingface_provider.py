@@ -8,6 +8,21 @@ from bridge.services.huggingface import HuggingFaceProvider
 from bridge.services.protocols import ChatMessage
 
 
+@pytest.fixture(autouse=True)
+def _patch_hf_token(monkeypatch):
+    # __init__ calls settings.require_huggingface_token() unconditionally
+    monkeypatch.setattr(
+        "bridge.services.huggingface.huggingface_provider.settings.require_huggingface_token",
+        lambda: None,
+    )
+    # constructor passes token=settings.huggingface_token
+    monkeypatch.setattr(
+        "bridge.services.huggingface.huggingface_provider.settings.huggingface_token",
+        "dummy",
+        raising=False,
+    )
+
+
 @pytest.mark.asyncio
 async def test_hf_provider_generate_happy(monkeypatch):
     """
