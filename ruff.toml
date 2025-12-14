@@ -1,0 +1,29 @@
+target-version = "py312"
+line-length = 120
+extend-exclude = [
+  "docs",
+  "tests",
+  "src/bridge/core/biotools.py",
+  "src/bridge/core/github_repo.py",
+  "src/bridge/core/github_latest_release.py",
+  "src/bridge/core/github_languages.py",
+  "src/bridge/core/license.py",
+]
+
+[lint]
+select = ["F", "E", "W", "I", "B", "C4", "UP", "N", "D"]
+ignore = [
+  "D105", # magic methods
+  "D107", # __init__
+  "D200", # one-line docstring must be single line
+  "D205", # blank line after summary
+  "D400", # first line ends with period
+]
+per-file-ignores = { "**/__init__.py" = ["F401"] }
+
+[lint.isort]
+known-first-party = ["bridge"]
+combine-as-imports = true
+
+[lint.pydocstyle]
+convention = "numpy"

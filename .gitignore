@@ -31,3 +31,9 @@ __pycache__/
 
 # VSCode
 .vscode
+
+# Tests
+.coverage
+htmlcov/
+cosmic-ray.sqlite
+cosmic-ray-report.html

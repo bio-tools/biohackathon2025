@@ -77,7 +77,7 @@ def load_dict_from_yaml_file(file_path: str | Path) -> dict[str, Any]:
 
     try:
         data = yaml.safe_load(content)
-        return data or {}
+        return data if isinstance(data, dict) else {}
     except yaml.YAMLError:
         # parsing error
         return {}

@@ -1,0 +1,24 @@
+[run]
+source = bridge
+branch = True
+parallel = True
+
+[report]
+skip_covered = False
+show_missing = True
+omit =
+    */tests/*
+    */__init__.py
+    */core/*
+    */bridge/config.py
+    */bridge/logging.py
+exclude_lines =
+    pragma: no cover
+    if TYPE_CHECKING:
+    raise NotImplementedError
+    @abstractmethod
+    def __repr__
+    def __str__
+    if __name__ == .__main__.:
+    if logger\.isEnabledFor
+    ^\s*\.\.\.\s*$

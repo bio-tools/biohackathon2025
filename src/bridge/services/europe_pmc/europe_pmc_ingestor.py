@@ -73,7 +73,8 @@ class EuropePMCIngestor(Ingestor):
 
     @staticmethod
     def _first_result(payload: dict[str, Any]) -> dict[str, Any] | None:
-        return payload.get("resultList", {}).get("result", [None])[0]
+        results = payload.get("resultList", {}).get("result") or []
+        return results[0] if results else None
 
     async def fetch(self) -> dict[str, Any]:
         """

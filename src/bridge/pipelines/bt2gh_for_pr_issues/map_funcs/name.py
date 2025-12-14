@@ -14,7 +14,7 @@ from bridge.pipelines.utils import normalize_text, str_contain_each_other
 logger = get_user_logger()
 
 
-def map_name(gh_name: str | None, bt_params: dict[str, str | None] | None) -> dict[str, str] | None:
+async def map_name(gh_name: str | None, bt_params: dict[str, str | None] | None) -> dict[str, str] | None:
     """
     Propose a GitHub issue to update the GitHub repository name based on bio.tools name and ID metadata,
     using the generic bio.tools-over-GitHub issue policy.
@@ -56,7 +56,7 @@ def map_name(gh_name: str | None, bt_params: dict[str, str | None] | None) -> di
             ),
         }
 
-    return reconcile_bt_over_gh(
+    return await reconcile_bt_over_gh(
         bt_norm=bt_id_norm,
         gh_norm=gh_norm,
         make_output=make_issue,

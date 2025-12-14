@@ -256,7 +256,8 @@ def _normalize_structure(obj: Any) -> Any:
         return {_normalize_structure(v) for v in obj}
 
     # Pydantic model: normalize fields in-place, return the same object
-    if hasattr(obj, "model_fields") or hasattr(obj, "__fields__"):
+    obj_cls = obj.__class__
+    if hasattr(obj_cls, "model_fields") or hasattr(obj_cls, "__fields__"):
         return normalize_pydantic_model_strings(obj)
 
     return obj
@@ -314,10 +315,11 @@ def normalize_pydantic_model_strings(model: Any) -> Any:
         The same ``model`` object, potentially modified in-place if it is a
         Pydantic model with string fields or nested containers.
     """
-    if hasattr(model, "model_fields"):
-        fields = model.model_fields
-    elif hasattr(model, "__fields__"):
-        fields = model.__fields__
+    model_cls = model.__class__
+    if hasattr(model_cls, "model_fields"):
+        fields = model_cls.model_fields
+    elif hasattr(model_cls, "__fields__"):
+        fields = model_cls.__fields__
     else:
         return model
 
