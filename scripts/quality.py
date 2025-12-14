@@ -11,6 +11,9 @@ import time
 from pathlib import Path
 from subprocess import DEVNULL, Popen, run
 
+BASE_DIR = Path(__file__).resolve().parent.parent
+BLACK_CONFIG = str(BASE_DIR / "black.toml")
+
 
 def _run(cmd: list[str]) -> int:
     """Run a subprocess command and return its return code."""
@@ -21,7 +24,7 @@ def lint() -> None:
     """CI-style checks: Ruff lint + Black check."""
     rc = 0
     rc |= _run([sys.executable, "-m", "ruff", "check", "."])
-    rc |= _run([sys.executable, "-m", "black", "--check", "."])
+    rc |= _run([sys.executable, "-m", "black", "--check", ".", "--config", BLACK_CONFIG])
     raise SystemExit(rc)
 
 
@@ -29,7 +32,8 @@ def fmt() -> None:
     """Fix imports/lints via Ruff, then format via Black."""
     rc = 0
     rc |= _run([sys.executable, "-m", "ruff", "check", ".", "--fix", "--unsafe-fixes"])
-    rc |= _run([sys.executable, "-m", "black", "."])
+    # Black: apply formatting using your config
+    rc |= _run([sys.executable, "-m", "black", ".", "--config", BLACK_CONFIG])
     raise SystemExit(rc)
 
 
