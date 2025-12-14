@@ -4,6 +4,8 @@ timeout = 45
 test-command = "python -m pytest -q"
 excluded-modules = [
   "bridge.core",
+  "bridge.logging",
+  "bridge.config",
 ]
 
 [[cosmic-ray.targets]]

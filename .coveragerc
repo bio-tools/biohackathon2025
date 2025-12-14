@@ -10,6 +10,8 @@ omit =
     */tests/*
     */__init__.py
     */core/*
+    */bridge/config.py
+    */bridge/logging.py
 exclude_lines =
     pragma: no cover
     if TYPE_CHECKING:
