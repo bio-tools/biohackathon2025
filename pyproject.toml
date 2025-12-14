@@ -48,37 +48,6 @@ grimp = "^3.12"
 requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
 
-[tool.ruff]
-target-version = "py312"
-line-length = 120
-extend-exclude = [
-  "docs",
-  "tests",
-  "src/bridge/core/biotools.py",
-  "src/bridge/core/github_repo.py",
-  "src/bridge/core/github_latest_release.py",
-  "src/bridge/core/github_languages.py",
-  "src/bridge/core/license.py",
-]
-
-[tool.ruff.lint]
-select = ["F", "E", "W", "I", "B", "C4", "UP", "N", "D"]
-ignore = [
-  "D105", # magic methods
-  "D107", # __init__
-  "D200", # one-line docstring must be single line
-  "D205", # blank line after summary
-  "D400", # first line ends with period
-]
-per-file-ignores = { "**/__init__.py" = ["F401"] }
-
-[tool.ruff.lint.isort]
-known-first-party = ["bridge"]
-combine-as-imports = true
-
-[tool.ruff.lint.pydocstyle]
-convention = "numpy"
-
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = [

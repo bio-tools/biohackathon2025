@@ -13,6 +13,7 @@ from subprocess import DEVNULL, Popen, run
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 BLACK_CONFIG = str(BASE_DIR / "black.toml")
+RUFF_CONFIG = str(BASE_DIR / "ruff.toml")
 
 
 def _run(cmd: list[str]) -> int:
@@ -23,7 +24,7 @@ def _run(cmd: list[str]) -> int:
 def lint() -> None:
     """CI-style checks: Ruff lint + Black check."""
     rc = 0
-    rc |= _run([sys.executable, "-m", "ruff", "check", "."])
+    rc |= _run([sys.executable, "-m", "ruff", "check", ".", "--config", RUFF_CONFIG])
     rc |= _run([sys.executable, "-m", "black", "--check", ".", "--config", BLACK_CONFIG])
     raise SystemExit(rc)
 
@@ -31,7 +32,7 @@ def lint() -> None:
 def fmt() -> None:
     """Fix imports/lints via Ruff, then format via Black."""
     rc = 0
-    rc |= _run([sys.executable, "-m", "ruff", "check", ".", "--fix", "--unsafe-fixes"])
+    rc |= _run([sys.executable, "-m", "ruff", "check", ".", "--fix", "--unsafe-fixes", "--config", RUFF_CONFIG])
     # Black: apply formatting using your config
     rc |= _run([sys.executable, "-m", "black", ".", "--config", BLACK_CONFIG])
     raise SystemExit(rc)
