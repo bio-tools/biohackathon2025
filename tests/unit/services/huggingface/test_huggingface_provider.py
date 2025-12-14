@@ -4,18 +4,14 @@ Unit tests for bridge.services.huggingface.HuggingFaceProvider.
 
 import pytest
 
+from bridge.config import Settings
 from bridge.services.huggingface import HuggingFaceProvider
 from bridge.services.protocols import ChatMessage
 
 
 @pytest.fixture(autouse=True)
 def _patch_hf_token(monkeypatch):
-    # __init__ calls settings.require_huggingface_token() unconditionally
-    monkeypatch.setattr(
-        "bridge.services.huggingface.huggingface_provider.settings.require_huggingface_token",
-        lambda: None,
-    )
-    # constructor passes token=settings.huggingface_token
+    monkeypatch.setattr(Settings, "require_huggingface_token", lambda self: None, raising=True)
     monkeypatch.setattr(
         "bridge.services.huggingface.huggingface_provider.settings.huggingface_token",
         "dummy",
