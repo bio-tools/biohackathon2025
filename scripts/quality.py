@@ -14,6 +14,7 @@ from subprocess import DEVNULL, Popen, run
 BASE_DIR = Path(__file__).resolve().parent.parent
 BLACK_CONFIG = str(BASE_DIR / "black.toml")
 RUFF_CONFIG = str(BASE_DIR / "ruff.toml")
+COVERAGE_CONFIG = str(BASE_DIR / ".coveragerc")
 
 
 def _run(cmd: list[str]) -> int:
@@ -45,7 +46,9 @@ def coverage_report() -> None:
             sys.executable,
             "-m",
             "pytest",
+            "--cov=bridge",
             "--cov-report=html",
+            f"--cov-config={COVERAGE_CONFIG}",
         ]
     )
 
