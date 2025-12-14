@@ -48,24 +48,6 @@ grimp = "^3.12"
 requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
 
-[tool.coverage.run]
-source = ["bridge"]
-branch = true
-parallel = true
-
-[tool.coverage.report]
-skip_covered = false
-show_missing = true
-omit = [
-  "*/tests/*",
-  "*/__init__.py",
-]
-exclude_lines = [
-  "pragma: no cover",
-  "if TYPE_CHECKING:",
-  "raise NotImplementedError",
-]
-
 [tool.poetry]
 packages = [{ include = "bridge", from = "src" }]
 

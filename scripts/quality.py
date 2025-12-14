@@ -45,8 +45,6 @@ def coverage_report() -> None:
             sys.executable,
             "-m",
             "pytest",
-            "--cov=bridge",
-            "--cov-branch",
             "--cov-report=html",
         ]
     )
