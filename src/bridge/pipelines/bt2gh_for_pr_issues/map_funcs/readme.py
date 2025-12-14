@@ -365,7 +365,12 @@ def map_readme(gh_readme: str | None, bt_params: dict[str, Any]) -> dict[str, st
         raise ValueError("bt_params must contain 'name' field.")
     if bt_id is None:
         raise ValueError("bt_params must contain 'biotoolsID' field.")
-    if bt_tool_types is None or not isinstance(bt_tool_types, list) or not bt_tool_types:
+    if (
+        bt_tool_types is None
+        or not isinstance(bt_tool_types, list)
+        or not bt_tool_types
+        or not all(hasattr(tt, "value") for tt in bt_tool_types)
+    ):
         bt_tool_types = None
 
     gh_readme_updated = _build_readme(gh_readme, bt_name, bt_id, bt_tool_types)

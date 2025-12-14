@@ -1,11 +1,5 @@
 """
 Unit tests for mapping bio.tools name/id to GitHub issues (map_name).
-
-These tests validate behavior of map_name as implemented:
-- bt_params missing => no issue
-- bio.tools silent (bt_id_norm is None) => no issue
-- if GitHub name contains bt_id OR contains bt_name => no issue
-- if GitHub differs => proposes an issue suggesting bt_id (even if GitHub is present)
 """
 
 from __future__ import annotations

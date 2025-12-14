@@ -1,14 +1,5 @@
 """
 Unit tests for mapping bio.tools versions to GitHub issues (map_version).
-
-These tests focus on the public function `map_version`. Version parsing and
-comparison logic is tested separately in tests for bridge.pipelines.shared.version.
-Here we validate integration-level branching:
-- no bio.tools versions => no issue
-- no comparable bio.tools version => no issue
-- GitHub has no latest tag while bio.tools has versions => issue
-- bio.tools newer than GitHub => issue
-- GitHub up-to-date => no issue
 """
 
 from __future__ import annotations

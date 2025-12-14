@@ -1,13 +1,5 @@
 """
 Unit tests for mapping bio.tools EDAM annotations to GitHub topics (map_topics).
-
-These tests focus on the public function `map_topics` (not private helpers).
-They validate:
-- bt_edam is None => no issue
-- bt_edam provides no usable terms => no issue
-- gh topics missing some/all bt terms => issue proposed with correct body bits
-- normalization effects (spaces -> hyphens, case-folding, punctuation stripping)
-- singular vs plural phrasing
 """
 
 from __future__ import annotations
