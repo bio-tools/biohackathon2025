@@ -56,7 +56,7 @@ def _bt(url: str | None) -> UrlftpType | None:
         (
             {"homepage": "https://new.example.org", "html_url": "https://github.com/o/r"},
             _bt("https://old.example.org"),
-            "https://new.example.org",
+            "https://new.example.org/",
         ),
         # query canonicalization: ordering differences should match
         (
@@ -93,4 +93,4 @@ def test_map_homepage_returns_UrlftpType_when_setting_from_github():
         bt_homepage=None,
     )
     assert isinstance(out, UrlftpType)
-    assert str(out.root) == "https://example.org"
+    assert str(out.root) == "https://example.org/"
