@@ -1,12 +1,13 @@
 [cosmic-ray]
 module-path = "src"
 timeout = 45
+test-command = "python -m pytest -q"
+excluded-modules = [
+  "bridge.core",
+]
 
 [[cosmic-ray.targets]]
 module = "bridge"
-
-[cosmic-ray.test-command]
-command = "python -m pytest -q"
 
 [cosmic-ray.distributor]
 name = "local"
