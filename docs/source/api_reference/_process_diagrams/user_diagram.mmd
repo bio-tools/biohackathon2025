@@ -1,0 +1,62 @@
+---
+config:
+  theme: base
+  look: neo
+  themeVariables:
+    darkMode: true
+    background: "#121212"
+    sequenceNumberColor: "#005a7a"
+    actorBkg: "#005a7a"
+    actorBorder: "#005a7a"
+    actorLineColor: "#005a7a"
+    activationBkgColor: "#1099c9"
+    activationBorderColor: "#1099c9"
+    labelBoxBorderColor: "#5DD3FC"
+    loopTextColor: "#5DD3FC"
+    labelTextColor: "#5DD3FC"
+    noteBkgColor: "#F47D22"
+    noteBorderColor: "#F47D22"
+    noteTextColor: "#fff"
+---
+sequenceDiagram
+  autonumber
+  actor User
+  participant Bridge as Bridge
+  participant GitHub
+  participant BioTools as bio.tools
+  participant Pipeline
+
+  alt GitHub → bio.tools (CLI)
+    User->>Bridge: bridge cli<br/>github-to-biotools extract<br/>--owner O --repo R [--biotools-id ID]
+  else GitHub → bio.tools (API)
+    User-)Bridge: POST<br/>/github-to-biotools<br/>{owner, repo, biotools_id?}
+  else GitHub → bio.tools (Python)
+    User-)Bridge: import bridge<br/>await bridge.extract_meta_from_repo<br/>(schema="biotools", repo_type="github", owner=O, repo=R, identifier=ID?)
+  else bio.tools → GitHub (CLI)
+    User->>Bridge: bridge cli<br/>biotools-to-github update<br/>--biotools-id ID --owner O --repo R [--allow-issues]
+  else bio.tools → GitHub (API)
+    User-)Bridge: POST<br/>/biotools-to-github<br/>{biotools_id, owner, repo, allow_issues?}
+  else bio.tools → GitHub (Python)
+    User-)Bridge: import bridge<br/>await bridge.create_pr_issues_from_meta<br/>(schema="biotools", repo_type="github", identifier=ID, owner=O, repo=R, allow_issues=?)
+  end
+
+  alt GitHub → bio.tools
+    Bridge-)GitHub: Fetch repo metadata
+    opt If bio.tools ID provided
+      Bridge-)BioTools: Fetch existing tool metadata
+    end
+    Bridge-)Pipeline: Create/update tool record fields
+    Pipeline-->>Bridge: bio.tools tool metadata
+    Bridge-->>User: bio.tools metadata JSON
+  else bio.tools → GitHub
+    Bridge-)GitHub: Fetch repo metadata
+    Bridge-)BioTools: Fetch tool metadata
+    Bridge-)Pipeline: Determine PR + (optional) issues
+    Pipeline-->>Bridge: File changes for PR + issues list
+    Bridge-)GitHub: Open PR with file changes
+    opt If issues enabled
+      Bridge-)GitHub: Create issues for missing info
+    end
+    GitHub-->>Bridge: PR (and issues) info
+    Bridge-->>User: PR (and issues) info
+  end

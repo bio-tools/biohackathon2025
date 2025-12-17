@@ -4,5 +4,5 @@ Developer API Reference
 .. toctree::
    :maxdepth: 2
 
-   diagrams
+   diagrams_dev
    _apidoc_generated/bridge
