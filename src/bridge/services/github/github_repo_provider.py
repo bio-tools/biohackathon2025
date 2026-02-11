@@ -230,7 +230,18 @@ class GitHubRepoProvider(RepoProvider):
         logger.info(f"Cloning repo {repo_full_name} into temp dir {tmp_dir}")
 
         try:
-            subprocess.run(["git", "clone", repo_url, tmp_dir], check=True)
+            subprocess.run(
+                [
+                    "git",
+                    "clone",
+                    "--depth",
+                    "1",
+                    "--single-branch",
+                    repo_url,
+                    tmp_dir,
+                ],
+                check=True,
+            )
             logger.debug(f"Repo {repo_full_name} cloned successfully.")
             yield tmp_dir
         except subprocess.CalledProcessError as e:
