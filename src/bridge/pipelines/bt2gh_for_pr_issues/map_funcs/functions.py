@@ -30,14 +30,14 @@ FUNCTION_TEMPLATE = """
 FUNCTION_PATTERN = re.compile(
     r"""
     <details>\s*
-    <summary>(?P<name>.*?)</summary>\s*
-    ```yaml\s*
-    #\s*biotools-function\s*
+    <summary>(?P<name>[^\n<]*)</summary>\s*
+    ```yaml[ \t]*\n
+    #[ \t]*biotools-function[ \t]*\n
     (?P<yaml>.*?)
-    ```\s*
-    </details>
+    ^```[ \t]*\n
+    \s*</details>
     """,
-    re.DOTALL | re.VERBOSE,
+    re.DOTALL | re.VERBOSE | re.MULTILINE,
 )
 
 
@@ -78,9 +78,7 @@ def _build_function_name(function: FunctionItem) -> str:
     str
         The built function name.
     """
-    operations = function.operation  # min 1
-    operations_str = ", ".join(op.term for op in operations)
-    return operations_str
+    return ", ".join((op.term or op.uri or "Unnamed operation").strip() for op in function.operation)
 
 
 def _build_function(function: FunctionItem) -> str:
