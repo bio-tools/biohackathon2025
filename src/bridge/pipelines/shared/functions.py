@@ -34,3 +34,22 @@ def find_matches(text: str | None) -> list[str]:
     """
     matches = list(FUNCTION_PATTERN.finditer(text or ""))
     return matches
+
+
+def find_match_yamls(text: str | None) -> list[str]:
+    """
+    Find all function annotation YAML blocks in the given text.
+
+    Parameters
+    ----------
+    text : str
+        The text to search for function annotations.
+
+    Returns
+    -------
+    list[str]
+        A list of YAML strings found in the function annotations in the text.
+    """
+    matches = find_matches(text)
+    yamls = [m.group("yaml") for m in matches]
+    return yamls
