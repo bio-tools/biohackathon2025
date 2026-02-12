@@ -120,7 +120,7 @@ def _build_functions(functions: list[FunctionItem]) -> str:
     str
         The concatenated function strings.
     """
-    txt = "#Functions\n\n"
+    txt = "# Functions\n\n"
     return txt + "\n".join(_build_function(function) for function in functions)
 
 
@@ -165,7 +165,7 @@ def map_functions(gh_readme: str | None, bt_functions: list[FunctionItem] | None
         "but they are not mentioned in the GitHub README:\n"
         "Please consider adding these functions to the README to improve discoverability "
         "and provide users with more information about the tool's capabilities.\n\n"
-        f"{functions_txt}"
+        f"```\n{functions_txt}\n```"
     )
     logger.added("bio.tools function annotations added to issue.")
     return {"Add function annotations from bio.tools metadata": issue_body}
