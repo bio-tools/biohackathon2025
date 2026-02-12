@@ -15,7 +15,7 @@ from .cleaning import (
 from .comparisons import str_contain_each_other
 from .conversions import find_matching_enum_member, object_to_primitive, svg_to_base64
 from .files import check_file_with_extension_exists, get_file_content, load_dict_from_yaml_file
-from .templating import fill_template, remove_first_snippet_from_text
+from .templating import fill_template, remove_first_snippet_from_text, separate_snippets_from_text
 
 __all__ = [
     "check_file_with_extension_exists",
@@ -36,4 +36,5 @@ __all__ = [
     "find_matching_enum_member",
     "object_to_primitive",
     "str_contain_each_other",
+    "separate_snippets_from_text",
 ]

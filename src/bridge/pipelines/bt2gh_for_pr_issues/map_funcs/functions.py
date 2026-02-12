@@ -12,7 +12,7 @@ import yaml
 
 from bridge.core.biotools import FunctionItem
 from bridge.logging import get_user_logger
-from bridge.pipelines.utils import fill_template
+from bridge.pipelines.utils import fill_template, separate_snippets_from_text
 
 logger = get_user_logger()
 
@@ -169,3 +169,53 @@ def map_functions(gh_readme: str | None, bt_functions: list[FunctionItem] | None
     )
     logger.added("bio.tools function annotations added to issue.")
     return {"Add function annotations from bio.tools metadata": issue_body}
+
+
+def map_functions_to_readme(gh_readme: str | None, bt_functions: list[FunctionItem] | None) -> str | None:
+    """
+    Propose an updated README content by adding function annotations from bio.tools metadata.
+
+    Steps performed:
+    1. Check if README exists; if not, no update is needed.
+    2. Check if the README already mentions functions using the FUNCTION_PATTERN.
+       If it does not, no update is needed.
+    3. If no functions are found in bio.tools, no update is needed.
+    4. If functions are present in bio.tools and the README mentions functions,
+         remove all existing function blocks from the README.
+    5. In their place, add new function blocks for each function from bio.tools.
+        The new function blocks are built using the FUNCTION_TEMPLATE and the
+        function data from bio.tools.
+
+    Parameters
+    ----------
+    gh_readme : str | None
+        The current README content from GitHub, or ``None`` if the file does
+        not exist yet.
+    bt_functions : list[FunctionItem] | None
+        The list of FunctionItems from bio.tools metadata, or ``None`` if no functions are defined.
+
+    Returns
+    -------
+    str | None
+        The updated README content with function annotations added, or ``None`` if no update is needed.
+    """
+    if gh_readme is None:
+        logger.info("README does not exist, no need to map functions.")
+        return None
+
+    matches = list(FUNCTION_PATTERN.finditer(gh_readme or ""))
+    functions_in_readme = len(matches) > 0
+    if not functions_in_readme:
+        logger.info("Functions are not mentioned in the README, no PR needed.")
+        return None
+
+    if not bt_functions:
+        logger.info("No functions found in biotools, no need to include any in README.")
+        return None
+
+    matches_blocks = [m.group(0) for m in matches]
+    before, after = separate_snippets_from_text(gh_readme, matches_blocks)
+    functions_txt = _build_functions(bt_functions)
+    new_readme = before + functions_txt + after
+    logger.added("bio.tools function annotations added to README content.")
+    return new_readme

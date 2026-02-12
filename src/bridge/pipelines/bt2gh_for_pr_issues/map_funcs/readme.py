@@ -15,7 +15,7 @@ import re
 from collections.abc import Iterable
 from typing import Any
 
-from bridge.core.biotools import ToolTypeEnum
+from bridge.core.biotools import FunctionItem, ToolTypeEnum
 from bridge.logging import get_user_logger
 from bridge.pipelines.utils import (
     Badge,
@@ -23,6 +23,8 @@ from bridge.pipelines.utils import (
     fill_template,
     remove_first_snippet_from_text,
 )
+
+from .functions import map_functions_to_readme
 
 logger = get_user_logger()
 
@@ -220,7 +222,13 @@ def _extract_project_title(gh_readme: str | None) -> str | None:
     return None
 
 
-def _build_readme(gh_readme: str | None, bt_name: str, bt_id: str, bt_tool_types: list[ToolTypeEnum] | None) -> str:
+def _build_readme(
+    gh_readme: str | None,
+    bt_name: str,
+    bt_id: str,
+    bt_tool_types: list[ToolTypeEnum] | None,
+    bt_functions: list[FunctionItem] | None,
+) -> str:
     """
     Construct an updated README from existing content and bio.tools metadata.
 
@@ -237,7 +245,8 @@ def _build_readme(gh_readme: str | None, bt_name: str, bt_id: str, bt_tool_types
        '# <bt_name>' as the title.
     5. Strips the original title and badges from the README to obtain the
        remaining content body.
-    6. Renders a new README using a simple template that places the title, badges,
+    6. Adds function annotations from bio.tools to the content body.
+    7. Renders a new README using a simple template that places the title, badges,
        and remaining content in order.
 
     Parameters
@@ -250,6 +259,9 @@ def _build_readme(gh_readme: str | None, bt_name: str, bt_id: str, bt_tool_types
         The `biotoolsID` of the tool from bio.tools metadata.
     bt_tool_types : list[ToolTypeEnum] | None
         A list of tool types (`toolType` field from bio.tools), or ``None``
+        if not available or not valid.
+    bt_functions : list[FunctionItem] | None
+        A list of function items (`functions` field from bio.tools), or ``None``
         if not available or not valid.
 
     Returns
@@ -311,6 +323,9 @@ def _build_readme(gh_readme: str | None, bt_name: str, bt_id: str, bt_tool_types
         lines.pop(0)
     content = "\n".join(lines)
 
+    # add functions to content
+    content = map_functions_to_readme(content, bt_functions)
+
     # compose final README
     placeholders = {
         "TITLE": title,
@@ -345,6 +360,7 @@ def map_readme(gh_readme: str | None, bt_params: dict[str, Any]) -> dict[str, st
         - 'name'       : Name of the tool.
         - 'biotoolsID' : bio.tools identifier of the tool.
         - 'toolType'   : Optional list of tool types (typically `ToolTypeEnum`).
+        - 'functions' : Optional list of function items (typically `FunctionItem`).
 
     Returns
     -------
@@ -360,6 +376,7 @@ def map_readme(gh_readme: str | None, bt_params: dict[str, Any]) -> dict[str, st
     bt_name = bt_params.get("name", None)
     bt_id = bt_params.get("biotoolsID", None)
     bt_tool_types = bt_params.get("toolType", None)
+    bt_functions = bt_params.get("functions", None)
 
     if bt_name is None:
         raise ValueError("bt_params must contain 'name' field.")
@@ -373,7 +390,7 @@ def map_readme(gh_readme: str | None, bt_params: dict[str, Any]) -> dict[str, st
     ):
         bt_tool_types = None
 
-    gh_readme_updated = _build_readme(gh_readme, bt_name, bt_id, bt_tool_types)
+    gh_readme_updated = _build_readme(gh_readme, bt_name, bt_id, bt_tool_types, bt_functions)
 
     if gh_readme == gh_readme_updated:
         logger.unchanged("README.md remains unchanged.")
