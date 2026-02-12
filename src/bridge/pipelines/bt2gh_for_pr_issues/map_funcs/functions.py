@@ -30,11 +30,11 @@ FUNCTION_TEMPLATE = """
 FUNCTION_PATTERN = re.compile(
     r"""
     <details>\s*
-    <summary>(?P<name>[^\n<]*)</summary>\s*
-    ```yaml[ \t]*\n
-    #[ \t]*biotools-function[ \t]*\n
+    <summary>(?P<name>[^\r\n<]*)</summary>\s*
+    ```yaml[ \t]*\r?\n
+    #[ \t]*biotools-function[ \t]*\r?\n
     (?P<yaml>.*?)
-    ^```[ \t]*\n
+    ^[ \t]*```[ \t]*\r?\n
     \s*</details>
     """,
     re.DOTALL | re.VERBOSE | re.MULTILINE,
