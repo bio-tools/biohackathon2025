@@ -1,5 +1,9 @@
 """
-Docstring for bridge.pipelines.bt2gh_for_pr_issues.map_funcs.functions
+Map function annotations from bio.tools to GitHub.
+
+This module compares the function annotations recorded in bio.tools with the
+GitHub README and, when appropriate, proposes a GitHub issue suggesting that
+the bio.tools function annotations be added to the README.
 """
 
 import yaml
@@ -10,6 +14,7 @@ from bridge.pipelines.utils import fill_template
 
 logger = get_user_logger()
 
+BIOTOOLS_MARKER = "# biotools-function"
 FUNCTION_TEMPLATE = """
 <details>
 <summary>{{ FUNCTION_NAME }}</summary>
@@ -108,10 +113,30 @@ def _build_functions(functions: list[FunctionItem]) -> str:
 
 def map_functions(gh_readme: str | None, bt_functions: list[FunctionItem] | None) -> dict[str, str] | None:
     """
-    Docstring for map_functions
+    Propose a GitHub issue to add function annotations based on bio.tools metadata.
+
+    Steps performed:
+    1. Check if the README already mentions functions using the BIOTOOLS_MARKER.
+       If it does, no issue is needed.
+    2. If no functions are found in bio.tools, no issue is needed.
+    3. If functions are present in bio.tools but not mentioned in the README, build
+         a function string for each function and propose an issue to add them to the README.
+
+    Parameters
+    ----------
+    gh_readme : str | None
+        The current README content from GitHub, or ``None`` if the file does
+        not exist yet.
+    bt_functions : list[FunctionItem] | None
+        The list of FunctionItems from bio.tools metadata, or ``None`` if no functions are defined.
+
+    Returns
+    -------
+    dict[str, str] | None
+        A dictionary with the issue title as key and the issue body as value,
+        or ``None`` if no issue is to be created.
     """
-    functions_in_readme = False
-    # TODO: check if the functions are actually mentioned in the README
+    functions_in_readme = BIOTOOLS_MARKER in (gh_readme or "")
     if functions_in_readme:
         logger.info("Functions are mentioned in the README, no issue needed.")
         return None
@@ -128,4 +153,5 @@ def map_functions(gh_readme: str | None, bt_functions: list[FunctionItem] | None
         "and provide users with more information about the tool's capabilities.\n\n"
         f"{functions_txt}"
     )
+    logger.added("bio.tools function annotations added to issue.")
     return {"Add function annotations from bio.tools metadata": issue_body}
