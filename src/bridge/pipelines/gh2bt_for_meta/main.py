@@ -70,6 +70,7 @@ async def run(args: GitHubToBiotoolsForMetaPipelineArgs) -> BiotoolsToolModel:
         version=await mapper.map["version"].run(),
         documentation=await mapper.map["documentation"].run(),
         publication=await mapper.map["publication"].run(),
+        function=await mapper.map["functions"].run(),
     )
 
     biotools_url = settings.biotools_url
