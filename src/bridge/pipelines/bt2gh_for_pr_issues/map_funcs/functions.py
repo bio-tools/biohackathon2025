@@ -204,6 +204,10 @@ def map_functions_to_readme(gh_readme: str | None, bt_functions: list[FunctionIt
         The new function blocks are built using the FUNCTION_TEMPLATE and the
         function data from bio.tools.
 
+    This function is intended to be used in the construction of a README update for a PR,
+    where the updated README content is proposed directly rather than suggesting the update via an issue.
+    See `readme` module for the usage of this function in the context of a README update.
+
     Parameters
     ----------
     gh_readme : str | None
