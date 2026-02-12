@@ -122,10 +122,10 @@ def map_functions(gh_readme: str | None, bt_functions: list[FunctionItem] | None
 
     functions_txt = _build_functions(bt_functions)
     issue_body = (
-        "The bio.tools metadata contains the following function annotations, ",
-        "but they are not mentioned in the GitHub README:\n",
-        "Please consider adding these functions to the README to improve discoverability ",
-        "and provide users with more information about the tool's capabilities.\n\n",
-        f"{functions_txt}",
+        "The bio.tools metadata contains the following function annotations, "
+        "but they are not mentioned in the GitHub README:\n"
+        "Please consider adding these functions to the README to improve discoverability "
+        "and provide users with more information about the tool's capabilities.\n\n"
+        f"{functions_txt}"
     )
     return {"Add function annotations from bio.tools metadata": issue_body}
