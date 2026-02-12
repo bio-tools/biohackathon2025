@@ -106,7 +106,7 @@ class MapBioTools2GitHub(ModelsMap):
                     "name": self.metadata.name,
                     "biotoolsID": self.metadata.biotoolsID.root,
                     "toolType": self.metadata.toolType,
-                    "function": self.metadata.function,
+                    "functions": self.metadata.function,
                 },
                 repo_entry=self.repo.readme,
                 method=Method.FUZZY,

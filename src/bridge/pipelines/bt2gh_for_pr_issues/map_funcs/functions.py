@@ -120,8 +120,26 @@ def _build_functions(functions: list[FunctionItem]) -> str:
     str
         The concatenated function strings.
     """
-    txt = "# Functions\n\n"
-    return txt + "\n".join(_build_function(function) for function in functions)
+    return "\n".join(_build_function(function) for function in functions)
+
+
+def _build_functions_section(functions: list[FunctionItem]) -> str:
+    """
+    Build a string for all functions by concatenating the built function strings
+    and adding a section header.
+
+    Parameters
+    ----------
+    functions : list[FunctionItem]
+        The list of FunctionItems to build.
+
+    Returns
+    -------
+    str
+        The concatenated function strings.
+    """
+    txt = "# Functions\n"
+    return txt + _build_functions(functions)
 
 
 def map_functions(gh_readme: str | None, bt_functions: list[FunctionItem] | None) -> dict[str, str] | None:
@@ -159,13 +177,13 @@ def map_functions(gh_readme: str | None, bt_functions: list[FunctionItem] | None
         logger.info("No functions found in biotools, no issue needed.")
         return None
 
-    functions_txt = _build_functions(bt_functions)
+    functions_txt = _build_functions_section(bt_functions)
     issue_body = (
         "The bio.tools metadata contains the following function annotations, "
-        "but they are not mentioned in the GitHub README:\n"
+        "but they are not mentioned in the GitHub README.\n"
         "Please consider adding these functions to the README to improve discoverability "
         "and provide users with more information about the tool's capabilities.\n\n"
-        f"```\n{functions_txt}\n```"
+        f"~~~markdown\n{functions_txt}\n~~~"
     )
     logger.added("bio.tools function annotations added to issue.")
     return {"Add function annotations from bio.tools metadata": issue_body}
@@ -205,7 +223,8 @@ def map_functions_to_readme(gh_readme: str | None, bt_functions: list[FunctionIt
         return gh_readme
 
     matches = list(FUNCTION_PATTERN.finditer(gh_readme or ""))
-    functions_in_readme = len(matches) > 0
+    matches_blocks = [m.group(0) for m in matches]
+    functions_in_readme = len(matches_blocks) > 0
     if not functions_in_readme:
         logger.info("Functions are not mentioned in the README, no PR needed.")
         return gh_readme
@@ -214,7 +233,6 @@ def map_functions_to_readme(gh_readme: str | None, bt_functions: list[FunctionIt
         logger.info("No functions found in biotools, no need to include any in README.")
         return gh_readme
 
-    matches_blocks = [m.group(0) for m in matches]
     before, after = separate_snippets_from_text(gh_readme, matches_blocks)
     functions_txt = _build_functions(bt_functions)
     new_readme = before + functions_txt + after
