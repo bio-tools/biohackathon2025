@@ -19,7 +19,7 @@ GHN = TypeVar("GHN")  # element type for GitHub set (usually same as BTN)
 BTN = TypeVar("BTN")  # element type for bio.tools set
 
 
-def reconcile_gh_over_bt(
+def reconcile_gh_ontop_bt(
     *,
     gh_norm: set[GHN] | None,
     bt_norm: set[BTN] | None,
