@@ -197,21 +197,22 @@ def map_functions_to_readme(gh_readme: str | None, bt_functions: list[FunctionIt
     Returns
     -------
     str | None
-        The updated README content with function annotations added, or ``None`` if no update is needed.
+        The updated README content with function annotations added,
+        or the original README content if no update is needed.
     """
     if gh_readme is None:
         logger.info("README does not exist, no need to map functions.")
-        return None
+        return gh_readme
 
     matches = list(FUNCTION_PATTERN.finditer(gh_readme or ""))
     functions_in_readme = len(matches) > 0
     if not functions_in_readme:
         logger.info("Functions are not mentioned in the README, no PR needed.")
-        return None
+        return gh_readme
 
     if not bt_functions:
         logger.info("No functions found in biotools, no need to include any in README.")
-        return None
+        return gh_readme
 
     matches_blocks = [m.group(0) for m in matches]
     before, after = separate_snippets_from_text(gh_readme, matches_blocks)
