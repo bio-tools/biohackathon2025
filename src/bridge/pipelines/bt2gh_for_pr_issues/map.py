@@ -12,6 +12,7 @@ from bridge.pipelines.utils import load_dict_from_yaml_file
 from .map_funcs import (
     map_citation,
     map_description,
+    map_functions,
     map_homepage,
     map_license,
     map_name,
@@ -33,7 +34,7 @@ class MapDestination(BaseModel):
         List of properties to be mapped to pull requests.
     """
 
-    issue: list[str] = ["name", "description", "homepage", "topics", "version"]
+    issue: list[str] = ["name", "description", "homepage", "topics", "version", "functions"]
     pr: list[str] = ["citation", "readme", "license"]
 
 
@@ -115,5 +116,11 @@ class MapBioTools2GitHub(ModelsMap):
                 repo_entry=self.repo.repo.license,
                 method=Method.FUZZY,
                 fn=map_license,
+            ),
+            "functions": MapItem(
+                schema_entry=self.metadata.function,
+                repo_entry=self.repo.readme,
+                method=Method.FUZZY,
+                fn=map_functions,
             ),
         }
