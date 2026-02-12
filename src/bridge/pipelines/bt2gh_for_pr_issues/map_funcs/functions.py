@@ -6,6 +6,8 @@ GitHub README and, when appropriate, proposes a GitHub issue suggesting that
 the bio.tools function annotations be added to the README.
 """
 
+import re
+
 import yaml
 
 from bridge.core.biotools import FunctionItem
@@ -14,7 +16,6 @@ from bridge.pipelines.utils import fill_template
 
 logger = get_user_logger()
 
-BIOTOOLS_MARKER = "# biotools-function"
 FUNCTION_TEMPLATE = """
 <details>
 <summary>{{ FUNCTION_NAME }}</summary>
@@ -26,6 +27,18 @@ FUNCTION_TEMPLATE = """
 
 </details>
 """
+FUNCTION_PATTERN = re.compile(
+    r"""
+    <details>\s*
+    <summary>(?P<name>.*?)</summary>\s*
+    ```yaml\s*
+    #\s*biotools-function\s*
+    (?P<yaml>.*?)
+    ```\s*
+    </details>
+    """,
+    re.DOTALL | re.VERBOSE,
+)
 
 
 def _function_to_yaml(function: FunctionItem) -> str:
@@ -116,7 +129,7 @@ def map_functions(gh_readme: str | None, bt_functions: list[FunctionItem] | None
     Propose a GitHub issue to add function annotations based on bio.tools metadata.
 
     Steps performed:
-    1. Check if the README already mentions functions using the BIOTOOLS_MARKER.
+    1. Check if the README already mentions functions using the FUNCTION_PATTERN.
        If it does, no issue is needed.
     2. If no functions are found in bio.tools, no issue is needed.
     3. If functions are present in bio.tools but not mentioned in the README, build
@@ -136,7 +149,8 @@ def map_functions(gh_readme: str | None, bt_functions: list[FunctionItem] | None
         A dictionary with the issue title as key and the issue body as value,
         or ``None`` if no issue is to be created.
     """
-    functions_in_readme = BIOTOOLS_MARKER in (gh_readme or "")
+    matches = list(FUNCTION_PATTERN.finditer(gh_readme or ""))
+    functions_in_readme = len(matches) > 0
     if functions_in_readme:
         logger.info("Functions are mentioned in the README, no issue needed.")
         return None
