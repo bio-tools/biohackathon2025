@@ -6,12 +6,11 @@ GitHub README and, when appropriate, proposes a GitHub issue suggesting that
 the bio.tools function annotations be added to the README.
 """
 
-import re
-
 import yaml
 
 from bridge.core.biotools import FunctionItem
 from bridge.logging import get_user_logger
+from bridge.pipelines.shared.functions import find_matches
 from bridge.pipelines.utils import fill_template, separate_snippets_from_text
 
 logger = get_user_logger()
@@ -27,18 +26,6 @@ FUNCTION_TEMPLATE = """
 
 </details>
 """
-FUNCTION_PATTERN = re.compile(
-    r"""
-    <details>\s*
-    <summary>(?P<name>[^\r\n<]*)</summary>\s*
-    ```yaml[ \t]*\r?\n
-    #[ \t]*biotools-function[ \t]*\r?\n
-    (?P<yaml>.*?)
-    ^[ \t]*```[ \t]*\r?\n
-    \s*</details>
-    """,
-    re.DOTALL | re.VERBOSE | re.MULTILINE,
-)
 
 
 def _function_to_yaml(function: FunctionItem) -> str:
@@ -165,7 +152,7 @@ def map_functions(gh_readme: str | None, bt_functions: list[FunctionItem] | None
         A dictionary with the issue title as key and the issue body as value,
         or ``None`` if no issue is to be created.
     """
-    matches = list(FUNCTION_PATTERN.finditer(gh_readme or ""))
+    matches = find_matches(gh_readme)
     functions_in_readme = len(matches) > 0
     if functions_in_readme:
         logger.info("Functions are mentioned in the README, no issue needed.")
@@ -224,7 +211,7 @@ def map_functions_to_readme(gh_readme: str | None, bt_functions: list[FunctionIt
         logger.info("README does not exist, no need to map functions.")
         return gh_readme
 
-    matches = list(FUNCTION_PATTERN.finditer(gh_readme or ""))
+    matches = find_matches(gh_readme)
     matches_blocks = [m.group(0) for m in matches]
     functions_in_readme = len(matches_blocks) > 0
     if not functions_in_readme:
