@@ -37,6 +37,7 @@ def test_mapgithub2biotools_map_returns_expected_keys(monkeypatch, tmp_path):
         "maturity",
         "version",
         "publication",
+        "functions",
     }
 
 
@@ -199,6 +200,21 @@ def test_mapgithub2biotools_version_mapping(monkeypatch, tmp_path):
     assert deep_unwrap(item.repo_entry) == gh_repo.latest_release.tag_name
     assert item.method == Method.EXACT
     assert item.fn is not None  # map_version
+
+
+def test_mapgithub2biotools_functions_mapping(monkeypatch, tmp_path):
+    monkeypatch.setattr(gh2bt_map_mod, "load_dict_from_yaml_file", lambda _path: {})
+
+    gh_repo = DummyGitHubRepoModel()
+    bt_tool = DummyBioToolsTool()
+    mapper = MapGitHub2BioTools(repo=gh_repo, metadata=bt_tool, repo_path=str(tmp_path))
+
+    item = mapper.map["functions"]
+    assert isinstance(item, MapItem)
+    assert deep_unwrap(item.schema_entry) == bt_tool.function
+    assert deep_unwrap(item.repo_entry) == gh_repo.readme
+    assert item.method == Method.FUZZY
+    assert item.fn is not None  # map_functions
 
 
 def test_mapgithub2biotools_publication_mapping_from_yaml(monkeypatch, tmp_path):

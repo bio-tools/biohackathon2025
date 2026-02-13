@@ -5,6 +5,47 @@ Utilities for handling string templating.
 import re
 
 
+def separate_snippet_from_text(text: str | None, snippet: str | None) -> tuple[str, str]:
+    """
+    Separate the first occurrence of a snippet from a string.
+
+    This helper searches for the first occurrence of `snippet` in `text` and
+    returns a tuple containing the content before and after that occurrence.
+    If the snippet is not found, the original text is returned as the "before"
+    part and the "after" part is an empty string.
+
+    Parameters
+    ----------
+    text : str | None
+        The original text from which the snippet should be separated. May be
+        ``None``, in which case both returned parts will be empty strings.
+    snippet : str | None
+        The snippet to separate from the text. If ``None`` or empty, no separation
+        is performed and the entire text is returned as the "before" part.
+
+    Returns
+    -------
+    tuple[str, str]
+        A tuple containing the "before" and "after" parts of the text relative to
+        the first occurrence of the snippet. If the snippet is not found, the first
+        element is the original text (or an empty string if `text` is ``None``) and
+        the second element is an empty string.
+    """
+    if not text:
+        return "", ""
+
+    if not snippet:
+        return text, ""
+
+    idx = text.find(snippet)
+    if idx == -1:
+        return text, ""
+
+    before = text[:idx]
+    after = text[idx + len(snippet) :]
+    return before, after
+
+
 def remove_first_snippet_from_text(text: str | None, snippet: str | None) -> str:
     """
     Remove the first occurrence of a snippet from a string.
@@ -35,17 +76,51 @@ def remove_first_snippet_from_text(text: str | None, snippet: str | None) -> str
         A new string with the first occurrence of `snippet` removed, or the
         original text (or an empty string) if no removal is performed.
     """
-    if not text:
-        return ""
+    before, after = separate_snippet_from_text(text, snippet)
 
-    if not snippet:
-        return text
+    return before + after
 
-    idx = text.find(snippet)
-    if idx == -1:
-        return text
 
-    return text[:idx] + text[idx + len(snippet) :]
+def separate_snippets_from_text(text: str | None, snippets: list[str]) -> tuple[str, str]:
+    """
+    Separate the first occurrence of a list of snippets from a string.
+    Then remove the remaining snippets from the "after" part.
+
+    This helper searches for the first occurrence of any snippet in `snippets`
+    within `text` and separates the text into "before" and "after" parts based
+    on that first match. It then removes all subsequent occurrences of any of the
+    snippets from the "after" part. If no snippets are found, the original text is
+    returned as the "before" part and the "after" part is an empty string.
+
+    Parameters
+    ----------
+    text : str | None
+        The original text from which the snippets should be separated. May be
+        ``None``, in which case both returned parts will be empty strings.
+    snippets : list[str]
+        A list of snippets to search for and separate from the text. If the list is
+        empty, no separation is performed and the entire text is returned as the "before" part.
+
+    Returns
+    -------
+    tuple[str, str]
+        A tuple containing the "before" and "after" parts of the text relative to
+        the first occurrence of any snippet. The "after" part has all subsequent
+        occurrences of any snippets removed. If no snippets are found, the first
+        element is the original text (or an empty string if `text` is ``None``)
+        and the second element is an empty string.
+    """
+    first_snippet = snippets[0] if snippets else None
+    before, after = separate_snippet_from_text(text, first_snippet)
+
+    if len(snippets) <= 1:
+        return before, after
+
+    remaining_snippets = snippets[1:]
+    for snippet in remaining_snippets:
+        after = remove_first_snippet_from_text(after, snippet)
+
+    return before, after
 
 
 def fill_template(template: str, placeholders: dict[str, str]) -> str:

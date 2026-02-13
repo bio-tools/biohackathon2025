@@ -9,6 +9,7 @@ within bio.tools, generating alternative IDs if necessary.
 import httpx
 
 from bridge.builders import compose_biotools_metadata
+from bridge.core.biotools import BiotoolsIdType
 from bridge.logging import get_user_logger
 from bridge.pipelines.utils import normalize_text, str_contain_each_other
 
@@ -46,7 +47,7 @@ async def _matching_biotools_id_exists(biotools_id: str) -> bool:
     return matching_bt_metadata is not None
 
 
-async def map_biotools_id(gh_name: str | None, bt_id: str | None) -> str | None:
+async def map_biotools_id(gh_name: str | None, bt_id: BiotoolsIdType | None) -> str | None:
     """
     Map and reconcile GitHub repository name to bio.tools ID.
 
@@ -67,12 +68,12 @@ async def map_biotools_id(gh_name: str | None, bt_id: str | None) -> str | None:
     ----------
     gh_name : str | None
         GitHub repository name.
-    bt_id : str | None
+    bt_id : BiotoolsIdType | None
         Existing bio.tools ID.
 
     Returns
     -------
-    str | None
+    BiotoolsIdType | None
         Mapped bio.tools ID, or ``None`` if mapping failed.
     """
     if gh_name is None:
@@ -80,7 +81,7 @@ async def map_biotools_id(gh_name: str | None, bt_id: str | None) -> str | None:
         return bt_id
 
     gh_norm = normalize_text(gh_name)
-    bt_norm = normalize_text(bt_id or "")
+    bt_norm = normalize_text(bt_id.root if bt_id is not None else "")
 
     if bt_id is not None and str_contain_each_other(gh_norm, bt_norm):
         logger.exact(f"bio.tools ID '{bt_id}' and GitHub repo name '{gh_name}' contain each other")
@@ -91,7 +92,7 @@ async def map_biotools_id(gh_name: str | None, bt_id: str | None) -> str | None:
 
     if not await _matching_biotools_id_exists(gh_norm):
         logger.added(f"Using GitHub repo name '{gh_name}' as bio.tools ID")
-        return gh_norm
+        return BiotoolsIdType(gh_norm)
 
     logger.conflict(
         f"GitHub repo name '{gh_name}' cannot be used as bio.tools ID because it matches an existing entry. "
@@ -102,7 +103,7 @@ async def map_biotools_id(gh_name: str | None, bt_id: str | None) -> str | None:
         candidate_id = f"{gh_norm}-{suffix}"
         if not await _matching_biotools_id_exists(candidate_id):
             logger.added(f"Using generated bio.tools ID '{candidate_id}'")
-            return candidate_id
+            return BiotoolsIdType(candidate_id)
 
     logger.note(
         f"Failed to generate unique bio.tools ID based on GitHub repo name '{gh_name}'. "

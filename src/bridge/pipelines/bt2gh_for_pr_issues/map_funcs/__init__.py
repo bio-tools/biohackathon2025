@@ -4,6 +4,7 @@ Individual mapping functions for bio.tools to GitHub.
 
 from .citation import map_citation
 from .description import map_description
+from .functions import map_functions
 from .homepage import map_homepage
 from .license import map_license
 from .name import map_name
@@ -20,4 +21,5 @@ __all__ = [
     "map_license",
     "map_version",
     "map_name",
+    "map_functions",
 ]

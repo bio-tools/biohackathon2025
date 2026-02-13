@@ -11,6 +11,7 @@ from .map_funcs import (
     map_biotools_id,
     map_description,
     map_documentation,
+    map_functions,
     map_homepage,
     map_language,
     map_license,
@@ -111,5 +112,11 @@ class MapGitHub2BioTools(ModelsMap):
                 repo_entry=load_dict_from_yaml_file(self.repo_path / "CITATION.cff"),
                 method=Method.FUZZY,
                 fn=map_publication,
+            ),
+            "functions": MapItem(
+                schema_entry=self.metadata.function,
+                repo_entry=self.repo.readme,
+                method=Method.FUZZY,
+                fn=map_functions,
             ),
         }
