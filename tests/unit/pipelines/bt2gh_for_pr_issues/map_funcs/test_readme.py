@@ -1,5 +1,10 @@
 """
 Unit tests for mapping bio.tools metadata onto a GitHub README (map_readme).
+
+These tests focus strictly on behavior, not logging, and keep regex/template
+parsing out of scope by patching helper functions.
+
+Updated to account for function-annotation injection via map_functions_to_readme.
 """
 
 from __future__ import annotations
@@ -79,16 +84,36 @@ def _patch_badge_helpers(monkeypatch):
     monkeypatch.setattr(mod, "fill_template", fake_fill_template)
     monkeypatch.setattr(mod, "remove_first_snippet_from_text", fake_remove_first_snippet)
 
-    # we also need to ensure mod.Badge points to our FakeBadge for type checks in helpers
+    # ensure mod.Badge points to our FakeBadge for type checks in helpers
     monkeypatch.setattr(mod, "Badge", FakeBadge)
 
     return FakeBadge
 
 
+@pytest.fixture(autouse=True)
+def _patch_map_functions_to_readme(monkeypatch):
+    """
+    Patch map_functions_to_readme so tests don't depend on regex parsing / function templates.
+
+    Default behavior: if bt_functions is truthy, append a deterministic marker block.
+    Also records calls so tests can assert it was invoked with expected args.
+    """
+    calls: list[tuple[str, object]] = []
+
+    def fake_map_functions_to_readme(content: str, bt_functions):
+        calls.append((content, bt_functions))
+        if bt_functions:
+            return content + "\n\n<!-- FUNCTIONS-INJECTED -->\n"
+        return content
+
+    monkeypatch.setattr(mod, "map_functions_to_readme", fake_map_functions_to_readme)
+    return calls
+
+
 @pytest.fixture
 def _patch_extract_existing_badges(monkeypatch):
     """
-    Patch _extract_existing_badges to be deterministic (so we don't need to rely on regex parsing here).
+    Patch _extract_existing_badges to be deterministic (so we don't rely on regex parsing here).
     Each test can override by re-patching if needed.
     """
 
@@ -181,8 +206,7 @@ def test_map_readme_adds_tool_type_badge_when_tooltype_list_present(_patch_extra
         None,
         [],
         "not-a-list",
-        [None],  # treated as list, but map_readme checks list and non-empty only; still allowed through,
-        # yet _build_readme sorts tt.value which would explode. So map_readme *must* convert these to None.
+        [None],  # invalid entries => tooltype is forced to None by map_readme
     ],
 )
 def test_map_readme_ignores_invalid_tooltype(tooltype_value, _patch_extract_existing_badges):
@@ -200,13 +224,12 @@ def test_map_readme_preserves_existing_badges_and_deduplicates(monkeypatch):
     Existing badge should be carried into output.
     If it duplicates a newly generated badge, it should only appear once.
     """
-    # Use the same FakeBadge class the autouse fixture installed as mod.Badge
     FakeBadge = mod.Badge
 
     existing = [
-        # this will be unique
+        # unique
         FakeBadge(alt_text="CI", image_url="badges/ci--passing.svg", link_url="https://ci.example"),
-        # duplicate of the generated bio.tools badge (same alt/img/link as our fake_compose_badge emits)
+        # duplicate of generated bio.tools badge
         FakeBadge(alt_text="bio.tools", image_url="badges/bio.tools--toolid.svg", link_url="https://bio.tools/toolid"),
     ]
 
@@ -273,3 +296,70 @@ def test_map_readme_returns_readme_md_key(_patch_extract_existing_badges):
     assert out.keys() == {"README.md"}
     assert isinstance(out["README.md"], str)
     assert out["README.md"]
+
+
+def test_map_readme_calls_map_functions_to_readme_with_stripped_content(
+    _patch_extract_existing_badges, _patch_map_functions_to_readme
+):
+    """
+    _build_readme strips title + existing badge full_match snippets before calling map_functions_to_readme.
+    We assert the 'content' argument is what's left (starting at the first real section).
+    """
+    calls = _patch_map_functions_to_readme
+
+    gh_readme = "# Title\n" "\n" "![CI](badges/ci--passing.svg)\n" "\n" "## Usage\n" "Do stuff.\n"
+
+    # Ensure stripping removes this badge line
+    FakeBadge = mod.Badge
+    existing_badges = [
+        FakeBadge(
+            alt_text="CI", image_url="badges/ci--passing.svg", link_url=None, full_match="![CI](badges/ci--passing.svg)"
+        )
+    ]
+    # Override extraction for this test
+    mod._extract_existing_badges = lambda _readme: existing_badges  # noqa: B010 (test-only patch)
+
+    out = mod.map_readme(
+        gh_readme=gh_readme,
+        bt_params={"name": "Tool", "biotoolsID": "toolid", "functions": ["fake-func"]},
+    )
+    text = _out_text(out)
+
+    assert calls, "map_functions_to_readme was not called"
+    content_arg, funcs_arg = calls[-1]
+
+    # Title removed
+    assert "# Title" not in content_arg
+    # Badge snippet removed from content
+    assert "![CI](badges/ci--passing.svg)" not in content_arg
+    # Remaining content starts at Usage
+    assert content_arg.lstrip().startswith("## Usage")
+
+    # Functions passed through
+    assert funcs_arg == ["fake-func"]
+
+    # And our fake injection marker shows up in output
+    assert "<!-- FUNCTIONS-INJECTED -->" in text
+
+
+def test_map_readme_does_not_inject_functions_when_none(_patch_extract_existing_badges, _patch_map_functions_to_readme):
+    calls = _patch_map_functions_to_readme
+
+    out = mod.map_readme(
+        gh_readme="# Title\n\n## Usage\nDo stuff.\n",
+        bt_params={"name": "Tool", "biotoolsID": "toolid", "functions": None},
+    )
+    text = _out_text(out)
+
+    # map_functions_to_readme still called, but should not inject marker for falsy bt_functions
+    assert calls, "map_functions_to_readme was not called"
+    assert "<!-- FUNCTIONS-INJECTED -->" not in text
+
+
+def test_map_readme_injects_functions_when_present(_patch_extract_existing_badges, _patch_map_functions_to_readme):
+    out = mod.map_readme(
+        gh_readme="# Title\n\n## Usage\nDo stuff.\n",
+        bt_params={"name": "Tool", "biotoolsID": "toolid", "functions": ["f1", "f2"]},
+    )
+    text = _out_text(out)
+    assert "<!-- FUNCTIONS-INJECTED -->" in text
