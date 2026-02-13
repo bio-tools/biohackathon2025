@@ -11,7 +11,7 @@ discrepancies are found.
 from bridge.core.biotools import LanguageEnum
 from bridge.core.github_languages import Language
 from bridge.logging import get_user_logger
-from bridge.pipelines.policies.gh2bt import reconcile_gh_over_bt
+from bridge.pipelines.policies.gh2bt import reconcile_gh_ontop_bt
 from bridge.pipelines.utils import find_matching_enum_member
 
 logger = get_user_logger()
@@ -92,12 +92,10 @@ def _cast_to_biotools_languages(languages: set[str]) -> list[LanguageEnum] | Non
 def map_language(gh_languages: Language | None, bt_languages: list[LanguageEnum] | None) -> list[LanguageEnum] | None:
     """
     Map and reconcile GitHub and bio.tools programming languages using the generic
-    GitHub-over-bio.tools policy.
+    GitHub-on-top-of-bio.tools policy.
 
     GitHub language keys and bio.tools ``LanguageEnum`` values are normalized to
-    lowercased string sets for comparison. When GitHub is authoritative, the
-    GitHub set is mapped back to ``LanguageEnum`` values; unknown languages are
-    skipped with a log entry.
+    lowercased string sets for comparison.
 
     Parameters
     ----------
@@ -116,16 +114,11 @@ def map_language(gh_languages: Language | None, bt_languages: list[LanguageEnum]
     gh_norm = _to_lang_set_gh(gh_languages)
     bt_norm = _to_lang_set_bt(bt_languages)
 
-    # if GitHub has nothing, keep existing
-    if gh_norm is None or len(gh_norm) == 0:
-        logger.unchanged("No GitHub languages found, nothing to map.")
-        return bt_languages
-
-    # use the generic reconciler on the *set* representation
-    return reconcile_gh_over_bt(
+    return reconcile_gh_ontop_bt(
         gh_norm=gh_norm,
         bt_norm=bt_norm,
         bt_value=bt_languages,
-        build_bt_from_gh=_cast_to_biotools_languages,
+        build_bt_from_gh=None,
+        build_bt_from_norm=lambda bt_norm: _cast_to_biotools_languages(bt_norm),
         log_label="languages",
     )
