@@ -53,8 +53,8 @@ def reconcile_gh_ontop_bt(
 
     Parameters
     ----------
-    gh_norm : set[GHN] | None
-        A set of normalized values derived from GitHub, or ``None`` if GitHub provides no usable value.
+    gh_norm : GHN | None
+        Normalized values derived from GitHub, or ``None`` if GitHub provides no usable value.
     bt_norm : set[BTN] | None
         A set of normalized values derived from the existing bio.tools metadata, or ``None`` if no value is recorded.
     bt_value : BT | None
