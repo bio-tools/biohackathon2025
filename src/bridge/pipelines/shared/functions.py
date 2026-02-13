@@ -9,7 +9,7 @@ FUNCTION_PATTERN = re.compile(
     <details>\s*
     <summary>(?P<name>[^\r\n<]*)</summary>\s*
     ```yaml[ \t]*\r?\n
-    #[ \t]*biotools-function[ \t]*\r?\n
+    \#[ \t]*biotools-function[ \t]*\r?\n
     (?P<yaml>.*?)
     ^[ \t]*```[ \t]*\r?\n
     \s*</details>
@@ -18,7 +18,7 @@ FUNCTION_PATTERN = re.compile(
 )
 
 
-def find_matches(text: str | None) -> list[str]:
+def find_matches(text: str | None) -> list[re.Match[str]]:
     """
     Find all function annotations in the given text.
 
@@ -29,8 +29,8 @@ def find_matches(text: str | None) -> list[str]:
 
     Returns
     -------
-    list[FunctionItem]
-        A list of FunctionItems found in the text.
+    list[re.Match[str]]
+        A list of regex match objects found in the text.
     """
     matches = list(FUNCTION_PATTERN.finditer(text or ""))
     return matches
