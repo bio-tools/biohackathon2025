@@ -75,7 +75,10 @@ async def run(args: GitHubToBiotoolsForMetaPipelineArgs) -> BiotoolsToolModel:
 
     if args.existing_metadata is not None:
         # use existing metdata and update fields that are not None in the new metadata
-        biotools_metadata = args.existing_metadata.model_copy(update=biotools_metadata.model_dump(exclude_none=True))
+        base = args.existing_metadata.model_dump(exclude_none=False)
+        patch = biotools_metadata.model_dump(exclude_none=True)
+        combined = {**base, **patch}
+        biotools_metadata = BiotoolsToolModel.model_validate(combined)
 
     biotools_url = settings.biotools_url
     logger.info(args.existing_metadata)
