@@ -1,5 +1,12 @@
 """
-Docstring for bridge.pipelines.gh2bt_for_meta.map_funcs.functions
+Map function annotations from GitHub to bio.tools.
+
+This modules reconciles the function annotations recorded in the GitHub README and
+existing bio.tools metadata, and produces a reconciled list of `FunctionItem` instances
+to be included in the bio.tools metadata. The reconciliation is performed using the
+generic bio.tools-on-top-of-GitHub policy, which preserves existing bio.tools annotations
+unless the GitHub README contains explicit function annotations that differ from bio.tools,
+in which case the GitHub annotations are added on top of the existing bio.tools ones.
 """
 
 import json
@@ -170,7 +177,25 @@ def _extract_functions_from_readme(gh_readme: str | None) -> set[str] | None:
 
 def map_functions(gh_readme: str | None, bt_functions: list[FunctionItem] | None) -> list[FunctionItem] | None:
     """
-    Docstring for map_functions
+    Map and reconcile GitHub and bio.tools function annotations using the generic
+    bio.tools-on-top-of-GitHub policy with canonicalization.
+
+    Function comparison is performed on the packed representations of FunctionItems,
+    which are designed to yield identical keys for semantically equivalent functions
+    regardless of ordering or free-text differences.
+
+    Parameters
+    ----------
+    gh_readme : str | None
+        The current README content from GitHub, or ``None`` if the file does not exist yet.
+    bt_functions : list[FunctionItem] | None
+        The list of `FunctionItem` instances from bio.tools metadata, or ``None`` if no functions are defined.
+
+    Returns
+    -------
+    list[FunctionItem] | None
+        The reconciled list of `FunctionItem` instances to be used in bio.tools metadata,
+        or ``None`` if no functions should be included.
     """
     bt_norm = (
         {_pack_function_item(fi, ignore_free_text=False) for fi in bt_functions} if bt_functions is not None else None
