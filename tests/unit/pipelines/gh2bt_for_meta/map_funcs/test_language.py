@@ -38,8 +38,8 @@ def _gh_langs(d: dict[str, int] | None) -> Language | None:
             [LanguageEnum.JavaScript, LanguageEnum.Python],
             [LanguageEnum.JavaScript, LanguageEnum.Python],
         ),
-        # --- Conflict: GitHub wins (bio.tools overwritten) ---
-        (_gh_langs({"Python": 10}), [LanguageEnum.R], [LanguageEnum.Python]),
+        # --- Conflict: GitHub adds to bio.tools ---
+        (_gh_langs({"Python": 10}), [LanguageEnum.R], [LanguageEnum.Python, LanguageEnum.R]),
         (
             _gh_langs({"Python": 10, "JavaScript": 5}),
             [LanguageEnum.Python],
