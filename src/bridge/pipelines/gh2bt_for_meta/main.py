@@ -73,6 +73,10 @@ async def run(args: GitHubToBiotoolsForMetaPipelineArgs) -> BiotoolsToolModel:
         function=await mapper.map["functions"].run(),
     )
 
+    if args.existing_metadata is not None:
+        # use existing metdata and update fields that are not None in the new metadata
+        biotools_metadata = args.existing_metadata.model_copy(update=biotools_metadata.model_dump(exclude_none=True))
+
     biotools_url = settings.biotools_url
     logger.info(args.existing_metadata)
     logger.info(f"Extracted bio.tools metadata for repo {github_repo.repo.name}")
