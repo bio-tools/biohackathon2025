@@ -12,6 +12,7 @@ import pytest
 import httpx
 
 import bridge.pipelines.gh2bt_for_meta.map_funcs.biotools_id as mod
+from bridge.core.biotools import BiotoolsIdType
 
 pytestmark = pytest.mark.asyncio
 
@@ -29,13 +30,13 @@ def _http_500():
 
 
 @pytest.mark.parametrize(
-    "gh_name, bt_id, expected",
+    "gh_name, bt_id, expected_root",
     [
         (None, None, None),
-        (None, "existing-id", "existing-id"),
+        (None, BiotoolsIdType("existing-id"), "existing-id"),
     ],
 )
-async def test_map_biotools_id_no_github_name_preserves_bt_id(monkeypatch, gh_name, bt_id, expected):
+async def test_map_biotools_id_no_github_name_preserves_bt_id(monkeypatch, gh_name, bt_id, expected_root):
     # Should not call out at all when gh_name is None
     calls = []
 
@@ -46,7 +47,13 @@ async def test_map_biotools_id_no_github_name_preserves_bt_id(monkeypatch, gh_na
     monkeypatch.setattr(mod, "compose_biotools_metadata", _compose)
 
     out = await mod.map_biotools_id(gh_name=gh_name, bt_id=bt_id)
-    assert out == expected
+
+    if expected_root is None:
+        assert out is None
+    else:
+        assert out is not None
+        assert out.root == expected_root
+
     assert calls == []
 
 
@@ -60,8 +67,10 @@ async def test_map_biotools_id_preserves_bt_id_when_names_contain_each_other(mon
 
     monkeypatch.setattr(mod, "compose_biotools_metadata", _compose)
 
-    out = await mod.map_biotools_id(gh_name="MyRepo", bt_id="myrepo")
-    assert out == "myrepo"
+    bt_id = BiotoolsIdType("myrepo")
+    out = await mod.map_biotools_id(gh_name="MyRepo", bt_id=bt_id)
+
+    assert out == bt_id
     assert calls == []
 
 
@@ -72,8 +81,10 @@ async def test_map_biotools_id_uses_github_name_if_free(monkeypatch):
 
     monkeypatch.setattr(mod, "compose_biotools_metadata", _compose)
 
-    out = await mod.map_biotools_id(gh_name="  RepoName  ", bt_id="different")
-    assert out == "RepoName"
+    out = await mod.map_biotools_id(gh_name="  RepoName  ", bt_id=BiotoolsIdType("different"))
+
+    assert out is not None
+    assert out.root == "RepoName"
 
 
 async def test_map_biotools_id_generates_suffix_when_github_name_taken(monkeypatch):
@@ -89,8 +100,10 @@ async def test_map_biotools_id_generates_suffix_when_github_name_taken(monkeypat
 
     monkeypatch.setattr(mod, "compose_biotools_metadata", _compose)
 
-    out = await mod.map_biotools_id(gh_name="Repo", bt_id="something-else")
-    assert out == "Repo-3"
+    out = await mod.map_biotools_id(gh_name="Repo", bt_id=BiotoolsIdType("something-else"))
+
+    assert out is not None
+    assert out.root == "Repo-3"
 
 
 async def test_map_biotools_id_returns_none_when_no_suffix_available(monkeypatch):
@@ -101,7 +114,7 @@ async def test_map_biotools_id_returns_none_when_no_suffix_available(monkeypatch
 
     monkeypatch.setattr(mod, "compose_biotools_metadata", _compose)
 
-    out = await mod.map_biotools_id(gh_name="Repo", bt_id="old")
+    out = await mod.map_biotools_id(gh_name="Repo", bt_id=BiotoolsIdType("old"))
     assert out is None
 
 
@@ -112,4 +125,6 @@ async def test_map_biotools_id_bt_id_none_still_uses_github_name_if_free(monkeyp
     monkeypatch.setattr(mod, "compose_biotools_metadata", _compose)
 
     out = await mod.map_biotools_id(gh_name="Repo", bt_id=None)
-    assert out == "Repo"
+
+    assert out is not None
+    assert out.root == "Repo"
