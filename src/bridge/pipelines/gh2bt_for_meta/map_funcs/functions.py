@@ -172,11 +172,18 @@ def map_functions(gh_readme: str | None, bt_functions: list[FunctionItem] | None
     """
     Docstring for map_functions
     """
+    bt_norm = (
+        {_pack_function_item(fi, ignore_free_text=False) for fi in bt_functions} if bt_functions is not None else None
+    )
+
+    def build_bt_from_norm(fi_keys):
+        return [_unpack_function_item(fi) for fi in fi_keys] if fi_keys is not None else None
+
     return reconcile_gh_ontop_bt(
         gh_norm=gh_readme,
-        bt_norm=set(bt_functions) if bt_functions is not None else None,
+        bt_norm=bt_norm,
         bt_value=bt_functions,
         build_bt_from_gh=_extract_functions_from_readme,
-        build_bt_from_norm=lambda bt_norm: set(bt_norm) if bt_norm is not None else None,
+        build_bt_from_norm=build_bt_from_norm,
         log_label="functions",
     )
