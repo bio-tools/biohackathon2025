@@ -21,7 +21,7 @@ BTN = TypeVar("BTN")  # element type for bio.tools set
 
 def reconcile_gh_ontop_bt(
     *,
-    gh_norm: set[GHN] | None,
+    gh_norm: GHN | None,
     bt_norm: set[BTN] | None,
     bt_value: BT | None,
     build_bt_from_gh: Callable[[GHN], set[BTN] | None] | None,
@@ -80,7 +80,10 @@ def reconcile_gh_ontop_bt(
         logger.unchanged(f"No GitHub {log_label} found, nothing to map.")
         return bt_value
 
-    gh_norm_from_bt = gh_norm if build_bt_from_gh is None else build_bt_from_gh(gh_norm)
+    if build_bt_from_gh is None:
+        gh_norm_from_bt = gh_norm
+    else:
+        gh_norm_from_bt = build_bt_from_gh(gh_norm)
 
     if not gh_norm_from_bt:
         logger.unchanged(f"GitHub {log_label} could not be cast as bio.tools, nothing to map.")
