@@ -34,6 +34,7 @@ def test_mapbiotools2github_map_returns_expected_keys(monkeypatch, tmp_path):
         "homepage",
         "readme",
         "license",
+        "functions",
     }
 
 
@@ -134,6 +135,7 @@ def test_mapbiotools2github_readme_mapping(monkeypatch, tmp_path):
         "name": bt_tool.name,
         "biotoolsID": bt_tool.biotoolsID.root,
         "toolType": bt_tool.toolType,
+        "functions": bt_tool.function,
     }
     assert deep_unwrap(item.repo_entry) == gh_repo.readme
     assert item.method == Method.FUZZY
@@ -155,6 +157,23 @@ def test_mapbiotools2github_license_mapping(monkeypatch, tmp_path):
     assert deep_unwrap(item.repo_entry) == gh_repo.repo.license
     assert item.method == Method.FUZZY
     assert item.fn is not None  # map_license
+
+
+def test_mapbiotools2github_functions_mapping(monkeypatch, tmp_path):
+    monkeypatch.setattr(bt2gh_map_mod, "load_dict_from_yaml_file", lambda _path: {})
+
+    gh_repo = DummyGitHubRepoModel()
+    bt_tool = DummyBioToolsTool()
+    mapper = MapBioTools2GitHub(repo=gh_repo, metadata=bt_tool, repo_path=str(tmp_path))
+
+    item = mapper.map["functions"]
+    assert isinstance(item, MapItem)
+
+    # schema_entry is a list of FunctionItem in the real schema
+    assert deep_unwrap(item.schema_entry) == bt_tool.function
+    assert deep_unwrap(item.repo_entry) == gh_repo.readme
+    assert item.method == Method.FUZZY
+    assert item.fn is not None  # map_functions
 
 
 def test_mapbiotools2github_citation_mapping_loads_from_yaml(monkeypatch, tmp_path):

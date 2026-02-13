@@ -78,6 +78,7 @@ async def test_run_passes_repo_and_existing_metadata_into_mapper_and_builds_mode
         "version": _Runner([VersionType(root="2.0.0")]),
         "documentation": _Runner(existing.documentation),
         "publication": _Runner(existing.publication),
+        "functions": _Runner(existing.function),
     }
     patch_mapper["map"] = runners
 
@@ -116,6 +117,7 @@ async def test_run_sets_placeholder_description_when_mapper_returns_none(patch_m
         "version": _Runner([VersionType(root="1.2.3")]),
         "documentation": _Runner(None),
         "publication": _Runner(None),
+        "functions": _Runner(None),
     }
     patch_mapper["map"] = runners
 
@@ -146,6 +148,7 @@ async def test_run_works_when_existing_metadata_is_none(patch_mapper):
         "version": _Runner([VersionType(root="1.2.3")]),
         "documentation": _Runner(None),
         "publication": _Runner(None),
+        "functions": _Runner(None),
     }
     patch_mapper["map"] = runners
 

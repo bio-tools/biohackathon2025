@@ -5,6 +5,7 @@ from bridge.core.biotools import (
     License as BioToolsLicense,
     TopicItem,
     FunctionItem,
+    OperationItem,
     ToolTypeEnum,
     LanguageEnum,
     LinkItem,
@@ -42,8 +43,15 @@ class DummyBioToolsTool:
         # topic is a list of TopicItem (needed by topics mapping)
         self.topic = [TopicItem(term="Genomics", uri="http://edamontology.org/topic_0622")]
 
-        # function is a list[FunctionItem] or None. If your mapper uses it, include a minimal stub.
-        # If not used, leaving None is fine.
+        # function is a list[FunctionItem] or None.
+        # self.function = [
+        #     FunctionItem(
+        #         operation=OperationItem(
+        #             term="Multiple sequence alignment",
+        #             uri="http://edamontology.org/operation_0492",
+        #         ),
+        #     )
+        # ]
         self.function = None
 
         # fields used by other pipelines
