@@ -21,8 +21,10 @@ def map_license(gh_license: str | None, bt_license: License | None) -> License |
     Map and reconcile GitHub and bio.tools license annotations using the generic
     GitHub-over-bio.tools policy.
 
-    If GitHub provides a license but it is not recognized as a valid SPDX ID, and there is no existing
+    - If GitHub provides a license but it is not recognized as a valid SPDX ID, and there is no existing
     bio.tools license to fall back on, this function will log a note and return `License.Other`.
+    - If GitHub provides no license and there is no existing bio.tools license, this function will
+    return `License.Not_licensed`.
 
     Parameters
     ----------
@@ -40,8 +42,15 @@ def map_license(gh_license: str | None, bt_license: License | None) -> License |
     """
     if gh_license is None:
         # if no GitHub license, return bio.tools license, which may be None
-        logger.note("GitHub has no license SPDX ID, nothing to map")
-        return bt_license
+        if bt_license is not None:
+            logger.note("GitHub has no license SPDX ID, nothing to map")
+            return bt_license
+
+        logger.added(
+            "GitHub has no license SPDX ID, and no existing bio.tools license to fall back on. "
+            "Setting license to 'Not licensed' in bio.tools metadata.",
+        )
+        return License.Not_licensed
 
     reconciled_license = reconcile_gh_over_bt(
         gh_norm=gh_license,
