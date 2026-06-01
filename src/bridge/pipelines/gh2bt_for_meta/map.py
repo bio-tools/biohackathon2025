@@ -18,6 +18,7 @@ from .map_funcs import (
     map_maturity,
     map_name,
     map_publication,
+    map_topics,
     map_version,
 )
 
@@ -118,5 +119,11 @@ class MapGitHub2BioTools(ModelsMap):
                 repo_entry=self.repo.readme,
                 method=Method.FUZZY,
                 fn=map_functions,
+            ),
+            "topics": MapItem(
+                schema_entry=self.metadata.topic,
+                repo_entry=self.repo.repo.topics,
+                method=Method.FUZZY,
+                fn=map_topics,
             ),
         }

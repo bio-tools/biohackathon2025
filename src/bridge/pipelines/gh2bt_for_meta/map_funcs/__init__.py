@@ -12,6 +12,7 @@ from .license import map_license
 from .maturity import map_maturity
 from .name import map_name
 from .publication import map_publication
+from .topic import map_topics
 from .version import map_version
 
 __all__ = [
@@ -26,4 +27,5 @@ __all__ = [
     "map_name",
     "map_biotools_id",
     "map_functions",
+    "map_topics",
 ]
