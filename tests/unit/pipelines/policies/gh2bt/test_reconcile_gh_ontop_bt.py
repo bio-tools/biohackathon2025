@@ -115,7 +115,7 @@ def _make_recording_build_bt_from_gh(return_value_factory):
         ("gh-derived disjoint => build union", {"x"}, {"a"}, ("old-bt",), lambda _x: {"b"}, ("a", "b"), [{"x"}]),
     ],
 )
-def test_reconcile_gh_ontop_bt(case, gh_norm, bt_norm, bt_value, build_bt_from_gh, expected, expected_calls):
+async def test_reconcile_gh_ontop_bt(case, gh_norm, bt_norm, bt_value, build_bt_from_gh, expected, expected_calls):
     build_bt_from_norm = _make_build_bt_from_norm()
 
     # Wrap build_bt_from_gh so we can assert call behavior in-table (or keep None).
@@ -128,7 +128,7 @@ def test_reconcile_gh_ontop_bt(case, gh_norm, bt_norm, bt_value, build_bt_from_g
             calls.append(x)
             return build_bt_from_gh(x)
 
-    out = recon.reconcile_gh_ontop_bt(
+    out = await recon.reconcile_gh_ontop_bt(
         gh_norm=gh_norm,
         bt_norm=bt_norm,
         bt_value=bt_value,
@@ -141,7 +141,7 @@ def test_reconcile_gh_ontop_bt(case, gh_norm, bt_norm, bt_value, build_bt_from_g
     assert calls == expected_calls, case
 
 
-def test_reconcile_gh_ontop_bt_build_bt_from_norm_called_with_exact_union_set():
+async def test_reconcile_gh_ontop_bt_build_bt_from_norm_called_with_exact_union_set():
     """
     Stronger check: ensure build_bt_from_norm receives exactly bt_norm ∪ gh_from_bt,
     and that gh_from_bt itself (or bt_norm) isn't accidentally mutated.
@@ -158,7 +158,7 @@ def test_reconcile_gh_ontop_bt_build_bt_from_norm_called_with_exact_union_set():
         captured_norms.append(set(norm))  # copy to ensure later mutations won't affect us
         return tuple(sorted(norm))
 
-    out = recon.reconcile_gh_ontop_bt(
+    out = await recon.reconcile_gh_ontop_bt(
         gh_norm=set(gh_norm),
         bt_norm=set(bt_norm),
         bt_value=("preserve?",),
@@ -172,7 +172,7 @@ def test_reconcile_gh_ontop_bt_build_bt_from_norm_called_with_exact_union_set():
     assert captured_norms == [{"a", "b", "c"}]
 
 
-def test_reconcile_gh_ontop_bt_when_no_additions_does_not_call_build_bt_from_norm():
+async def test_reconcile_gh_ontop_bt_when_no_additions_does_not_call_build_bt_from_norm():
     """
     If gh-derived values are already present (nr_added == 0), function should
     return bt_value and MUST NOT call build_bt_from_norm.
@@ -189,7 +189,7 @@ def test_reconcile_gh_ontop_bt_when_no_additions_does_not_call_build_bt_from_nor
         build_bt_from_norm_calls.append(set(norm))
         return tuple(sorted(norm))
 
-    out = recon.reconcile_gh_ontop_bt(
+    out = await recon.reconcile_gh_ontop_bt(
         gh_norm={"x"},
         bt_norm=set(bt_norm),
         bt_value=bt_value,

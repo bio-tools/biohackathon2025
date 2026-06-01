@@ -29,7 +29,10 @@ class Settings(BaseSettings):
     europe_pmc_api_url: HttpUrl = "https://www.ebi.ac.uk/europepmc/webservices/rest"
 
     # SPDX license list
-    spdx_license_base_url: HttpUrl = "https://spdx.org/licenses"
+    spdx_license_api_url: HttpUrl = "https://spdx.org/licenses"
+
+    # OLS4
+    ols4_api_url: HttpUrl = "https://www.ebi.ac.uk/ols4/api"
 
     # Logging
     log_level: str = "INFO"
@@ -55,9 +58,14 @@ class Settings(BaseSettings):
         return self._api_base(self.europe_pmc_api_url)
 
     @property
-    def spdx_license_base(self) -> str:
+    def spdx_license_api_base(self) -> str:
         """Base URL for SPDX license JSON as a string"""
-        return self._api_base(self.spdx_license_base_url)
+        return self._api_base(self.spdx_license_api_url)
+
+    @property
+    def ols4_api_base(self) -> str:
+        """Base URL for OLS4 API as a string"""
+        return self._api_base(self.ols4_api_url)
 
     @staticmethod
     def _api_base(url: HttpUrl) -> str:

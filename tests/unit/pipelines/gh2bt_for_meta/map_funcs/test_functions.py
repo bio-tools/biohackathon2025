@@ -214,64 +214,64 @@ def test_extract_functions_from_readme_dedupes_semantically_equivalent_blocks(mo
 # =========================================================
 
 
-def test_map_functions_github_silent_preserves_bt(monkeypatch, _patch_find_match_yamls):
+async def test_map_functions_github_silent_preserves_bt(monkeypatch, _patch_find_match_yamls):
     # gh_readme is None => reconcile_gh_ontop_bt returns bt_value unchanged
     bt = [_fi(operation=[{"term": "BT"}])]
-    out = mod.map_functions(gh_readme=None, bt_functions=bt)
+    out = await mod.map_functions(gh_readme=None, bt_functions=bt)
     assert out == bt
 
 
-def test_map_functions_when_bt_missing_builds_from_github(monkeypatch):
+async def test_map_functions_when_bt_missing_builds_from_github(monkeypatch):
     # GitHub has functions => bt_norm None => returns built list
     y = _yaml_for({"operation": [{"term": "GH"}]})
     monkeypatch.setattr(mod, "find_match_yamls", lambda _readme: [y])
 
-    out = mod.map_functions(gh_readme="README", bt_functions=None)
+    out = await mod.map_functions(gh_readme="README", bt_functions=None)
     assert out is not None
     assert isinstance(out, list)
     assert len(out) == 1
     assert out[0].payload["operation"][0]["term"] == "GH"
 
 
-def test_map_functions_exact_match_preserves_original_bt_object(monkeypatch):
+async def test_map_functions_exact_match_preserves_original_bt_object(monkeypatch):
     # Same function present in bt and GitHub => union adds nothing => returns bt_value (same list object)
     payload = {"operation": [{"term": "Same"}]}
     y = _yaml_for(payload)
     monkeypatch.setattr(mod, "find_match_yamls", lambda _readme: [y])
 
     bt = [_fi(**payload)]
-    out = mod.map_functions(gh_readme="README", bt_functions=bt)
+    out = await mod.map_functions(gh_readme="README", bt_functions=bt)
     assert out is bt  # preserved (exact)
 
 
-def test_map_functions_conflict_adds_github_on_top_of_bt(monkeypatch):
+async def test_map_functions_conflict_adds_github_on_top_of_bt(monkeypatch):
     # bt has A, GH has B => result has A and B (order not guaranteed)
     y = _yaml_for({"operation": [{"term": "B"}]})
     monkeypatch.setattr(mod, "find_match_yamls", lambda _readme: [y])
 
     bt = [_fi(operation=[{"term": "A"}])]
-    out = mod.map_functions(gh_readme="README", bt_functions=bt)
+    out = await mod.map_functions(gh_readme="README", bt_functions=bt)
 
     assert out is not None
     terms = {item.payload["operation"][0]["term"] for item in out}
     assert terms == {"A", "B"}
 
 
-def test_map_functions_github_functions_all_invalid_preserves_bt(monkeypatch):
+async def test_map_functions_github_functions_all_invalid_preserves_bt(monkeypatch):
     # GitHub YAML is non-dict => _extract_functions_from_readme returns None => treated as "cannot build" => preserve bt
     monkeypatch.setattr(mod, "find_match_yamls", lambda _readme: ["- not-a-dict\n- still-not\n"])
 
     bt = [_fi(operation=[{"term": "A"}])]
-    out = mod.map_functions(gh_readme="README", bt_functions=bt)
+    out = await mod.map_functions(gh_readme="README", bt_functions=bt)
     assert out == bt
 
 
-def test_map_functions_strips_strings_before_packing_so_equivalent_whitespace_matches(monkeypatch):
+async def test_map_functions_strips_strings_before_packing_so_equivalent_whitespace_matches(monkeypatch):
     # bt has "X", GH has " X " => normalize_dict_strings strips => packed keys match => preserve bt
     y = _yaml_for({"operation": [{"term": "  X  "}]})
     monkeypatch.setattr(mod, "find_match_yamls", lambda _readme: [y])
 
     bt = [_fi(operation=[{"term": "X"}])]
-    out = mod.map_functions(gh_readme="README", bt_functions=bt)
+    out = await mod.map_functions(gh_readme="README", bt_functions=bt)
 
     assert out is bt
