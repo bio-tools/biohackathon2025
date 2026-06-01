@@ -116,6 +116,7 @@ async def map_topics(gh_topics: list[str] | None, bt_topics: list[TopicItem] | N
         gh_norm=gh_norm,
         bt_norm=bt_norm,
         bt_value=bt_topics,
-        build_bt_from_gh=lambda gh: _cast_to_biotools_topics({gh}),
+        build_bt_from_gh=None,
+        build_bt_from_norm=lambda bt_norm: _cast_to_biotools_topics(bt_norm),
         log_label="topics",
     )
