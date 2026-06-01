@@ -56,7 +56,7 @@ def _gh_langs(d: dict[str, int] | None) -> Language | None:
         ),  # GitHub mapped to None => keep bt?
     ],
 )
-def test_map_language(gh, bt, expected):
+async def test_map_language(gh, bt, expected):
     """
     Test map_language reconciliation behavior.
 
@@ -66,7 +66,7 @@ def test_map_language(gh, bt, expected):
     - Unknown languages are skipped; if all are unknown, build_bt_from_gh returns None.
       The generic reconciler then preserves bt_value.
     """
-    out = map_language(gh_languages=gh, bt_languages=bt)
+    out = await map_language(gh_languages=gh, bt_languages=bt)
 
     # For cases where expected list order isn't stable, compare as sets.
     if out is not None and expected is not None:
