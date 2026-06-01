@@ -32,6 +32,10 @@ __pycache__/
 # VSCode
 .vscode
 
+# virtual environments
+.venv/
+poetry.toml
+
 # Tests
 .coverage
 htmlcov/
