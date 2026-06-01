@@ -4,6 +4,7 @@ repository and registry clients, repository operations, and an LLM provider.
 """
 
 from .biotools import BiotoolsIngestor
+from .edam import EDAMIngestor
 from .europe_pmc import EuropePMCIngestor
 from .github import GitHubIngestor, GitHubRepoProvider
 from .huggingface import HuggingFaceProvider
@@ -18,4 +19,5 @@ __all__ = [
     "ChatMessage",
     "EuropePMCIngestor",
     "SPDXLicenseIngestor",
+    "EDAMIngestor",
 ]
