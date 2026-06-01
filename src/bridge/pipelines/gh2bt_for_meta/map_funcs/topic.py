@@ -70,6 +70,7 @@ def _cast_to_biotools_topics(topics: set[str]) -> list[TopicItem] | None:
     """
     bt_topics: list[TopicItem] = []
     for topic in topics:
+        # TODO: seach for term in a topic, get uri
         matched_topic = find_matching_enum_member(topic, TopicItem)
         if matched_topic:
             bt_topics.append(matched_topic)
