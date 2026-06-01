@@ -175,7 +175,7 @@ def _extract_functions_from_readme(gh_readme: str | None) -> set[str] | None:
     return function_keys or None
 
 
-def map_functions(gh_readme: str | None, bt_functions: list[FunctionItem] | None) -> list[FunctionItem] | None:
+async def map_functions(gh_readme: str | None, bt_functions: list[FunctionItem] | None) -> list[FunctionItem] | None:
     """
     Map and reconcile GitHub and bio.tools function annotations using the generic
     bio.tools-on-top-of-GitHub policy with canonicalization.
@@ -201,10 +201,10 @@ def map_functions(gh_readme: str | None, bt_functions: list[FunctionItem] | None
         {_pack_function_item(fi, ignore_free_text=False) for fi in bt_functions} if bt_functions is not None else None
     )
 
-    def build_bt_from_norm(fi_keys):
+    async def build_bt_from_norm(fi_keys):
         return [_unpack_function_item(fi) for fi in fi_keys] if fi_keys is not None else None
 
-    return reconcile_gh_ontop_bt(
+    return await reconcile_gh_ontop_bt(
         gh_norm=gh_readme,
         bt_norm=bt_norm,
         bt_value=bt_functions,

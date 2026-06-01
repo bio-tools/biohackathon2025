@@ -89,7 +89,9 @@ def _cast_to_biotools_languages(languages: set[str]) -> list[LanguageEnum] | Non
     return bt_languages or None
 
 
-def map_language(gh_languages: Language | None, bt_languages: list[LanguageEnum] | None) -> list[LanguageEnum] | None:
+async def map_language(
+    gh_languages: Language | None, bt_languages: list[LanguageEnum] | None
+) -> list[LanguageEnum] | None:
     """
     Map and reconcile GitHub and bio.tools programming languages using the generic
     GitHub-on-top-of-bio.tools policy.
@@ -114,7 +116,7 @@ def map_language(gh_languages: Language | None, bt_languages: list[LanguageEnum]
     gh_norm = _to_lang_set_gh(gh_languages)
     bt_norm = _to_lang_set_bt(bt_languages)
 
-    return reconcile_gh_ontop_bt(
+    return await reconcile_gh_ontop_bt(
         gh_norm=gh_norm,
         bt_norm=bt_norm,
         bt_value=bt_languages,

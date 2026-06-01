@@ -7,10 +7,11 @@ existing bio.tools EDAM topics and applies a reconciliation policy that prefers 
 topics when they are present, while retaining existing bio.tools topics.
 """
 
+from bridge.builders import compose_edam_term_metadata
+from bridge.core import EDAMTerm
 from bridge.core.biotools import TopicItem
 from bridge.logging import get_user_logger
 from bridge.pipelines.policies.gh2bt import reconcile_gh_ontop_bt
-from bridge.pipelines.utils import find_matching_enum_member
 
 logger = get_user_logger()
 
@@ -53,9 +54,9 @@ def _to_topic_set_bt(bt_topics: list[TopicItem] | None) -> set[str] | None:
     return {topic.term.lower() for topic in bt_topics}
 
 
-def _cast_to_biotools_topics(topics: set[str]) -> list[TopicItem] | None:
+async def _cast_to_biotools_topics(topics: set[str]) -> list[TopicItem] | None:
     """
-    Cast a set of topic strings to a list of `TopicItem` enum members.
+    Cast a set of topic strings to a list of EDAM topics by looking up corresponding EDAM terms.
 
     Parameters
     ----------
@@ -70,16 +71,25 @@ def _cast_to_biotools_topics(topics: set[str]) -> list[TopicItem] | None:
     """
     bt_topics: list[TopicItem] = []
     for topic in topics:
-        # TODO: seach for term in a topic, get uri
-        matched_topic = find_matching_enum_member(topic, TopicItem)
-        if matched_topic:
+        try:
+            edam_term: EDAMTerm = await compose_edam_term_metadata(topic)
+            if not edam_term or not edam_term.label or not edam_term.iri:
+                logger.note(f"GitHub topic '{topic}' could not be resolved to a valid EDAM term and will be skipped.")
+                continue
+            matched_topic = TopicItem(term=edam_term.label, uri=edam_term.iri)
+            logger.added(
+                f"Mapped GitHub topic '{topic}' to bio.tools EDAM topic "
+                f"'{matched_topic.term}' with URI '{matched_topic.uri}'.",
+            )
             bt_topics.append(matched_topic)
-        else:
-            logger.note(f"GitHub topic '{topic}' does not match any known bio.tools EDAM topic and will be skipped.")
+        except Exception as e:
+            logger.note(f"Error retrieving EDAM term for GitHub topic '{topic}': {e}. This topic will be skipped.")
+            continue
+
     return bt_topics or None
 
 
-def map_topics(gh_topics: list[str] | None, bt_topics: list[TopicItem] | None) -> list[TopicItem] | None:
+async def map_topics(gh_topics: list[str] | None, bt_topics: list[TopicItem] | None) -> list[TopicItem] | None:
     """
     Map and reconcile GitHub topics with bio.tools EDAM topics using the generic GitHub-over-bio.tools policy.
 
@@ -102,7 +112,7 @@ def map_topics(gh_topics: list[str] | None, bt_topics: list[TopicItem] | None) -
     gh_norm = _to_topic_set_gh(gh_topics)
     bt_norm = _to_topic_set_bt(bt_topics)
 
-    return reconcile_gh_ontop_bt(
+    return await reconcile_gh_ontop_bt(
         gh_norm=gh_norm,
         bt_norm=bt_norm,
         bt_value=bt_topics,

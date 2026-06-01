@@ -10,6 +10,7 @@ from collections.abc import Callable
 from typing import TypeVar
 
 from bridge.logging import get_user_logger
+from bridge.utils import maybe_await
 
 logger = get_user_logger()
 
@@ -19,7 +20,7 @@ GHN = TypeVar("GHN")  # element type for GitHub set (usually same as BTN)
 BTN = TypeVar("BTN")  # element type for bio.tools set
 
 
-def reconcile_gh_ontop_bt(
+async def reconcile_gh_ontop_bt(
     *,
     gh_norm: GHN | None,
     bt_norm: set[BTN] | None,
@@ -83,7 +84,7 @@ def reconcile_gh_ontop_bt(
     if build_bt_from_gh is None:
         gh_norm_from_bt = gh_norm
     else:
-        gh_norm_from_bt = build_bt_from_gh(gh_norm)
+        gh_norm_from_bt = maybe_await(build_bt_from_gh, gh_norm)
 
     if not gh_norm_from_bt:
         logger.unchanged(f"GitHub {log_label} could not be cast as bio.tools, nothing to map.")
@@ -91,7 +92,7 @@ def reconcile_gh_ontop_bt(
 
     if not bt_norm:
         logger.added(f"{log_label} from GitHub: {gh_norm!r}")
-        return build_bt_from_norm(gh_norm_from_bt)
+        return maybe_await(build_bt_from_norm, gh_norm_from_bt)
 
     updated_bt_norm = bt_norm.union(gh_norm_from_bt)
     nr_added = len(updated_bt_norm) - len(bt_norm)
@@ -100,4 +101,4 @@ def reconcile_gh_ontop_bt(
         return bt_value
 
     logger.added(f"Added {nr_added} missing {log_label} from GitHub to bio.tools.")
-    return build_bt_from_norm(updated_bt_norm)
+    return maybe_await(build_bt_from_norm, updated_bt_norm)
