@@ -1,5 +1,10 @@
 """
 Mapping GitHub topics to bio.tools EDAM topics.
+
+This module aligns GitHub repository topics with bio.tools EDAM topics.
+It compares the list of topics reported by GitHub for a repository with the list of
+existing bio.tools EDAM topics and applies a reconciliation policy that prefers GitHub
+topics when they are present, while retaining existing bio.tools topics.
 """
 
 from bridge.core.biotools import TopicItem
@@ -75,7 +80,23 @@ def _cast_to_biotools_topics(topics: set[str]) -> list[TopicItem] | None:
 
 def map_topics(gh_topics: list[str] | None, bt_topics: list[TopicItem] | None) -> list[TopicItem] | None:
     """
-    Map GitHub topics to bio.tools EDAM topics.
+    Map and reconcile GitHub topics with bio.tools EDAM topics using the generic GitHub-over-bio.tools policy.
+
+    GitHub topics are normalized to a lowercased set of strings, and bio.tools topics are similarly normalized
+    to a set of lowercased topic names derived from the `TopicItem` enum members.
+
+    Parameters
+    ----------
+    gh_topics : list[str] | None
+        List of GitHub topics, or ``None`` if no topics are present.
+    bt_topics : list[TopicItem] | None
+        List of existing bio.tools EDAM topic annotations, or ``None`` if no topics are recorded.
+
+    Returns
+    -------
+    list[TopicItem] | None
+        A reconciled list of `TopicItem` enum members representing the topics for the tool,
+        preferring GitHub topics when available, or ``None`` if no topics can be determined
     """
     gh_norm = _to_topic_set_gh(gh_topics)
     bt_norm = _to_topic_set_bt(bt_topics)
