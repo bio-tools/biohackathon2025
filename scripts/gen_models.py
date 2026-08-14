@@ -1,5 +1,8 @@
 """
 Auto-generates Pydantic models for the bio.tools schema from the JSON schema at
+https://raw.githubusercontent.com/bio-tools/biotoolsSchema/refs/heads/main/jsonschema/biotoolsj.json.
+
+Previously:
 https://raw.githubusercontent.com/bio-tools/biotoolsSchema/refs/heads/v4-dev/biotools.schema.json.
 
 Run via:
@@ -79,12 +82,12 @@ def relax_extra_field_validation(output_file: Path):
     print(f"Relaxed Pydantic model config in {output_file.name} to extra='ignore'.")
 
 
-def generate_biotools_models(download_from: str | Path):
+def generate_biotools_models():
     """Generate bio.tools Pydantic models."""
-    schema_url = "https://raw.githubusercontent.com/bio-tools/biotoolsSchema/refs/heads/v4-dev/biotools.schema.json"
+    schema_url = "https://raw.githubusercontent.com/bio-tools/biotoolsSchema/refs/heads/main/jsonschema/biotoolsj.json"
     schema_path = Path("schemas/biotools.json")
     extracted_schema_path = Path("schemas/tool_root.json")
-    filename = "biotools_test.py"
+    filename = "biotools.py"
     output_file = Path("src/bridge/core/") / filename
 
     docstring = f'''"""
