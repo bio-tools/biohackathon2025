@@ -124,7 +124,7 @@ def separate_snippets_from_text(text: str | None, snippets: list[str]) -> tuple[
 
 
 def fill_template(template: str, placeholders: dict[str, str]) -> str:
-    """
+    r"""
     Render a simple string template by substituting named placeholders.
 
     This function performs lightweight templating by replacing occurrences of
@@ -140,6 +140,10 @@ def fill_template(template: str, placeholders: dict[str, str]) -> str:
     Substitution is performed for each key in `placeholders` using a regular
     expression that matches the placeholder pattern. Placeholders without a
     corresponding key in the `placeholders` dictionary are left unchanged.
+
+    Replacement values are inserted literally: backslash sequences such as
+    ``\\1``, ``\\g<0>`` or ``\\masses.txt`` are *not* interpreted as regular
+    expression replacement escapes.
 
     Parameters
     ----------
@@ -160,5 +164,5 @@ def fill_template(template: str, placeholders: dict[str, str]) -> str:
     result = template
     for key, value in placeholders.items():
         pattern = re.compile(r"{{\s*" + re.escape(key) + r"\s*}}")
-        result = pattern.sub(value, result)
+        result = pattern.sub(lambda _match, value=value: value, result)
     return result

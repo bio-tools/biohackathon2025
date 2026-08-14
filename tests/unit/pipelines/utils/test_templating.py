@@ -98,6 +98,11 @@ def test_remove_first_snippet_from_text(text, snippet, expected):
         ),
         # ---- Triple braces: inner {{name}} still matches and gets replaced ----
         ("{{{name}}}", {"name": "Ada"}, "{Ada}"),
+        # ---- Backslashes in values are literal, not regex replacement escapes ----
+        ("{{x}}", {"x": r'-F=".\masses.txt"'}, r'-F=".\masses.txt"'),
+        ("{{x}}", {"x": r"\1"}, r"\1"),
+        ("{{x}}", {"x": r"C:\new\test"}, r"C:\new\test"),
+        ("{{x}}", {"x": r"\g<0>"}, r"\g<0>"),
     ],
 )
 def test_fill_template(template, placeholders, expected):
