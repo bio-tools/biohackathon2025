@@ -3,13 +3,12 @@ line-length = 120
 target-version = ["py312"]
 force-exclude = '''
 (
-    (^|/)src/bridge/core/biotools\\.py
-  | (^|/)src/bridge/core/github_repo\\.py
-  | (^|/)src/bridge/core/github_latest_release\\.py
-  | (^|/)src/bridge/core/github_languages\\.py
-  | (^|/)src/bridge/core/license\\.py
+    (^|/)src/bridge/core/biotools\.py
+  | (^|/)src/bridge/core/github_repo\.py
+  | (^|/)src/bridge/core/github_latest_release\.py
+  | (^|/)src/bridge/core/github_languages\.py
+  | (^|/)src/bridge/core/license\.py
   | (^|/)docs/
   | (^|/)tests/
 )
-"""
 '''

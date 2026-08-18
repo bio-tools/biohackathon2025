@@ -82,6 +82,46 @@ def relax_extra_field_validation(output_file: Path):
     print(f"Relaxed Pydantic model config in {output_file.name} to extra='ignore'.")
 
 
+def patch_publication_type_enum(output_file: Path):
+    """
+    Add 'Preprint' as an allowed publication type.
+
+    Workaround: the bio.tools API returns 'Preprint' as a publication type
+    for some entries, but the official JSON schema does not list it as a
+    valid value. Without this patch, entries with a preprint publication
+    fail Pydantic validation. Remove this patch once the upstream schema
+    is fixed to include 'Preprint':
+    https://github.com/bio-tools/biotoolsSchema
+    """
+    content = output_file.read_text()
+
+    # match the generated enum by its known members rather than its class
+    # name, since datamodel-code-generator may rename it (e.g. TypeEnum2 ->
+    # TypeEnum3) if the upstream schema's definition order changes. The
+    # quote character is also captured rather than hard-coded, since it
+    # varies across datamodel-code-generator versions/configs.
+    pattern = re.compile(
+        r"(class \w+\(Enum\):\n"
+        r"    Primary = (['\"])Primary\2\n"
+        r"    Benchmarking_study = \2Benchmarking study\2\n"
+        r"    Method = \2Method\2\n"
+        r"    Usage = \2Usage\2\n)"
+        r"(    Review = \2Review\2\n)"
+    )
+
+    new_content, count = pattern.subn(r"\1    Preprint = \2Preprint\2\n\3", content)
+    if count != 1:
+        raise RuntimeError(
+            "Could not locate the publication type enum to patch with 'Preprint' "
+            "(expected exactly one match, found "
+            f"{count}). The generated model shape may have changed — update "
+            "patch_publication_type_enum() in scripts/gen_models.py accordingly."
+        )
+
+    output_file.write_text(new_content)
+    print(f"Patched publication type enum in {output_file.name} to include 'Preprint'.")
+
+
 def generate_biotools_models():
     """Generate bio.tools Pydantic models."""
     schema_url = "https://raw.githubusercontent.com/bio-tools/biotoolsSchema/refs/heads/main/jsonschema/biotoolsj.json"
@@ -101,6 +141,7 @@ from the JSON schema at {schema_url}.
     generate_models(schema_path=extracted_schema_path, output_file=output_file)
     add_docstring(docstring=docstring, output_file=output_file)
     relax_extra_field_validation(output_file=output_file)
+    patch_publication_type_enum(output_file=output_file)
 
 
 def generate_github_models():
