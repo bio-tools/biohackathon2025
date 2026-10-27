@@ -12,7 +12,7 @@ from bridge.services.spdx.spdx_ingestor import SPDXLicenseNotFoundError
 
 
 def _license_url(spdx_id: str) -> str:
-    base = settings.spdx_license_base
+    base = settings.spdx_license_api_base
     return f"{base}/{spdx_id}.json"
 
 

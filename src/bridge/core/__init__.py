@@ -4,6 +4,7 @@ Re-exports validated Pydantic models for repositories and metadata.
 """
 
 from .biotools import ToolModel as BiotoolsToolModel
+from .edam_term import EDAMTerm
 from .github import GitHubRepoModel
 from .license import SPDXLicense
 from .publication import Publication
@@ -13,4 +14,5 @@ __all__ = [
     "GitHubRepoModel",
     "Publication",
     "SPDXLicense",
+    "EDAMTerm",
 ]

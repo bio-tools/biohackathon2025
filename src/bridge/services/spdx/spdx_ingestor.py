@@ -55,7 +55,7 @@ class SPDXLicenseIngestor(Ingestor):
             For non-2xx HTTP responses.
         """
         # SPDX per-license JSON: {base}/{ID}.json, e.g. https://spdx.org/licenses/MIT.json
-        base = settings.spdx_license_base
+        base = settings.spdx_license_api_base
         url = f"{base}/{self.spdx_id}.json"
         try:
             logger.debug(f"Fetching SPDX license JSON: {url}")

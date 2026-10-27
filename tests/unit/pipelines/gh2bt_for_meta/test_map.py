@@ -38,6 +38,7 @@ def test_mapgithub2biotools_map_returns_expected_keys(monkeypatch, tmp_path):
         "version",
         "publication",
         "functions",
+        "topics",
     }
 
 

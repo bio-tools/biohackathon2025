@@ -71,6 +71,7 @@ async def run(args: GitHubToBiotoolsForMetaPipelineArgs) -> BiotoolsToolModel:
         documentation=await mapper.map["documentation"].run(),
         publication=await mapper.map["publication"].run(),
         function=await mapper.map["functions"].run(),
+        topic=await mapper.map["topics"].run(),
     )
 
     if args.existing_metadata is not None:
