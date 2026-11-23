@@ -81,19 +81,20 @@ We keep two permanent branches and short-lived topic branches.
 
 ### Build & Deploy Docs (`docs.yml`):
 
-On push/PR to `dev` and push to `main`, 
-CI installs deps, generates architecture diagrams (gen-diagrams), and builds Sphinx (gen-docs). 
-Only pushes to `main` deploy to GitHub Pages. 
-Preview links are attached to PRs and `dev` pushes. 
+On every PR and push to `dev`/`main`,
+CI installs deps, generates architecture diagrams (`poe gen-diagrams`), and builds Sphinx (`poe gen-docs`),
+so broken docs are caught in review. PRs never deploy.
+
+Pushes to the deploy branch publish the docs to GitHub Pages.
+The deploy branch is set by the `DOCS_DEPLOY_BRANCH` repository variable (Settings → Secrets and variables → Actions → Variables),
+and defaults to `dev`. Set it to `main` once releases are cut from `main`.
 Do not commit built docs or diagrams.
 
-| Event             | Branch | Build                                                                                                         | Deploy to Pages |
-|-------------------|--------|---------------------------------------------------------------------------------------------------------------|-----------------|
-| push              | `dev`  | Install deps (--with docs) + install D2 → `poetry run poe gen-diagrams` → `poetry run poe gen-docs` → upload artifact | No              |
-| PR                | `dev`  | Same                                                                                                          | No              |
-| push              | `main` | Same                                                                                                          | Yes             |
-| workflow_dispatch | any    | Same                                                                                                          | Only if main    |
-
+| Event                         | Branch           | Build                                                                                            | Deploy to Pages |
+|-------------------------------|------------------|--------------------------------------------------------------------------------------------------|-----------------|
+| PR                            | `dev` / `main`   | Install deps (--with docs) + install D2 → `poetry run poe gen-diagrams` → `poetry run poe gen-docs` | No              |
+| push / workflow_dispatch      | deploy branch    | Same                                                                                             | Yes             |
+| push / workflow_dispatch      | any other branch | Same                                                                                             | No              |
 
 ### Lint & unit tests (`tests.yml`):
 
