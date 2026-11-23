@@ -9,6 +9,7 @@ Bidirectional bridge: GitHub ⇄ bio.tools
    :maxdepth: 1
    :caption: Contents:
 
+   install
    user_guide
    deployment_guide
    dev_guide

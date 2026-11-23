@@ -1,36 +1,39 @@
 # Installation
 
-The project has been initially developed with 3.12 and tested with that version.
+The bridge needs Python 3.12 or newer and `git` on the `PATH`
+(it uses git to clone repositories and check wikis).
 
-If you don't have Poetry installed, you can install it by following the instructions on
-https://python-poetry.org/docs/#installation
-or by running the following command:
+## From PyPI
 
 ```sh
-pipx install poetry
+pip install metadata-bridge
 ```
 
-Clone the repository and enter the project directory
+or, to keep it isolated from other tools:
+
+```sh
+pipx install metadata-bridge
+```
+
+Check it works:
+
+```sh
+bridge --version
+bridge --help
+```
+
+## With Docker
+
+See the [Deployment guide](deployment_guide.md#docker).
+
+## From source
+
+For development, clone the repository and install it with [Poetry](https://python-poetry.org/docs/#installation):
 
 ```sh
 git clone https://github.com/bio-tools/metadata-bridge.git
 cd metadata-bridge
-```
-
-Create and activate the virtual environment
-
-```sh
 poetry install
 ```
-This installs all dependencies in a virtual environment managed by Poetry.
 
-
-
-
-### View docs
-```bash
-open docs/build/html/index.html  # On macOS
-# or:
-python -m http.server --directory docs/build/html
-```
-Then open your browser and go to `http://localhost:8000/`.
+The [Developer guide](dev_guide.md) covers the rest of the development setup.
