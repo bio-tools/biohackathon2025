@@ -23,7 +23,9 @@ class Settings(BaseSettings):
 
     # Hugging Face
     huggingface_token: str | None = None
-    huggingface_api_url: HttpUrl = "https://api-inference.huggingface.co"
+    # not used by HuggingFaceProvider (huggingface_hub routes via the chosen provider);
+    # kept so existing .env files that set HUGGINGFACE_API_URL keep validating
+    huggingface_api_url: HttpUrl = "https://router.huggingface.co/hf-inference"
 
     # Europe PMC
     europe_pmc_api_url: HttpUrl = "https://www.ebi.ac.uk/europepmc/webservices/rest"
