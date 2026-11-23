@@ -1,12 +1,9 @@
-.. biohackathon2025 documentation master file, created by
-   sphinx-quickstart on Wed Oct 22 13:55:04 2025.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
+.. metadata-bridge documentation master file.
 
 Bidirectional bridge: GitHub ⇄ bio.tools
 ==========================================
-*biohackathon 2025, project 5*
-==========================================
+
+*Started as project 5 at the ELIXIR BioHackathon Europe 2025.*
 
 .. toctree::
    :maxdepth: 1

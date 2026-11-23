@@ -13,8 +13,8 @@ pipx install poetry
 Clone the repository and enter the project directory
 
 ```sh
-git https://github.com/bio-tools/biohackathon2025.git
-cd biohackathon2025
+git clone https://github.com/bio-tools/metadata-bridge.git
+cd metadata-bridge
 ```
 
 Create and activate the virtual environment

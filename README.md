@@ -6,7 +6,7 @@ This tool extracts high-quality metadata from GitHub repos
 to build bio.tools entries
 and uses bio.tools records to propose improvements back to GitHub 
 (badges, descriptions, files). 
-During the BioHackathon it targets GitHub and bio.tools only, 
+It currently targets GitHub and bio.tools, 
 but the architecture is intentionally pluggable for more backends later.
 
 **Why**:
@@ -14,8 +14,11 @@ but the architecture is intentionally pluggable for more backends later.
 - Improves repository visibility and discoverability.
 - Closes the loop: metadata is useful in both directions.
 
-Full abstract: 
-[Biohackathon 2025 project](https://github.com/elixir-europe/biohackathon-projects-2025/blob/main/5.md) 
+**Origin**: 
+this tool started as [project 5](https://github.com/elixir-europe/biohackathon-projects-2025/blob/main/5.md) 
+at the ELIXIR BioHackathon Europe 2025 
+([original repository](https://github.com/bio-tools/biohackathon2025)).
+
 ---
 
 ## Features
@@ -30,8 +33,8 @@ Full abstract:
 
 ```bash
 # clone
-git clone https://github.com/bio-tools/biohackathon2025.git
-cd biohackathon2025
+git clone https://github.com/bio-tools/metadata-bridge.git
+cd metadata-bridge
 
 # install (all groups)
 poetry install
@@ -54,7 +57,7 @@ poetry run bridge cli --help
 
 ## Documentation
 
-The documentation is available at [https://bio-tools.github.io/biohackathon2025/](https://bio-tools.github.io/biohackathon2025/).
+The documentation is available at [https://bio-tools.github.io/metadata-bridge/](https://bio-tools.github.io/metadata-bridge/).
 
 Preview on [localhost](http://localhost:8000):
 ```bash
@@ -66,8 +69,8 @@ python -m http.server --directory docs/build
 ## Contributing
 
 Contributions are welcome! 
-Please read the [CONTRIBUTING](CONTRIBUTING.md) or branching, PR rules, and code style.
-Read the [Developer guide](https://bio-tools.github.io/biohackathon2025/dev_guide.html) for setup and commands.
+Please read the [CONTRIBUTING](CONTRIBUTING.md) for branching, PR rules, and code style.
+Read the [Developer guide](https://bio-tools.github.io/metadata-bridge/dev_guide.html) for setup and commands.
 
 ---
 ## License

@@ -17,8 +17,8 @@ pipx install poetry
 Clone the repository and enter the project directory:
 
 ```sh
-git clone https://github.com/bio-tools/biohackathon2025.git
-cd biohackathon2025
+git clone https://github.com/bio-tools/metadata-bridge.git
+cd metadata-bridge
 ```
 
 ## Install dependencies
@@ -148,4 +148,4 @@ poetry add --group docs [package]
 
 ## Contributing guidelines
 
-Please refer to the [CONTRIBUTING.md](https://github.com/bio-tools/biohackathon2025/blob/dev/CONTRIBUTING.md) file for guidelines on contributing to this project.
+Please refer to the [CONTRIBUTING.md](https://github.com/bio-tools/metadata-bridge/blob/dev/CONTRIBUTING.md) file for guidelines on contributing to this project.

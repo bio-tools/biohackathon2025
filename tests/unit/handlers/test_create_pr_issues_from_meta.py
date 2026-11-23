@@ -75,7 +75,7 @@ async def test_create_pr_issues_from_meta_happy(monkeypatch):
         schema="biotools",
         repo_type="github",
         owner="bio-tools",
-        repo="biohackathon2025",
+        repo="metadata-bridge",
         identifier="my-tool",
         allow_issues=True,
     )
@@ -145,7 +145,7 @@ async def test_create_pr_issues_from_meta_no_pr_when_no_changes(monkeypatch):
         schema="biotools",
         repo_type="github",
         owner="bio-tools",
-        repo="biohackathon2025",
+        repo="metadata-bridge",
         identifier="my-tool",
     )
 

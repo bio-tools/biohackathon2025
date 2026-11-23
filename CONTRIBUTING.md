@@ -1,6 +1,6 @@
 # Contributing guidelines
 
-See the [Developer guide](https://bio-tools.github.io/biohackathon2025/dev_guide.html) in docs for details on setup, running API/CLI, docs preview, and local tooling.
+See the [Developer guide](https://bio-tools.github.io/metadata-bridge/dev_guide.html) in docs for details on setup, running API/CLI, docs preview, and local tooling.
 
 ## Ground rules
 
@@ -102,7 +102,7 @@ Do not commit built docs or diagrams.
 | `core`      | Pydantic domain models                                   | Data models for repos, schemas                              |
 | `services`  | All interactions with external systems (APIs, git, LLMs) | API clients, ingestors, git wrappers, LLM interfaces        |
 | `builders`  | Composition of models in `core` (using `services`)       | Transformers for building models from raw data              |
-| `pipelines` | End-to-end flows for goals (main focus of the BH2025)    | Extracting metadata from a repo, suggesting file changes    |
+| `pipelines` | End-to-end flows for goals                              | Extracting metadata from a repo, suggesting file changes    |
 | `adapters`  | CLI (typer) and API (fastapi) surfaces                   | Routers, commands, request models                           |
 | `bootstrap` | Wiring and dependency injection                          | Registering composers for models, wiring goals to pipelines |
 | `handlers`  | Orchestrators for (API/CLI) entrypoints for each goal    | Creating PRs, extracting metadata                           |

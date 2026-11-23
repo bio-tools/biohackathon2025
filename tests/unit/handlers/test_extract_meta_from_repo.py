@@ -26,7 +26,7 @@ async def test_extract_meta_from_repo_happy_no_identifier(monkeypatch):
 
     async def fake_repo_composer(**kwargs):
         # must provide repo.full_name because handler uses it
-        return SimpleNamespace(repo=SimpleNamespace(full_name="bio-tools/biohackathon2025"))
+        return SimpleNamespace(repo=SimpleNamespace(full_name="bio-tools/metadata-bridge"))
 
     async def fake_pipeline(args):
         # sanity check: existing_metadata should be None when identifier is missing
@@ -43,7 +43,7 @@ async def test_extract_meta_from_repo_happy_no_identifier(monkeypatch):
 
     class FakeRepoProvider:
         def clone_context(self, repo_full_name: str):
-            assert repo_full_name == "bio-tools/biohackathon2025"
+            assert repo_full_name == "bio-tools/metadata-bridge"
 
             class _Ctx:
                 def __enter__(self):
@@ -72,7 +72,7 @@ async def test_extract_meta_from_repo_happy_no_identifier(monkeypatch):
         schema="biotools",
         repo_type="github",
         owner="bio-tools",
-        repo="biohackathon2025",
+        repo="metadata-bridge",
     )
 
     # metadata composer should NOT be called when identifier is absent
@@ -92,7 +92,7 @@ async def test_extract_meta_from_repo_happy_with_identifier(monkeypatch):
         return {"name": "existing-tool"}
 
     async def fake_repo_composer(**kwargs):
-        return SimpleNamespace(repo=SimpleNamespace(full_name="bio-tools/biohackathon2025"))
+        return SimpleNamespace(repo=SimpleNamespace(full_name="bio-tools/metadata-bridge"))
 
     async def fake_pipeline(args):
         assert args.kwargs["existing_metadata"] == {"name": "existing-tool"}
@@ -135,7 +135,7 @@ async def test_extract_meta_from_repo_happy_with_identifier(monkeypatch):
         schema="biotools",
         repo_type="github",
         owner="bio-tools",
-        repo="biohackathon2025",
+        repo="metadata-bridge",
         identifier="my-tool",
     )
 

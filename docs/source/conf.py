@@ -1,5 +1,6 @@
 import os
 import sys
+from datetime import date
 from pathlib import Path
 import tomllib
 
@@ -24,7 +25,7 @@ project_meta = data.get("project", {})
 project = project_meta.get("name", "Unknown Project")
 author = ", ".join(a.get("name") for a in project_meta.get("authors", []) if a.get("name"))
 version = project_meta.get("version", "0.0.0")
-copyright = "2025, " + author
+copyright = f"2025-{date.today().year}, {author}"
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
@@ -114,7 +115,7 @@ html_theme = "sphinx_book_theme"
 html_static_path = ["_static"]
 
 html_theme_options = {
-    "repository_url": "https://github.com/bio-tools/biohackathon2025",
+    "repository_url": "https://github.com/bio-tools/metadata-bridge",
     "use_repository_button": True,
     "use_issues_button": True,
     "use_edit_page_button": False,
