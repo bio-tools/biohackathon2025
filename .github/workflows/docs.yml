@@ -60,11 +60,11 @@ jobs:
         env:
           PYTHONPATH: src
         run: |
-          poetry run gen-diagrams
+          poetry run poe gen-diagrams
 
       - name: Build Sphinx HTML
         run: |
-          poetry run gen-docs
+          poetry run poe gen-docs
 
       # keep this for push & PR so both prod & preview can deploy from the artifact
       - name: Upload Pages artifact

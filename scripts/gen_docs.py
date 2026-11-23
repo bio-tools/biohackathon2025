@@ -3,7 +3,7 @@ Generate Sphinx API documentation.
 This script is a part of CI documentation generation.
 
 Run via:
-    poetry run generate-docs
+    poetry run poe gen-docs
 """
 
 import shutil

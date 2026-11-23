@@ -3,14 +3,14 @@ repos:
     hooks:
       - id: fmt
         name: fmt (ruff --fix + black)
-        entry: poetry run fmt
+        entry: poetry run poe fmt
         language: system
         pass_filenames: false
         stages: [pre-commit]
 
       - id: lint
         name: lint (ruff + black --check)
-        entry: poetry run lint
+        entry: poetry run poe lint
         language: system
         pass_filenames: false
         stages: [pre-push]

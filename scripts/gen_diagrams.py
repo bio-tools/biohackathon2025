@@ -4,7 +4,7 @@ Diagrams are saved in `docs/source/api_reference/_architecture_generated/`.
 This script is a part of CI documentation generation.
 
 Run via:
-    poetry run gen-diagrams
+    poetry run poe gen-diagrams
 """
 
 import ast

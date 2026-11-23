@@ -40,3 +40,12 @@ def test_inner_cli_help():
     assert result.exit_code == 0
     # don't assert the banner here; it's a different app
     assert "Usage:" in result.stdout
+
+
+def test_root_cli_version():
+    """`bridge --version` prints the package version and exits cleanly."""
+    from bridge import __version__
+
+    result = runner.invoke(root_cli, ["--version"])
+    assert result.exit_code == 0
+    assert result.stdout.strip() == f"metadata-bridge {__version__}"

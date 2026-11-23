@@ -5,9 +5,27 @@ Project entrypoint exposing both a CLI and an API runner.
 import typer
 import uvicorn
 
+from bridge import __version__
 from bridge.adapters import cli_app
 
 main_app = typer.Typer(help="GitHub ⇄ bio.tools bridge entrypoint")
+
+
+def _print_version(value: bool) -> None:
+    """Print the installed version and exit."""
+    if value:
+        typer.echo(f"metadata-bridge {__version__}")
+        raise typer.Exit()
+
+
+@main_app.callback()
+def main(
+    version: bool = typer.Option(
+        False, "--version", callback=_print_version, is_eager=True, help="Show the version and exit."
+    ),
+):
+    """GitHub ⇄ bio.tools bridge entrypoint."""
+
 
 # attach cli app as a subcommand
 main_app.add_typer(cli_app, name="cli", help="Run the Bridge CLI interface")

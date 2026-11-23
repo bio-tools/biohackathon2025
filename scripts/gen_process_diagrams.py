@@ -4,7 +4,7 @@ Diagrams code location: docs/source/api_reference/_process_diagrams/*.mmd
 Output SVGs next to the .mmd files (same basename, .svg extension).
 
 Run via:
-    poetry run gen-process-diagrams
+    poetry run poe gen-process-diagrams
 """
 
 from __future__ import annotations

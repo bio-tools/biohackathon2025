@@ -1,7 +1,7 @@
 [project]
-name = "bridge"
+name = "metadata-bridge"
 version = "0.1.0"
-description = ""
+description = "Bidirectional metadata bridge between GitHub repositories and bio.tools"
 authors = [
     {name = "Mariia Steeghs-Turchina"},
     {name = "Anna Niehues"},
@@ -12,6 +12,16 @@ authors = [
 license = {text = "Apache-2.0"}
 readme = "README.md"
 requires-python = ">=3.12,<4.0"
+keywords = ["bio.tools", "github", "metadata", "bioinformatics", "research software", "edam"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Bio-Informatics",
+]
 dependencies = [
     "pydantic-core (>=2.41.4,<3.0.0)",
     "fastapi (>=0.120.4,<0.121.0)",
@@ -22,8 +32,17 @@ dependencies = [
     "typer (>=0.20.0,<0.21.0)",
     "huggingface-hub (>=1.0.1,<2.0.0)",
     "numpy (>=2.3.4,<3.0.0)",
-    "sphinxcontrib-mermaid (>=1.2.3,<2.0.0)"
 ]
+
+[project.urls]
+Homepage = "https://github.com/bio-tools/metadata-bridge"
+Documentation = "https://bio-tools.github.io/metadata-bridge/"
+Repository = "https://github.com/bio-tools/metadata-bridge"
+Issues = "https://github.com/bio-tools/metadata-bridge/issues"
+Changelog = "https://github.com/bio-tools/metadata-bridge/blob/dev/CHANGELOG.md"
+
+[project.scripts]
+bridge = "bridge.__main__:main_app"
 
 [tool.poetry.group.dev.dependencies]
 datamodel-code-generator = "^0.35.0"
@@ -35,6 +54,7 @@ pytest-asyncio = "^1.2.0"
 pytest-httpx = "^0.35.0"
 pytest-cov = "^7.0.0"
 cosmic-ray = "^8.4.3"
+poethepoet = "^0.49.0"
 
 [tool.poetry.group.docs.dependencies]
 sphinx = "^8.2.3"
@@ -43,6 +63,7 @@ myst-parser = "^4.0.1"
 sphinx-book-theme = "^1.1.4"
 sphinx-automodapi = "^0.20.0"
 grimp = "^3.12"
+sphinxcontrib-mermaid = "^1.2.3"
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
@@ -51,16 +72,16 @@ build-backend = "poetry.core.masonry.api"
 [tool.poetry]
 packages = [{ include = "bridge", from = "src" }]
 
-[tool.poetry.scripts]
-lint = "scripts.quality:lint"
-fmt = "scripts.quality:fmt"
-coverage-report = "scripts.quality:coverage_report"
-cosmic-ray-report = "scripts.quality:cosmic_ray_report"
-gen-biotools-models = "scripts.gen_models:generate_biotools_models"
-gen-github-models = "scripts.gen_models:generate_github_models"
-gen-docs = "scripts.gen_docs:main"
-gen-diagrams = "scripts.gen_diagrams:main"
-gen-process-diagrams = "scripts.gen_process_diagrams:main"
-bridge = "bridge.__main__:main_app"
+# dev-only helpers: run with `poetry run poe <task>` (not shipped in the package)
+[tool.poe.tasks]
+lint = { script = "scripts.quality:lint", help = "Ruff + Black checks" }
+fmt = { script = "scripts.quality:fmt", help = "Fix with Ruff, format with Black" }
+coverage-report = { script = "scripts.quality:coverage_report", help = "Run tests with HTML coverage report" }
+cosmic-ray-report = { script = "scripts.quality:cosmic_ray_report", help = "Run mutation testing report" }
+gen-biotools-models = { script = "scripts.gen_models:generate_biotools_models", help = "Regenerate bio.tools models" }
+gen-github-models = { script = "scripts.gen_models:generate_github_models", help = "Regenerate GitHub models" }
+gen-docs = { script = "scripts.gen_docs:main", help = "Build Sphinx docs" }
+gen-diagrams = { script = "scripts.gen_diagrams:main", help = "Generate architecture diagrams" }
+gen-process-diagrams = { script = "scripts.gen_process_diagrams:main", help = "Generate process diagrams" }
 
 

@@ -49,7 +49,7 @@ We keep two permanent branches and short-lived topic branches.
 ### PR checklist
 
 - [ ] Rebased on latest `dev`
-- [ ] Passes all pre-commit hooks (`poetry run fmt` and `poetry run lint`)
+- [ ] Passes all pre-commit hooks (`poetry run poe fmt` and `poetry run poe lint`)
 - [ ] Docs updated if needed
 - [ ] Tests added/updated if needed
 - [ ] Linked to an issue if applicable: Closes #ISSUE_NUMBER
@@ -70,8 +70,8 @@ We keep two permanent branches and short-lived topic branches.
 
 | File                                                                   | Purpose                                        | How to regenerate                |
 |------------------------------------------------------------------------|------------------------------------------------|----------------------------------|
-| `bridge/core/biotools.py`                                              | Pydantic models from bio.tools JSON            | `poetry run gen-biotools-models` |
-| `bridge/core/github_repo.py` and `bridge/core/github_latest_release.py`| Pydantic models from github response JSONs ([repo](https://docs.github.com/en/rest/repos/repos?apiVersion=2022-11-28#get-a-repository) & [latest release](https://docs.github.com/en/rest/releases/releases?apiVersion=2022-11-28#get-the-latest-release)) | `poetry run gen-github-models` |
+| `bridge/core/biotools.py`                                              | Pydantic models from bio.tools JSON            | `poetry run poe gen-biotools-models` |
+| `bridge/core/github_repo.py` and `bridge/core/github_latest_release.py`| Pydantic models from github response JSONs ([repo](https://docs.github.com/en/rest/repos/repos?apiVersion=2022-11-28#get-a-repository) & [latest release](https://docs.github.com/en/rest/releases/releases?apiVersion=2022-11-28#get-the-latest-release)) | `poetry run poe gen-github-models` |
 
 - Never edit generated files directly.
 - If schema or generator changes: regenerate and commit.
@@ -89,7 +89,7 @@ Do not commit built docs or diagrams.
 
 | Event             | Branch | Build                                                                                                         | Deploy to Pages |
 |-------------------|--------|---------------------------------------------------------------------------------------------------------------|-----------------|
-| push              | `dev`  | Install deps (--with docs) + install D2 → `poetry run gen-diagrams` → `poetry run gen-docs` → upload artifact | No              |
+| push              | `dev`  | Install deps (--with docs) + install D2 → `poetry run poe gen-diagrams` → `poetry run poe gen-docs` → upload artifact | No              |
 | PR                | `dev`  | Same                                                                                                          | No              |
 | push              | `main` | Same                                                                                                          | Yes             |
 | workflow_dispatch | any    | Same                                                                                                          | Only if main    |

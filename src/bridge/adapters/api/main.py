@@ -8,6 +8,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
+from bridge import __version__
 from bridge.logging import setup_logging
 
 from .routers import biotools_to_github, github_to_biotools
@@ -25,6 +26,7 @@ async def lifespan(_app: FastAPI):
 
 app = FastAPI(
     title="GitHub ⇄ bio.tools bridge",
+    version=__version__,
     docs_url="/docs",
     redoc_url="/redoc",
     openapi_url="/openapi.json",

@@ -61,8 +61,8 @@ The documentation is available at [https://bio-tools.github.io/metadata-bridge/]
 
 Preview on [localhost](http://localhost:8000):
 ```bash
-poetry run gen-diagrams
-poetry run gen-docs
+poetry run poe gen-diagrams
+poetry run poe gen-docs
 python -m http.server --directory docs/build
 ```
 

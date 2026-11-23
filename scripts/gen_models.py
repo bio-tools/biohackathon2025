@@ -6,7 +6,7 @@ Previously:
 https://raw.githubusercontent.com/bio-tools/biotoolsSchema/refs/heads/v4-dev/biotools.schema.json.
 
 Run via:
-    poetry run gen-biotools-models
+    poetry run poe gen-biotools-models
 """
 
 import json

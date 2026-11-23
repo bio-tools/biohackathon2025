@@ -56,7 +56,7 @@ What happens automatically:
 You can also run the same checks manually (very much encouraged):
 
 ```bash
-poetry run [hook]
+poetry run poe [hook]
 ```
 
 ## Run locally
@@ -93,8 +93,10 @@ Various helper scripts are available under the `scripts/` directory.
 You can run them using Poetry:
 
 ```bash
-poetry run [script]
+poetry run poe [script]
 ```
+
+Run `poetry run poe` without arguments to list every available task.
 
 ## Documentation
 
@@ -108,7 +110,7 @@ There are two scripts relevant to documentation generation:
 You can run them using Poetry:
 
 ```bash
-poetry run [script]
+poetry run poe [script]
 ```
 
 The `gen-diagrams` script requires [D2](https://d2lang.com/) to be installed. 
