@@ -363,3 +363,40 @@ def test_map_readme_injects_functions_when_present(_patch_extract_existing_badge
     )
     text = _out_text(out)
     assert "<!-- FUNCTIONS-INJECTED -->" in text
+
+
+def test_map_readme_replaces_legacy_bridge_badge(monkeypatch):
+    """
+    A bridge badge linking to the pre-migration docs URL is dropped, so the
+    README ends up with only the current bridge badge.
+    """
+    FakeBadge = mod.Badge
+    legacy_md = "[![Bridge](badges/bridge--old.svg)](https://bio-tools.github.io/biohackathon2025/)"
+    existing = [
+        FakeBadge(
+            alt_text="Bridge",
+            image_url="badges/bridge--old.svg",
+            link_url="https://bio-tools.github.io/biohackathon2025/",
+            full_match=legacy_md,
+        ),
+    ]
+    monkeypatch.setattr(mod, "_extract_existing_badges", lambda _readme: existing)
+
+    out = mod.map_readme(
+        gh_readme=f"# Title\n\n{legacy_md}\n\nBody\n",
+        bt_params={"name": "Tool", "biotoolsID": "toolid"},
+    )
+    text = _out_text(out)
+
+    assert "biohackathon2025" not in text
+    assert text.count(mod.BRIDGE_DOCS_URL) == 1
+    assert "Body" in text
+
+
+def test_badge_logos_ship_inside_the_package():
+    """Badge logos are resolved from the installed package, not the working directory."""
+    from pathlib import Path
+
+    for path in (mod.BRIDGE_BADGE_LOGO_PATH, mod.BIOTOOLS_BADGE_LOGO_PATH):
+        assert Path(path).is_file()
+        assert Path(path).is_absolute()

@@ -13,6 +13,7 @@ for a tool and produces an updated README that:
 
 import re
 from collections.abc import Iterable
+from importlib.resources import files
 from typing import Any
 
 from bridge.core.biotools import FunctionItem, ToolTypeEnum
@@ -28,8 +29,12 @@ from .functions import map_functions_to_readme
 
 logger = get_user_logger()
 
-BRIDGE_BADGE_LOGO_PATH = "assets/logos/bridge.svg"
-BIOTOOLS_BADGE_LOGO_PATH = "assets/logos/biotools.svg"
+_LOGOS_DIR = files("bridge") / "assets" / "logos"
+BRIDGE_BADGE_LOGO_PATH = str(_LOGOS_DIR / "bridge.svg")
+BIOTOOLS_BADGE_LOGO_PATH = str(_LOGOS_DIR / "biotools.svg")
+BRIDGE_DOCS_URL = "https://bio-tools.github.io/metadata-bridge/"
+# bridge badges written before the move link here; replace them instead of keeping both
+LEGACY_BRIDGE_DOCS_URLS = ("https://bio-tools.github.io/biohackathon2025",)
 BADGE_PATTERN = re.compile(
     r"""
     \[
@@ -85,6 +90,26 @@ def _deduplicate_badges(badges: Iterable[Badge]) -> list[Badge]:
         result.append(badge)
 
     return result
+
+
+def _is_legacy_bridge_badge(badge: Badge) -> bool:
+    """
+    Check whether a badge is a bridge badge pointing to a pre-migration docs URL.
+
+    Parameters
+    ----------
+    badge : Badge
+        The badge to check.
+
+    Returns
+    -------
+    bool
+        True if the badge links to one of `LEGACY_BRIDGE_DOCS_URLS`, False otherwise.
+    """
+    if badge.link_url is None:
+        return False
+    link = badge.link_url.strip().lower()
+    return any(link.startswith(url.lower()) for url in LEGACY_BRIDGE_DOCS_URLS)
 
 
 def _is_likely_badge_image_url(url: str) -> bool:
@@ -278,7 +303,7 @@ def _build_readme(
         color="blue",
         label_color="orange",
         alt_text="Bridge",
-        url="https://bio-tools.github.io/biohackathon2025/",
+        url=BRIDGE_DOCS_URL,
         svg_path=BRIDGE_BADGE_LOGO_PATH,
     )
 
@@ -305,7 +330,8 @@ def _build_readme(
         new_badges.append(tool_types_badge)
 
     existing_badges = _extract_existing_badges(gh_readme)
-    badges = _deduplicate_badges(new_badges + existing_badges + [bridge_badge])
+    kept_existing_badges = [b for b in existing_badges if not _is_legacy_bridge_badge(b)]
+    badges = _deduplicate_badges(new_badges + kept_existing_badges + [bridge_badge])
 
     # handle title
     existing_title = _extract_project_title(gh_readme)
