@@ -1,0 +1,23 @@
+name: Feature request
+description: Suggest an improvement or a new mapping
+labels: [ "enhancement" ]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem would this solve?
+    validations:
+      required: true
+  - type: dropdown
+    id: direction
+    attributes:
+      label: Direction
+      options:
+        - GitHub → bio.tools
+        - bio.tools → GitHub
+        - Both / not applicable
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: Which fields or files are involved, and how should they map?

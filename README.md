@@ -72,6 +72,11 @@ Contributions are welcome!
 Please read the [CONTRIBUTING](CONTRIBUTING.md) for branching, PR rules, and code style.
 Read the [Developer guide](https://bio-tools.github.io/metadata-bridge/dev_guide.html) for setup and commands.
 
+## Citing
+
+If you use this tool, please cite it using the metadata in [CITATION.cff](CITATION.cff)
+(GitHub's "Cite this repository" button uses it too).
+
 ---
 ## License
 This project is licensed under Apache 2.0. See the [LICENSE](LICENSE.txt) file for details.

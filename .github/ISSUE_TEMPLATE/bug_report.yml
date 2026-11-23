@@ -1,0 +1,28 @@
+name: Bug report
+description: Something isn't working as expected
+labels: [ "bug" ]
+body:
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What did you run, what did you expect, and what happened instead?
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: How to reproduce
+      description: Command or API call, plus the GitHub repo / bio.tools ID involved (if public).
+      render: shell
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: Output of `bridge --version`, or the commit you're on.
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: Relevant log output. Please remove any tokens.
+      render: text

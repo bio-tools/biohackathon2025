@@ -1,0 +1,29 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "metadata-bridge: a bidirectional metadata bridge between GitHub and bio.tools"
+type: software
+version: 0.1.0
+license: Apache-2.0
+repository-code: "https://github.com/bio-tools/metadata-bridge"
+url: "https://bio-tools.github.io/metadata-bridge/"
+abstract: >-
+  Extracts metadata from GitHub repositories to build bio.tools entries,
+  and uses bio.tools records to propose improvements back to GitHub
+  repositories (badges, descriptions, files).
+keywords:
+  - bio.tools
+  - GitHub
+  - metadata
+  - research software
+  - EDAM
+authors:
+  - given-names: Mariia
+    family-names: Steeghs-Turchina
+  - given-names: Anna
+    family-names: Niehues
+  - given-names: Veit
+    family-names: Schwämmle
+  - given-names: Magnus
+    family-names: Palmblad
+  - given-names: Ana
+    family-names: Mendes
