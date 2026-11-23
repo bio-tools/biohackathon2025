@@ -49,3 +49,10 @@ def test_root_cli_version():
     result = runner.invoke(root_cli, ["--version"])
     assert result.exit_code == 0
     assert result.stdout.strip() == f"metadata-bridge {__version__}"
+
+
+def test_root_cli_api_reload_can_be_disabled():
+    """`bridge api` accepts --no-reload (needed when running in containers)."""
+    result = runner.invoke(root_cli, ["api", "--help"])
+    assert result.exit_code == 0
+    assert "--no-reload" in result.stdout

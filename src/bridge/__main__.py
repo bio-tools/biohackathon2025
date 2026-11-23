@@ -35,7 +35,7 @@ main_app.add_typer(cli_app, name="cli", help="Run the Bridge CLI interface")
 def run_api(
     host: str = typer.Option("localhost", "--host", help="API host address"),
     port: int = typer.Option(8000, "--port", help="API port"),
-    reload: bool = typer.Option(True, "--reload", help="Enable hot reload"),
+    reload: bool = typer.Option(True, "--reload/--no-reload", help="Enable hot reload"),
 ):
     """Run the FastAPI web service."""
     # uvicorn.run(api_app, host=host, port=port, reload=reload)
