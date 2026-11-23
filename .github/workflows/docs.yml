@@ -103,8 +103,11 @@ jobs:
           preview: true
 
       # optional quality-of-life: post the preview URL as a PR comment
+      # skipped for PRs from forks: their token can't comment
       - name: Comment preview link on PR
-        if: github.event_name == 'pull_request'
+        if: >
+          github.event_name == 'pull_request' &&
+          github.event.pull_request.head.repo.full_name == github.repository
         uses: actions/github-script@v7
         with:
           script: |

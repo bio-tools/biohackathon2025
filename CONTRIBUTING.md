@@ -95,6 +95,24 @@ Do not commit built docs or diagrams.
 | workflow_dispatch | any    | Same                                                                                                          | Only if main    |
 
 
+### Lint & unit tests (`tests.yml`):
+
+Runs on every PR and on pushes to `dev` and `main`: `poetry run poe lint`, then `pytest` with coverage.
+
+### Release (`release.yml`):
+
+Runs when a `vX.Y.Z` tag is pushed. It checks the tag matches the version in `pyproject.toml`,
+builds the sdist and wheel, publishes them to PyPI (trusted publishing, `pypi` environment),
+and creates a GitHub release with generated notes.
+
+To release: bump the version with `poetry version <patch|minor|major>`, update `CHANGELOG.md`,
+merge `dev` → `main`, then tag `main` with `vX.Y.Z` and push the tag.
+
+### Dependabot
+
+Weekly grouped update PRs for Python dependencies and GitHub Actions, targeting `dev`.
+
+
 ## Design boundaries
 
 | Layer       | Responsibility                                           | Examples                                                    |
