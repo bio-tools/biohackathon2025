@@ -41,3 +41,6 @@ poetry.toml
 htmlcov/
 cosmic-ray.sqlite
 cosmic-ray-report.html
+
+# build output
+dist/
