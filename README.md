@@ -1,5 +1,16 @@
 # Bidirectional bridge: GitHub ⇄ bio.tools
 
+[![Status: archived](https://img.shields.io/badge/status-archived-lightgrey.svg)](https://github.com/bio-tools/metadata-bridge)
+
+> [!IMPORTANT]
+> **This repository is archived and no longer maintained.**
+>
+> Moved to **[metadata-bridge](https://github.com/bio-tools/metadata-bridge)**.
+> Please use the new repository for current code and documentation.
+>
+> This repository remains available as the version associated with the
+> [BioHackrXiv preprint](https://doi.org/10.37044/osf.io/8ktd6_v1).
+
 **Goal**: 
 make software metadata painless. 
 This tool extracts high-quality metadata from GitHub repos 
